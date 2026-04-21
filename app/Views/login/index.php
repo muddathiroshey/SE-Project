@@ -6,430 +6,290 @@ function showError($e){ return !empty($e) ? '<p class="error-msg">'.$e.'</p>' : 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign In — Nexus</title>
+<link rel="stylesheet" href="assets/style.css">
 <style>
-:root {
-    --green: #4CAF50;
-    --green-dark: #43a047;
-    --green-pale: rgba(76,175,80,0.07);
-    --green-ring: rgba(76,175,80,0.18);
-    --ink: #1a1a2e;
-    --ivory: #f0f0e8;
-    --ivory-muted: rgba(240,240,232,0.6);
-    --ivory-faint: rgba(240,240,232,0.25);
-    --border: #d8d8d0;
-    --bg: #f7f7f3;
-    --text: #1c1c1c;
-    --text-mid: #555;
-    --text-faint: #888;
-    --red: #e53935;
-    --radius: 9px;
-    --radius-lg: 14px;
+.auth-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
 }
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: var(--bg);
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
+.auth-panel-left {
+  background: var(--ink);
+  padding: 60px 64px;
+  display: flex; flex-direction: column; justify-content: space-between;
+  position: relative; overflow: hidden;
 }
-.shell {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    width: 100%;
-    max-width: 960px;
-    min-height: 620px;
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    box-shadow: 0 8px 40px rgba(0,0,0,0.13);
+.auth-panel-left::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(-45deg, transparent, transparent 60px, rgba(201,168,76,0.04) 60px, rgba(201,168,76,0.04) 61px);
+  pointer-events: none;
 }
-
-/* ── LEFT PANEL ── */
-.left {
-    background: var(--ink);
-    padding: 44px 48px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    position: relative;
-    overflow: hidden;
+.auth-logo { font-family: var(--font-display); font-size: 2rem; color: var(--ivory); }
+.auth-logo span { color: var(--gold); }
+.auth-left-body { position: relative; z-index: 1; }
+.auth-headline {
+  font-family: var(--font-display); font-size: 2.8rem; font-weight: 300;
+  color: var(--ivory); line-height: 1.15; margin-bottom: 20px;
 }
-.left::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(-45deg, transparent, transparent 55px, rgba(76,175,80,0.035) 55px, rgba(76,175,80,0.035) 56px);
-    pointer-events: none;
+.auth-headline em { color: var(--gold); font-style: italic; }
+.auth-sub { color: rgba(247,244,239,.6); font-size: .9375rem; margin-bottom: 40px; line-height: 1.75; }
+.auth-feature {
+  display: flex; align-items: flex-start; gap: 14px;
+  margin-bottom: 20px;
 }
-.logo {
-    font-size: 1.4rem;
-    font-weight: 500;
-    color: var(--ivory);
-    letter-spacing: -0.02em;
-    text-decoration: none;
-    position: relative;
-    z-index: 1;
+.auth-feature-icon {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 1px solid rgba(201,168,76,.4);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--gold); flex-shrink: 0;
 }
-.logo span { color: var(--green); }
-.left-body { position: relative; z-index: 1; }
-.headline {
-    font-size: 1.8rem;
-    font-weight: 300;
-    color: var(--ivory);
-    line-height: 1.2;
-    margin-bottom: 12px;
+.auth-feature-text { color: rgba(247,244,239,.75); font-size: .875rem; line-height: 1.6; }
+.auth-feature-text strong { color: var(--ivory); }
+.auth-quote {
+  border-top: 1px solid rgba(247,244,239,.1);
+  padding-top: 24px; margin-top: 40px;
 }
-.headline em { color: var(--green); font-style: italic; }
-.sub {
-    color: var(--ivory-muted);
-    font-size: 0.85rem;
-    line-height: 1.75;
-    margin-bottom: 28px;
+.auth-quote p { font-family: var(--font-display); font-style: italic; font-size: 1rem; color: rgba(247,244,239,.7); margin-bottom: 10px; }
+.auth-quote cite { font-size: .8rem; color: var(--gold); font-style: normal; font-family: var(--font-mono); }
+.auth-panel-right {
+  background: var(--ivory);
+  display: flex; align-items: center; justify-content: center;
+  padding: 60px 64px;
 }
-.feat { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
-.feat-icon {
-    width: 30px; height: 30px;
-    border-radius: 50%;
-    border: 1px solid rgba(76,175,80,0.4);
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
+.auth-form-box { width: 100%; max-width: 420px; }
+.auth-tabs { display: flex; border-bottom: 1.5px solid var(--border); margin-bottom: 32px; }
+.auth-tab {
+  flex: 1; padding: 12px; text-align: center;
+  font-size: .8125rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--ink-muted); border-bottom: 2px solid transparent; margin-bottom: -1.5px;
+  cursor: pointer; transition: all .15s; background: none; border-top: none; border-left: none; border-right: none;
+  font-family: var(--font-body);
 }
-.feat-text { font-size: 0.8rem; color: rgba(240,240,232,0.7); line-height: 1.55; }
-.feat-text strong { color: var(--ivory); font-weight: 500; display: block; margin-bottom: 1px; }
-.quote-block { border-top: 1px solid rgba(240,240,232,0.1); padding-top: 18px; margin-top: 28px; }
-.quote-block p { font-style: italic; font-size: 0.82rem; color: rgba(240,240,232,0.6); margin-bottom: 8px; line-height: 1.6; }
-.quote-block cite { font-size: 0.73rem; color: var(--green); font-style: normal; }
-.left-footer { position: relative; z-index: 1; font-size: 0.62rem; color: var(--ivory-faint); letter-spacing: 0.09em; text-transform: uppercase; }
-
-/* ── RIGHT PANEL ── */
-.right {
-    background: #ffffff;
-    padding: 44px 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.form-box { width: 100%; max-width: 340px; }
-.form-header { margin-bottom: 24px; }
-.form-header h2 { font-size: 1.4rem; font-weight: 500; color: var(--text); margin-bottom: 4px; }
-.form-header p { font-size: 0.82rem; color: var(--text-faint); }
-
-/* ── TABS ── */
-.tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
-.tab-btn {
-    flex: 1; padding: 10px; text-align: center;
-    font-size: 0.72rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase;
-    color: var(--text-faint); border: none; background: none; cursor: pointer;
-    border-bottom: 2px solid transparent; margin-bottom: -1px;
-    transition: color 0.15s, border-color 0.15s;
-    font-family: inherit;
-}
-.tab-btn.active { color: var(--text); border-bottom-color: var(--green); }
-.tab-panel { display: none; }
-.tab-panel.active { display: block; }
-
-/* ── FIELDS ── */
-.field { margin-bottom: 13px; }
-.field > label {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.73rem;
-    font-weight: 500;
-    color: var(--text-mid);
-    margin-bottom: 5px;
-    letter-spacing: 0.03em;
-}
-.iw { position: relative; }
-.iw svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); pointer-events: none; }
-.iw input { padding-left: 36px !important; }
-input[type="text"],
-input[type="email"],
-input[type="password"] {
-    width: 100%;
-    height: 40px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 0 12px;
-    font-size: 0.875rem;
-    font-family: inherit;
-    background: #fff;
-    color: var(--text);
-    outline: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
-}
-input[type="text"]:focus,
-input[type="email"]:focus,
-input[type="password"]:focus {
-    border-color: var(--green);
-    box-shadow: 0 0 0 3px var(--green-ring);
-}
-input[type="text"]:hover,
-input[type="email"]:hover,
-input[type="password"]:hover { border-color: var(--green); }
-.forgot { font-size: 0.72rem; color: var(--text-faint); text-decoration: none; font-weight: 400; }
-.forgot:hover { color: var(--green); }
-.hint { font-size: 0.7rem; color: var(--text-faint); margin-top: 4px; }
-
-/* ── ROLE CARDS ── */
-.role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 13px; }
+.auth-tab.active { color: var(--ink); border-bottom-color: var(--gold); }
+.role-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
 .role-card {
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 13px 10px;
-    cursor: pointer;
-    text-align: center;
-    transition: border-color 0.15s, background 0.15s;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  cursor: pointer; transition: all .15s;
+  text-align: center;
 }
-.role-card:hover { border-color: var(--green); background: var(--green-pale); }
-.role-card.sel { border-color: var(--green); background: var(--green-pale); }
-.role-card svg { display: block; margin: 0 auto 6px; }
-.role-label { font-size: 0.7rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-faint); }
-.role-card.sel .role-label { color: var(--text); }
-
-/* ── BUTTONS ── */
-.btn-primary {
-    width: 100%;
-    height: 40px;
-    background: var(--green);
-    color: #fff;
-    border: none;
-    border-radius: var(--radius);
-    font-size: 0.875rem;
-    font-weight: 500;
-    font-family: inherit;
-    cursor: pointer;
-    transition: background 0.15s;
-    margin-top: 4px;
-}
-.btn-primary:hover { background: var(--green-dark); }
-
-/* ── FORM ROW ── */
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-
-/* ── MISC ── */
-.check-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 16px; font-size: 0.78rem; color: var(--text-faint); }
-.check-row input { margin-top: 2px; accent-color: var(--green); }
-.check-row a { color: var(--green); text-decoration: none; }
-.note { font-size: 0.75rem; color: var(--text-faint); text-align: center; margin-top: 16px; }
-.note a { color: var(--green); text-decoration: none; }
-.note a:hover { text-decoration: underline; }
-.badge {
-    background: rgba(76,175,80,0.07);
-    border: 1px solid rgba(76,175,80,0.25);
-    border-radius: var(--radius);
-    padding: 10px 12px;
-    display: flex;
-    gap: 8px;
-    align-items: flex-start;
-    font-size: 0.77rem;
-    color: var(--text-mid);
-    margin-bottom: 14px;
-    line-height: 1.5;
+.role-card:hover { border-color: var(--gold); background: var(--gold-pale); }
+.role-card.selected { border-color: var(--gold); background: var(--gold-pale); }
+.role-card-icon { margin-bottom: 8px; display: flex; justify-content: center; }
+.role-card-label { font-size: .8rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-mid); }
+.role-card.selected .role-card-label { color: var(--ink); }
+.input-icon-wrap { position: relative; }
+.input-icon-wrap .form-control { padding-left: 40px; }
+.input-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--ink-faint); pointer-events: none; display: flex; align-items: center; }
+.forgot-link { font-size: .8125rem; color: var(--ink-muted); float: right; }
+.forgot-link:hover { color: var(--gold); }
+.auth-bottom-note { font-size: .8rem; color: var(--ink-muted); text-align: center; margin-top: 24px; }
+.auth-bottom-note a { color: var(--gold); }
+.verify-badge {
+  background: #EBF3EA; border: 1px solid #C5DBC2;
+  border-radius: var(--radius-md); padding: 12px 16px;
+  display: flex; gap: 10px; align-items: flex-start;
+  margin-bottom: 20px; font-size: .8125rem; color: var(--sage);
 }
 .error-msg {
-    background: #fff5f5;
-    border: 1px solid #fcc;
-    border-radius: var(--radius);
-    color: var(--red);
-    font-size: 0.8rem;
-    padding: 9px 12px;
-    margin-bottom: 14px;
-    text-align: center;
+  background: #fff5f5; border: 1px solid #fcc;
+  border-radius: var(--radius-md); padding: 10px 14px;
+  color: #e53935; font-size: .8125rem; margin-bottom: 16px; text-align: center;
 }
-
-/* ── RESPONSIVE ── */
-@media (max-width: 700px) {
-    body { padding: 0; }
-    .shell { grid-template-columns: 1fr; border-radius: 0; min-height: 100vh; }
-    .left { display: none; }
-    .right { padding: 40px 28px; align-items: flex-start; padding-top: 60px; }
+@media (max-width: 768px) {
+  .auth-shell { grid-template-columns: 1fr; }
+  .auth-panel-left { display: none; }
+  .auth-panel-right { padding: 40px 24px; }
 }
 </style>
 </head>
 <body>
-<div class="shell">
 
-  <!-- ── LEFT PANEL ── -->
-  <div class="left">
-    <a class="logo" href="#">Free<span>lance</span></a>
-    <div class="left-body">
-      <h2 class="headline">Work done right,<br><em>every</em> milestone.</h2>
-      <p class="sub">The platform built around milestones, contracts, and verified professionals — because trust is not optional.</p>
+<div class="auth-shell">
 
-      <div class="feat">
-        <div class="feat-icon">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+  <!-- LEFT PANEL -->
+  <div class="auth-panel-left">
+    <a class="auth-logo" href="index.html">Nexus<span>.</span></a>
+    <div class="auth-left-body">
+      <h2 class="auth-headline">Professional Work,<br><em>Properly</em> Structured.</h2>
+      <p class="auth-sub">Join the marketplace designed for engagements where credentials, milestones, and trust are not optional — they are foundational.</p>
+      <div class="auth-feature">
+        <div class="auth-feature-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" width="18px" fill="currentColor"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg>
         </div>
-        <div class="feat-text"><strong>Milestone-secured escrow</strong>Funds release only on bilateral approval, protecting both sides.</div>
+        <div class="auth-feature-text"><strong>Verified Credentials</strong><br>Every specialist undergoes multi-stage license and certification validation.</div>
       </div>
-      <div class="feat">
-        <div class="feat-icon">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <div class="auth-feature">
+        <div class="auth-feature-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" width="18px" fill="currentColor"><path d="M240-160q-66 0-113-47t-47-113v-480h640v480q0 66-47 113t-113 47H240Zm0-80h480q33 0 56.5-23.5T800-320v-400H160v400q0 33 23.5 56.5T240-240Zm120-120h240v-80H360v80Zm0-160h240v-80H360v80ZM240-240v-480 480Z"/></svg>
         </div>
-        <div class="feat-text"><strong>Verified credentials</strong>Every specialist undergoes multi-stage validation before listing.</div>
+        <div class="auth-feature-text"><strong>Milestone-Secured Escrow</strong><br>Funds release only on bilateral approval. Auto-approval protects specialists from non-responsive clients.</div>
       </div>
-      <div class="feat">
-        <div class="feat-icon">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <div class="auth-feature">
+        <div class="auth-feature-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" width="18px" fill="currentColor"><path d="m438-452-57-57q-11-11-27.5-11T325-509q-12 12-12 28.5t12 28.5l86 86q11 11 27 11t27-11l170-170q12-12 11.5-28.5T634-593q-12-12-28.5-12T577-593L438-452ZM480-80q-83 0-141.5-58.5T280-280v-320q0-66 32-121.5T400-810l200-110 200 110q56 32 88 87.5T920-600v320q0 83-58.5 141.5T720-80H480Z"/></svg>
         </div>
-        <div class="feat-text"><strong>Full audit trail</strong>Every action is logged. Disputes resolved with evidence, not memory.</div>
+        <div class="auth-feature-text"><strong>Arbitration &amp; Audit Trail</strong><br>Every action is logged. Disputes are resolved with assembled evidence, not memory.</div>
       </div>
-
-      <div class="quote-block">
-        <p>"Finally a platform that treats contracts as non-negotiable, not an afterthought."</p>
-        <cite>— A. Tawfik, Senior Consultant</cite>
+      <div class="auth-quote">
+        <p>"Nexus is the only platform where my legal credentials were treated as non-negotiable requirements, not optional additions."</p>
+        <cite>— J. Moreau, International Trade Lawyer</cite>
       </div>
     </div>
-    <p class="left-footer">Secured · KYC Verified · Escrow Protected</p>
+    <div style="position:relative;z-index:1;">
+      <p style="font-size:.75rem;font-family:var(--font-mono);color:rgba(247,244,239,.3);letter-spacing:.1em;">SECURED BY 256-BIT ENCRYPTION · KYC VERIFIED · ISO 27001</p>
+    </div>
   </div>
 
-  <!-- ── RIGHT PANEL ── -->
-  <div class="right">
-    <div class="form-box">
-      <div class="form-header">
-        <h2>Welcome back</h2>
-        <p>Sign in to your account or create one below.</p>
+  <!-- RIGHT PANEL -->
+  <div class="auth-panel-right">
+    <div class="auth-form-box">
+      <div style="margin-bottom:32px;">
+        <h2 style="font-family:var(--font-display);font-size:1.8rem;font-weight:500;margin-bottom:6px;">Welcome back</h2>
+        <p style="font-size:.9rem;color:var(--ink-muted);">Sign in to your Nexus account or create one below.</p>
       </div>
 
-      <div class="tabs">
-        <button class="tab-btn <?= $active_form === 'login'  ? 'active' : '' ?>" onclick="switchTab('login')">Sign in</button>
-        <button class="tab-btn <?= $active_form === 'signup' ? 'active' : '' ?>" onclick="switchTab('signup')">Create account</button>
+      <div class="auth-tabs">
+        <button class="auth-tab <?= $active_form === 'login'  ? 'active' : '' ?>" onclick="showTab('login')">Sign In</button>
+        <button class="auth-tab <?= $active_form === 'signup' ? 'active' : '' ?>" onclick="showTab('register')">Create Account</button>
       </div>
 
-      <!-- LOGIN TAB -->
-      <div id="tab-login" class="tab-panel <?= $active_form === 'login' ? 'active' : '' ?>">
+      <!-- LOGIN FORM -->
+      <div id="tab-login" <?= $active_form !== 'login' ? 'class="hidden"' : '' ?>>
         <form action="/login" method="post">
           <?= showError($errors['login']) ?>
 
-          <div class="field">
-            <label>Email address</label>
-            <div class="iw">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
-              <input type="email" name="email" placeholder="you@example.com" required>
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <div class="input-icon-wrap">
+              <span class="input-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" width="18px" fill="currentColor"><path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm320-280L160-640v400h640v-400L480-440Zm0-80 320-200H160l320 200ZM160-640v-80 480-400Z"/></svg>
+              </span>
+              <input type="email" name="email" class="form-control" placeholder="you@organization.com" required>
             </div>
           </div>
 
-          <div class="field">
-            <label>
-              Password
-              <a href="#" class="forgot">Forgot password?</a>
+          <div class="form-group">
+            <label class="form-label" style="display:flex;justify-content:space-between;">
+              Password <a href="#" class="forgot-link">Forgot password?</a>
             </label>
-            <div class="iw">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              <input type="password" name="password" placeholder="••••••••" required>
+            <div class="input-icon-wrap">
+              <span class="input-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" width="18px" fill="currentColor"><path d="M240-80q-33 0-56.5-23.5T160-160v-400q0-33 23.5-56.5T240-640h40v-80q0-83 58.5-141.5T480-920q83 0 141.5 58.5T680-720v80h40q33 0 56.5 23.5T800-560v400q0 33-23.5 56.5T720-80H240Zm0-80h480v-400H240v400Zm296.5-143.5Q560-327 560-360t-23.5-56.5Q513-440 480-440t-56.5 23.5Q400-393 400-360t23.5 56.5Q447-280 480-280t56.5-23.5ZM360-640h240v-80q0-50-35-85t-85-35q-50 0-85 35t-35 85v80ZM240-160v-400 400Z"/></svg>
+              </span>
+              <input type="password" name="password" class="form-control" placeholder="••••••••••" required>
             </div>
           </div>
 
-          <div class="check-row">
-            <input type="checkbox" id="rem" name="remember">
-            <label for="rem">Remember me on this device</label>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:24px;">
+            <input type="checkbox" id="remember" name="remember" style="accent-color:var(--gold);">
+            <label for="remember" style="font-size:.875rem;color:var(--ink-mid);">Remember me</label>
           </div>
 
-          <button class="btn-primary" type="submit" name="login">Sign in</button>
+          <button type="submit" name="login" class="btn btn-primary w-full" style="justify-content:center;">Sign In to Nexus</button>
         </form>
-        <p class="note">Don't have an account? <a href="#" onclick="switchTab('signup');return false;">Create one</a></p>
       </div>
 
-      <!-- SIGNUP TAB -->
-      <div id="tab-signup" class="tab-panel <?= $active_form === 'signup' ? 'active' : '' ?>">
+      <!-- REGISTER FORM -->
+      <div id="tab-register" <?= $active_form !== 'signup' ? 'class="hidden"' : '' ?>>
         <form action="/signup" method="post">
           <?= showError($errors['signup']) ?>
 
-          <div class="badge">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            All accounts undergo identity verification before accessing the marketplace.
+          <div class="verify-badge">
+            <svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" width="18px" fill="currentColor" style="flex-shrink:0;margin-top:1px"><path d="M480-80q-83 0-141.5-58.5T280-280v-320q0-66 32-121.5T400-810l200-110 200 110q56 32 88 87.5T920-600v320q0 83-58.5 141.5T720-80H480Z"/></svg>
+            <div>All accounts undergo identity verification before accessing the platform marketplace.</div>
           </div>
 
-          <div class="field">
-            <label>I am joining as</label>
-            <div class="role-grid">
-              <div class="role-card sel" onclick="selRole(this,'Client')" data-role="Client">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
-                <div class="role-label">Client</div>
+          <div class="form-group">
+            <label class="form-label">I am joining as</label>
+            <div class="role-selector">
+              <div class="role-card selected" onclick="selectRole(this,'Client')">
+                <div class="role-card-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M120-120v-560h160v-160h400v320h160v400H520v-160h-80v160H120Zm80-80h80v-80h-80v80Zm0-160h80v-80h-80v80Zm0-160h80v-80h-80v80Zm160 160h80v-80h-80v80Zm0-160h80v-80h-80v80Zm0-160h80v-80h-80v80Zm160 320h80v-80h-80v80Zm0-160h80v-80h-80v80Zm0-160h80v-80h-80v80Zm160 480h80v-80h-80v80Zm0-160h80v-80h-80v80Z"/></svg>
+                </div>
+                <div class="role-card-label">Client / Org</div>
               </div>
-              <div class="role-card" onclick="selRole(this,'Freelancer')" data-role="Freelancer">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>
-                <div class="role-label">Freelancer</div>
+              <div class="role-card" onclick="selectRole(this,'Freelancer')">
+                <div class="role-card-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M480-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-160v-112q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q66 0 130 15.5T736-378q29 15 46.5 43.5T800-272v112H160Zm80-80h480v-32q0-11-5.5-20T700-306q-54-27-109-40.5T480-360q-56 0-111 13.5T260-306q-9 5-14.5 14t-5.5 20v32Zm240-320q33 0 56.5-23.5T560-640q0-33-23.5-56.5T480-720q-33 0-56.5 23.5T400-640q0 33 23.5 56.5T480-560Zm0-80Zm0 400Z"/></svg>
+                </div>
+                <div class="role-card-label">Specialist</div>
               </div>
             </div>
             <input type="hidden" name="role" id="role-input" value="Client" required>
           </div>
 
           <div class="form-row">
-            <div class="field">
-              <label>First name</label>
-              <input type="text" name="fname" placeholder="Amira" required>
+            <div class="form-group">
+              <label class="form-label">First Name</label>
+              <input type="text" name="fname" class="form-control" placeholder="Amira" required>
             </div>
-            <div class="field">
-              <label>Last name</label>
-              <input type="text" name="lname" placeholder="Tawfik">
-            </div>
-          </div>
-
-          <div class="field">
-            <label>Email address</label>
-            <div class="iw">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
-              <input type="email" name="email" placeholder="you@example.com" required>
+            <div class="form-group">
+              <label class="form-label">Last Name</label>
+              <input type="text" name="lname" class="form-control" placeholder="Tawfik">
             </div>
           </div>
 
-          <div class="field">
-            <label>Password</label>
-            <div class="iw">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              <input type="password" name="password" placeholder="Min. 8 characters" required>
-            </div>
-            <p class="hint">Must include uppercase, number, and symbol.</p>
-          </div>
-
-          <div class="field">
-            <label>Confirm password</label>
-            <div class="iw">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><polyline points="9,16 11,18 15,14"/></svg>
-              <input type="password" name="confirm_password" placeholder="Repeat password" required>
+          <div class="form-group">
+            <label class="form-label">Professional Email</label>
+            <div class="input-icon-wrap">
+              <span class="input-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" width="18px" fill="currentColor"><path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm320-280L160-640v400h640v-400L480-440Zm0-80 320-200H160l320 200ZM160-640v-80 480-400Z"/></svg>
+              </span>
+              <input type="email" name="email" class="form-control" placeholder="amira@company.com" required>
             </div>
           </div>
 
-          <div class="check-row">
-            <input type="checkbox" id="terms" required>
-            <label for="terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</label>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <div class="input-icon-wrap">
+              <span class="input-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" width="18px" fill="currentColor"><path d="M240-80q-33 0-56.5-23.5T160-160v-400q0-33 23.5-56.5T240-640h40v-80q0-83 58.5-141.5T480-920q83 0 141.5 58.5T680-720v80h40q33 0 56.5 23.5T800-560v400q0 33-23.5 56.5T720-80H240Zm0-80h480v-400H240v400Zm296.5-143.5Q560-327 560-360t-23.5-56.5Q513-440 480-440t-56.5 23.5Q400-393 400-360t23.5 56.5Q447-280 480-280t56.5-23.5ZM360-640h240v-80q0-50-35-85t-85-35q-50 0-85 35t-35 85v80ZM240-160v-400 400Z"/></svg>
+              </span>
+              <input type="password" name="password" class="form-control" placeholder="Min. 10 characters" required>
+            </div>
+            <p class="form-hint">Must include uppercase, number, and symbol.</p>
           </div>
 
-          <button class="btn-primary" type="submit" name="signup">Create account</button>
+          <div class="form-group">
+            <label class="form-label">Confirm Password</label>
+            <div class="input-icon-wrap">
+              <span class="input-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" width="18px" fill="currentColor"><path d="M240-80q-33 0-56.5-23.5T160-160v-400q0-33 23.5-56.5T240-640h40v-80q0-83 58.5-141.5T480-920q83 0 141.5 58.5T680-720v80h40q33 0 56.5 23.5T800-560v400q0 33-23.5 56.5T720-80H240Zm0-80h480v-400H240v400Zm296.5-143.5Q560-327 560-360t-23.5-56.5Q513-440 480-440t-56.5 23.5Q400-393 400-360t23.5 56.5Q447-280 480-280t56.5-23.5ZM360-640h240v-80q0-50-35-85t-85-35q-50 0-85 35t-35 85v80ZM240-160v-400 400Z"/></svg>
+              </span>
+              <input type="password" name="confirm_password" class="form-control" placeholder="••••••••••" required>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:24px;">
+            <input type="checkbox" id="terms" name="terms" style="accent-color:var(--gold);margin-top:3px;" required>
+            <label for="terms" style="font-size:.8125rem;color:var(--ink-mid);">I agree to Nexus's <a href="platform-guide.html#terms" style="color:var(--gold);">Terms of Service</a> and acknowledge the <a href="platform-guide.html#kyc" style="color:var(--gold);">KYC Verification Policy</a>.</label>
+          </div>
+
+          <button type="submit" name="signup" class="btn btn-primary w-full" style="justify-content:center;">Create Account &amp; Begin Verification</button>
         </form>
-        <p class="note">Already have an account? <a href="#" onclick="switchTab('login');return false;">Sign in</a></p>
       </div>
 
+      <p class="auth-bottom-note">Need help? <a href="platform-guide.html#support">Contact support</a></p>
     </div>
   </div>
+
 </div>
 
 <script>
-function switchTab(name) {
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('tab-' + name).classList.add('active');
-    const idx = name === 'login' ? 0 : 1;
-    document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+function showTab(t) {
+  document.getElementById('tab-login').classList.toggle('hidden', t !== 'login');
+  document.getElementById('tab-register').classList.toggle('hidden', t !== 'register');
+  document.querySelectorAll('.auth-tab').forEach((el,i) => el.classList.toggle('active', (i===0&&t==='login')||(i===1&&t==='register')));
 }
-function selRole(el, role) {
-    document.querySelectorAll('.role-card').forEach(c => {
-        c.classList.remove('sel');
-        c.querySelector('svg').setAttribute('stroke', '#aaa');
-        c.querySelector('.role-label').style.color = '';
-    });
-    el.classList.add('sel');
-    el.querySelector('svg').setAttribute('stroke', '#4CAF50');
-    document.getElementById('role-input').value = role;
+function selectRole(el, role) {
+  document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('role-input').value = role;
 }
 </script>
 </body>
