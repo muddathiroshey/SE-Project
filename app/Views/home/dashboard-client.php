@@ -226,6 +226,28 @@ body {
   background: var(--gold);
   color: var(--ink);
 }
+.success-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%) translateY(10px);
+  background: #eaf7ef;
+  border: 1px solid #9cc7ac;
+  color: #1f5f3a;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.12);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .28s ease, transform .28s ease;
+  z-index: 1200;
+}
+.success-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
 </style>
 </head>
 <body>
@@ -495,6 +517,10 @@ body {
   </div>
 </div>
 
+<div id="post-success-toast" class="success-toast" role="status" aria-live="polite">
+  Project posted successfully
+</div>
+
 <script>
 function toggleDD() {
   document.getElementById('user-dd').classList.toggle('hidden');
@@ -502,6 +528,29 @@ function toggleDD() {
 document.addEventListener('click', e => {
   if (!e.target.closest('.dropdown')) document.getElementById('user-dd')?.classList.add('hidden');
 });
+(function showPostSuccessToastFromQuery() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('posted') !== '1') return;
+
+  const toast = document.getElementById('post-success-toast');
+  if (!toast) return;
+
+  requestAnimationFrame(() => {
+    toast.classList.add('show');
+  });
+
+  setTimeout(() => {
+    toast.classList.remove('show');
+  }, 2400);
+
+  // Remove the query flag so the toast does not reappear on refresh.
+  params.delete('posted');
+  const cleanQuery = params.toString();
+  const cleanUrl = cleanQuery
+    ? `${window.location.pathname}?${cleanQuery}${window.location.hash}`
+    : `${window.location.pathname}${window.location.hash}`;
+  window.history.replaceState({}, '', cleanUrl);
+})();
 </script>
 </body>
 </html>
