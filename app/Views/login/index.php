@@ -10,133 +10,14 @@ function showError($e){ return !empty($e) ? '<p class="error-msg">'.$e.'</p>' : 
 <title>Nexus — Sign In / Profile Setup</title>
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/signup.css">
-<style>
-/* ─── SHARED ──────────────────────────────────────── */
-:root {
-  --blue-light:#a8d5ff;
-  --blue-pale:#eef7ff;
-}
+<link rel="stylesheet" href="assets/login.css">
 
-/* ─── AUTH ────────────────────────────────────────── */
-.auth-shell {
-  min-height:100vh;
-  display:grid;
-  grid-template-columns:1fr 1fr;
-}
-.auth-panel-left {
-  background:var(--ink);
-  padding:60px 64px;
-  display:flex;flex-direction:column;justify-content:space-between;
-  position:relative;overflow:hidden;
-}
-.auth-panel-left::before {
-  content:'';
-  position:absolute;inset:0;
-  background:repeating-linear-gradient(-45deg,transparent,transparent 60px,rgba(201,168,76,.04) 60px,rgba(201,168,76,.04) 61px);
-  pointer-events:none;
-}
-.auth-logo{font-family:var(--font-display);font-size:2rem;color:var(--ivory);}
-.auth-logo span{color:var(--gold);}
-.auth-left-body{position:relative;z-index:1;}
-.auth-headline{font-family:var(--font-display);font-size:2.8rem;font-weight:300;color:var(--ivory);line-height:1.15;margin-bottom:20px;}
-.auth-headline em{color:var(--gold);font-style:italic;}
-.auth-sub{color:rgba(247,244,239,.6);font-size:.9375rem;margin-bottom:40px;line-height:1.75;}
-.auth-feature{display:flex;align-items:flex-start;gap:14px;margin-bottom:20px;}
-.auth-feature-icon{width:36px;height:36px;border-radius:50%;border:1px solid rgba(201,168,76,.4);display:flex;align-items:center;justify-content:center;color:var(--gold);flex-shrink:0;}
-.auth-feature-text{color:rgba(247,244,239,.75);font-size:.875rem;line-height:1.6;}
-.auth-feature-text strong{color:var(--ivory);}
-.auth-quote{border-top:1px solid rgba(247,244,239,.1);padding-top:24px;margin-top:40px;}
-.auth-quote p{font-family:var(--font-display);font-style:italic;font-size:1rem;color:rgba(247,244,239,.7);margin-bottom:10px;}
-.auth-quote cite{font-size:.8rem;color:var(--gold);font-style:normal;font-family:var(--font-mono);}
-.auth-panel-right{background:var(--ivory);display:flex;align-items:center;justify-content:center;padding:60px 64px;}
-.auth-form-box{width:100%;max-width:420px;}
-.auth-tabs{display:flex;border-bottom:1.5px solid var(--border);margin-bottom:32px;}
-.auth-tab{flex:1;padding:12px;text-align:center;font-size:.8125rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-muted);border-bottom:2px solid transparent;margin-bottom:-1.5px;cursor:pointer;transition:all .15s;background:none;border-top:none;border-left:none;border-right:none;font-family:var(--font-body);}
-.auth-tab.active{color:var(--ink);border-bottom-color:var(--gold);}
-.role-selector{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;}
-.role-card{border:1.5px solid var(--border);border-radius:var(--radius-md);padding:16px;cursor:pointer;transition:all .15s;text-align:center;}
-.role-card:hover{border-color:var(--gold);background:var(--gold-pale);}
-.role-card.selected{border-color:var(--gold);background:var(--gold-pale);}
-.role-card-icon{margin-bottom:8px;display:flex;justify-content:center;}
-.role-card-label{font-size:.8rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-mid);}
-.role-card.selected .role-card-label{color:var(--ink);}
-.input-icon-wrap{position:relative;}
-.input-icon-wrap .form-control{padding-left:40px;}
-.input-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--ink-faint);pointer-events:none;display:flex;align-items:center;}
-.forgot-link{font-size:.8125rem;color:var(--ink-muted);float:right;}
-.forgot-link:hover{color:var(--gold);}
-.auth-bottom-note{font-size:.8rem;color:var(--ink-muted);text-align:center;margin-top:24px;}
-.auth-bottom-note a{color:var(--gold);}
-.verify-badge{background:#EBF3EA;border:1px solid #C5DBC2;border-radius:var(--radius-md);padding:12px 16px;display:flex;gap:10px;align-items:flex-start;margin-bottom:20px;font-size:.8125rem;color:var(--sage);}
-.error-msg{background:#fff5f5;border:1px solid #fcc;border-radius:var(--radius-md);padding:10px 14px;color:#e53935;font-size:.8125rem;margin-bottom:16px;text-align:center;}
-@media(max-width:768px){
-  .auth-shell{grid-template-columns:1fr;}
-  .auth-panel-left{display:none;}
-  .auth-panel-right{padding:40px 24px;}
-}
 
-/* ─── WIZARD ──────────────────────────────────────── */
-.upload-zone{border:2px dashed var(--gold-light);border-radius:var(--radius-md);padding:32px;text-align:center;cursor:pointer;transition:all .15s;background:var(--gold-pale);}
-.upload-zone:hover{border-color:var(--gold);background:var(--gold-pale);box-shadow:0 0 0 2px rgba(201,168,76,.1);}
-.upload-zone.drag-over{border-color:var(--gold);background:var(--gold-pale);box-shadow:0 0 0 3px rgba(201,168,76,.2);}
-.upload-zone.error{border-color:#d32f2f !important;border-width:2px !important;background:rgba(211,47,47,.05) !important;}
-.file-preview{display:flex;align-items:center;gap:12px;padding:16px;background:var(--gold-pale);border-radius:var(--radius-md);border:1px solid var(--gold-light);}
-.file-preview-icon{font-size:1.5rem;}
-.file-preview-info{flex:1;text-align:left;}
-.file-preview-name{font-weight:600;font-size:.9rem;color:var(--ink);}
-.file-preview-size{font-size:.75rem;color:var(--ink-muted);margin-top:2px;}
-.file-preview-remove{padding:4px 8px;font-size:.75rem;color:var(--red);cursor:pointer;background:none;border:none;}
-.form-control.error{border-color:#d32f2f !important;border-width:2px !important;background:rgba(211,47,47,.05) !important;}
-.form-control.error:focus{border-color:#d32f2f !important;border-width:2px !important;box-shadow:0 0 0 4px rgba(211,47,47,.15) !important;}
-.error-message{color:#d32f2f;font-size:.8rem;font-weight:600;margin-top:6px;display:none;}
-.error-message.show{display:block;}
-.education-card.error{border-color:#d32f2f !important;border-width:2px !important;background:rgba(211,47,47,.05) !important;}
-.skill-grid.error{border:2px solid #d32f2f;border-radius:var(--radius-md);padding:12px;background:rgba(211,47,47,.05);}
-.checkbox-group.error{border:2px solid #d32f2f;padding:16px;border-radius:var(--radius-md);background:rgba(211,47,47,.05);}
-.checkbox-error{color:#d32f2f;font-size:.8rem;font-weight:600;margin-top:8px;display:none;}
-.checkbox-error.show{display:block;}
-.wizard-shell{display:grid;grid-template-columns:280px 1fr;gap:0;min-height:calc(100vh - var(--nav-h));}
-.wizard-left{background:var(--ink);padding:40px 32px;border-right:1px solid rgba(255,255,255,.08);position:sticky;top:var(--nav-h);height:calc(100vh - var(--nav-h));overflow-y:auto;}
-.wizard-left-logo{font-family:var(--font-display);font-size:1.4rem;color:var(--ivory);margin-bottom:40px;}
-.wizard-left-logo span{color:var(--gold);}
-.wizard-left-step{display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer;}
-.wizard-left-step:last-child{border-bottom:none;}
-.wzl-dot{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;font-family:var(--font-mono);border:1.5px solid rgba(255,255,255,.2);color:rgba(247,244,239,.4);transition:all .15s;}
-.wzl-dot.done{background:var(--sage);border-color:var(--sage);color:#fff;}
-.wzl-dot.active{background:var(--gold);border-color:var(--gold);color:var(--ink);box-shadow:0 0 0 4px rgba(201,168,76,.2);}
-.wzl-title{font-size:.875rem;font-weight:700;color:rgba(247,244,239,.4);transition:all .15s;}
-.wzl-title.active{color:var(--ivory);}
-.wzl-title.done{color:rgba(247,244,239,.7);}
-.wzl-sub{font-size:.75rem;color:rgba(247,244,239,.3);margin-top:2px;}
-.wizard-right{padding:48px 60px;background:var(--ivory);}
-.wizard-step-panel{display:none;animation:fadeIn .25s;}
-.wizard-step-panel.active{display:block;}
-@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;}
-.form-row.full{grid-template-columns:1fr;}
-.skill-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:8px;}
-.skill-badge{border:1.5px solid var(--border);border-radius:var(--radius-md);padding:14px 12px;text-align:center;cursor:pointer;transition:all .15s;background:var(--ivory-card);font-size:.8125rem;font-weight:600;}
-.skill-badge:hover{border-color:var(--gold-light);box-shadow:var(--shadow-md);}
-.skill-badge.selected{border-color:var(--gold);background:var(--gold-pale);box-shadow:0 0 0 2px rgba(201,168,76,.2);}
-.education-select{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px;}
-.education-card{border:1.5px solid var(--border);border-radius:var(--radius-md);padding:20px;text-align:center;cursor:pointer;transition:all .15s;background:var(--ivory-card);}
-.education-card:hover{border-color:var(--gold-light);}
-.education-card.selected{border-color:var(--gold);background:var(--gold-pale);box-shadow:0 0 0 2px rgba(201,168,76,.2);}
-.education-level{font-weight:700;margin-bottom:6px;}
-.education-sub{font-size:.75rem;color:var(--ink-muted);}
-.step-nav{display:flex;justify-content:space-between;align-items:center;margin-top:48px;padding-top:24px;border-top:1px solid var(--border);}
-.step-counter{font-size:.8rem;color:var(--ink-muted);font-family:var(--font-mono);}
-.input-hint{font-size:.75rem;color:var(--ink-muted);margin-top:4px;}
-
-/* ─── PAGE VISIBILITY ─────────────────────────────── */
-#auth-page, #wizard-page { display:none; }
-#auth-page.visible, #wizard-page.visible { display:block; }
-</style>
 </head>
 <body>
 
 <!-- ══════════════════════════════════════════════════
-     PAGE 1 — AUTH (Login / Signup)
+      PAGE 1 — AUTH (Login / Signup)
 ══════════════════════════════════════════════════ -->
 <div id="auth-page" class="visible">
 
@@ -190,7 +71,7 @@ function showError($e){ return !empty($e) ? '<p class="error-msg">'.$e.'</p>' : 
         </div>
 
         <!-- LOGIN FORM -->
-        <div id="tab-login" <?= $active_form !== 'login' ? 'class="hidden"' : '' ?>>
+        <div id="login" <?= $active_form !== 'login' ? 'class="hidden"' : '' ?>>
           <form action="/login" method="post">
             <?= showError($errors['login']) ?>
             <div class="form-group">
@@ -218,7 +99,7 @@ function showError($e){ return !empty($e) ? '<p class="error-msg">'.$e.'</p>' : 
         </div>
 
         <!-- REGISTER FORM -->
-        <div id="tab-register" <?= $active_form !== 'signup' ? 'class="hidden"' : '' ?>>
+        <div id="register" <?= $active_form !== 'signup' ? 'class="hidden"' : '' ?>>
           <form action="/signup" method="post" id="signup-form">
             <?= showError($errors['signup']) ?>
             <div class="verify-badge">
@@ -290,7 +171,6 @@ function showError($e){ return !empty($e) ? '<p class="error-msg">'.$e.'</p>' : 
 
   </div>
 </div>
-
 
 <!-- ══════════════════════════════════════════════════
      PAGE 2 — PROFILE SETUP WIZARD (Specialist only)
@@ -569,325 +449,378 @@ function showError($e){ return !empty($e) ? '<p class="error-msg">'.$e.'</p>' : 
   </div><!-- /wizard-shell -->
 </div><!-- /wizard-page -->
 
-
 <script>
-/* ─── PAGE TRANSITION ─────────────────────────────── */
-function showWizard() {
-  document.getElementById('auth-page').classList.remove('visible');
-  document.getElementById('wizard-page').classList.add('visible');
-  window.scrollTo(0,0);
-}
-
-function handleSignup() {
-  const role = document.getElementById('role-input').value;
-  if (role === 'Freelancer') {
-    // Specialist: transition to wizard instead of submitting
-    showWizard();
-  } else {
-    // Client: normal form submit
-    document.getElementById('signup-form').submit();
-  }
-}
-
-/* ─── AUTH HELPERS ────────────────────────────────── */
-function showTab(t) {
-  document.getElementById('tab-login').classList.toggle('hidden', t !== 'login');
-  document.getElementById('tab-register').classList.toggle('hidden', t !== 'register');
-  document.querySelectorAll('.auth-tab').forEach((el,i) => el.classList.toggle('active',(i===0&&t==='login')||(i===1&&t==='register')));
-}
-function selectRole(el, role) {
-  document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
-  el.classList.add('selected');
-  document.getElementById('role-input').value = role;
-}
-
-/* ─── WIZARD STATE ────────────────────────────────── */
-let currentStep = 1;
-let selectedSkills = new Set();
-let selectedNiche = '';
-let selectedEducation = '';
-let certificates = [];
-let cvFileRef = null;
-
-const skillsByNiche = {
-  'data-science':   ['Python','Machine Learning','Data Analysis','SQL','Statistics','NLP','Deep Learning','MLOps','Time Series'],
-  'legal':          ['Contract Review','Legal Research','Compliance Audit','Risk Assessment','Legal Writing','Case Law Analysis','Document Drafting','Due Diligence'],
-  'translation':    ['Technical Writing','Localization','Terminology Management','Machine Translation','File Format Conversion','Quality Assurance','Domain Expertise','Cultural Adaptation'],
-  'financial':      ['Excel Modeling','Financial Analysis','Valuation','Forecasting','Investment Analysis','Risk Analysis','Budget Planning','Scenario Analysis'],
-  'biomedical':     ['Research Methodology','Data Analysis','Literature Review','Scientific Writing','Statistical Analysis','Lab Techniques','Regulatory Compliance','Publication Support'],
-  'cybersecurity':  ['Penetration Testing','Vulnerability Assessment','Security Audits','Risk Management','Threat Analysis','Security Protocols','Incident Response','Compliance']
-};
-const nicheDisplayNames = {
-  'data-science':'Data Science & Machine Learning','legal':'Legal Consulting & Compliance',
-  'translation':'Technical Translation & Localization','financial':'Financial Modelling & Analysis',
-  'biomedical':'Biomedical Research & Publishing','cybersecurity':'Cybersecurity Audit & Analysis'
-};
-const educationDisplayNames = {
-  'high-school':'High School','bachelor':"Bachelor's Degree",'master':"Master's Degree",'phd':'PhD / Doctorate'
-};
-let formData = {};
-
-function goToStep(step) {
-  if (step < currentStep) { currentStep = step; updateUI(); return; }
-  if (currentStep === 1 && !validateStep1()) return;
-  if (currentStep === 2 && !validateStep2()) return;
-  currentStep = step;
-  updateUI();
-  if (step === 3) { collectFormData(); displayReviewData(); }
-}
-
-function updateUI() {
-  document.querySelectorAll('.wizard-step-panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('step' + currentStep).classList.add('active');
-  for (let i = 1; i <= 3; i++) {
-    const dot = document.getElementById('dot' + i);
-    const title = document.getElementById('t' + i);
-    if (i < currentStep) {
-      dot.className = 'wzl-dot done'; dot.textContent = '✓';
-      title.className = 'wzl-title done';
-    } else if (i === currentStep) {
-      dot.className = 'wzl-dot active'; dot.textContent = i;
-      title.className = 'wzl-title active';
-    } else {
-      dot.className = 'wzl-dot'; dot.textContent = i;
-      title.className = 'wzl-title';
+  /* ─── PAGE TRANSITION ─────────────────────────────── */
+    function showWizard() {
+        document.getElementById('auth-page').classList.remove('visible');
+        document.getElementById('wizard-page').classList.add('visible');
+        window.scrollTo(0, 0);
     }
-  }
-  window.scrollTo(0,0);
-}
 
-function updateSkillsForNiche() {
-  const niche = document.getElementById('primaryNiche').value;
-  selectedNiche = niche; selectedSkills.clear();
-  const sg = document.getElementById('skillGrid');
-  sg.innerHTML = ''; sg.classList.remove('error');
-  document.getElementById('skillGrid-error').classList.remove('show');
-  if (niche && skillsByNiche[niche]) {
-    skillsByNiche[niche].forEach(skill => {
-      const b = document.createElement('div');
-      b.className = 'skill-badge'; b.textContent = skill;
-      b.onclick = function(){ toggleSkill(this); };
-      sg.appendChild(b);
-    });
-  }
-  document.getElementById('skillCount').textContent = '0';
-}
+    function handleSignup() {
+        const role = document.getElementById('role-input').value;
+        if (role === 'Freelancer') {
+            // Specialist: transition to wizard instead of submitting
+            showWizard();
+        } else {
+            // Client: normal form submit
+            document.getElementById('signup-form').submit();
+        }
+    }
 
-function toggleSkill(elem) {
-  elem.classList.toggle('selected');
-  const skill = elem.textContent;
-  elem.classList.contains('selected') ? selectedSkills.add(skill) : selectedSkills.delete(skill);
-  document.getElementById('skillCount').textContent = selectedSkills.size;
-  if (selectedSkills.size >= 1) {
-    document.getElementById('skillGrid').classList.remove('error');
-    document.getElementById('skillGrid-error').classList.remove('show');
-  }
-}
+    /* ─── AUTH HELPERS ────────────────────────────────── */
+    function showTab(t) {
+        document.getElementById('login').classList.toggle('hidden', t !== 'login');
+        document.getElementById('register').classList.toggle('hidden', t !== 'register');
+        document.querySelectorAll('.auth-tab').forEach((el, i) => el.classList.toggle('active', (i === 0 && t === 'login') || (i === 1 && t === 'register')));
+    }
+    function selectRole(el, role) {
+        document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+        document.getElementById('role-input').value = role;
+    }
 
-function selectEducation(elem, value) {
-  document.querySelectorAll('.education-card').forEach(e => e.classList.remove('selected','error'));
-  elem.classList.add('selected'); selectedEducation = value;
-  document.getElementById('educationSelect-error').classList.remove('show');
-}
+    /* ─── WIZARD STATE ────────────────────────────────── */
+    let currentStep = 1;
+    let selectedSkills = new Set();
+    let selectedNiche = '';
+    let selectedEducation = '';
+    let certificates = [];
+    let cvFileRef = null;
 
-/* file upload helpers */
-function addDragHover(e){ e.preventDefault(); e.stopPropagation(); e.currentTarget.classList.add('drag-over'); }
-function removeDragHover(e){ e.currentTarget.classList.remove('drag-over'); }
-function handleFilesDrop(e, type) {
-  e.preventDefault(); e.stopPropagation(); e.currentTarget.classList.remove('drag-over');
-  const files = e.dataTransfer.files;
-  if (files.length > 0) {
-    const fi = document.getElementById(type + 'File');
-    const dt = new DataTransfer(); dt.items.add(files[0]); fi.files = dt.files;
-    fi.dispatchEvent(new Event('change',{bubbles:true}));
-  }
-}
-function getFileIcon(n){ if(n.endsWith('.pdf')) return '📕'; if(n.match(/\.(jpg|jpeg|png|gif)$/i)) return '🖼️'; return '📄'; }
-function formatFileSize(b){ if(!b) return ''; if(b<1024) return b+' B'; if(b<1048576) return (b/1024).toFixed(1)+' KB'; return (b/1048576).toFixed(1)+' MB'; }
+    const skillsByNiche = {
+        'data-science': ['Python', 'Machine Learning', 'Data Analysis', 'SQL', 'Statistics', 'NLP', 'Deep Learning', 'MLOps', 'Time Series'],
+        'legal': ['Contract Review', 'Legal Research', 'Compliance Audit', 'Risk Assessment', 'Legal Writing', 'Case Law Analysis', 'Document Drafting', 'Due Diligence'],
+        'translation': ['Technical Writing', 'Localization', 'Terminology Management', 'Machine Translation', 'File Format Conversion', 'Quality Assurance', 'Domain Expertise', 'Cultural Adaptation'],
+        'financial': ['Excel Modeling', 'Financial Analysis', 'Valuation', 'Forecasting', 'Investment Analysis', 'Risk Analysis', 'Budget Planning', 'Scenario Analysis'],
+        'biomedical': ['Research Methodology', 'Data Analysis', 'Literature Review', 'Scientific Writing', 'Statistical Analysis', 'Lab Techniques', 'Regulatory Compliance', 'Publication Support'],
+        'cybersecurity': ['Penetration Testing', 'Vulnerability Assessment', 'Security Audits', 'Risk Management', 'Threat Analysis', 'Security Protocols', 'Incident Response', 'Compliance']
+    };
+    const nicheDisplayNames = {
+        'data-science': 'Data Science & Machine Learning', 'legal': 'Legal Consulting & Compliance',
+        'translation': 'Technical Translation & Localization', 'financial': 'Financial Modelling & Analysis',
+        'biomedical': 'Biomedical Research & Publishing', 'cybersecurity': 'Cybersecurity Audit & Analysis'
+    };
+    const educationDisplayNames = {
+        'high-school': 'High School', 'bachelor': "Bachelor's Degree", 'master': "Master's Degree", 'phd': 'PhD / Doctorate'
+    };
+    let formData = {};
 
-function previewFile(input, type) {
-  const file = input.files[0]; if (!file) return;
-  if (type === 'id') {
-    const valid = ['image/jpeg','image/png','image/gif','image/webp'];
-    if (!valid.includes(file.type)) { alert('ID document must be an image file (JPG, PNG, GIF, or WebP)'); input.value=''; return; }
-  }
-  if (type === 'cv') cvFileRef = file;
-  document.getElementById(type + 'FileSelected').value = file.name;
-  showFilePreview(type, file);
-}
+    function goToStep(step) {
+        if (step < currentStep) { currentStep = step; updateUI(); return; }
+        if (currentStep === 1 && !validateStep1()) return;
+        if (currentStep === 2 && !validateStep2()) return;
+        currentStep = step;
+        updateUI();
+        if (step === 3) { collectFormData(); displayReviewData(); }
+    }
 
-function showFilePreview(type, file) {
-  const uz = document.getElementById(type + 'UploadZone');
-  const pd = document.getElementById(type + 'FilePreview');
-  pd.innerHTML = `<div class="file-preview"><div class="file-preview-icon">${getFileIcon(file.name)}</div><div class="file-preview-info"><div class="file-preview-name">${file.name}</div><div class="file-preview-size">${formatFileSize(file.size)}</div></div><button type="button" class="file-preview-remove" onclick="removeFilePreview('${type}')">✕ Remove</button></div>`;
-  uz.style.display = 'none'; pd.style.display = 'block';
-  uz.classList.remove('error');
-  const em = document.getElementById(type + 'UploadZone-error');
-  if (em) em.classList.remove('show');
-}
+    function updateUI() {
+        document.querySelectorAll('.wizard-step-panel').forEach(p => p.classList.remove('active'));
+        document.getElementById('step' + currentStep).classList.add('active');
+        for (let i = 1; i <= 3; i++) {
+            const dot = document.getElementById('dot' + i);
+            const title = document.getElementById('t' + i);
+            if (i < currentStep) {
+                dot.className = 'wzl-dot done'; dot.textContent = '✓';
+                title.className = 'wzl-title done';
+            } else if (i === currentStep) {
+                dot.className = 'wzl-dot active'; dot.textContent = i;
+                title.className = 'wzl-title active';
+            } else {
+                dot.className = 'wzl-dot'; dot.textContent = i;
+                title.className = 'wzl-title';
+            }
+        }
+        window.scrollTo(0, 0);
+    }
 
-function removeFilePreview(type) {
-  const uz = document.getElementById(type + 'UploadZone');
-  const pd = document.getElementById(type + 'FilePreview');
-  document.getElementById(type + 'File').value = '';
-  document.getElementById(type + 'FileSelected').value = '';
-  if (type === 'cv') cvFileRef = null;
-  pd.style.display = 'none'; uz.style.display = 'block';
-}
+    function updateSkillsForNiche() {
+        const niche = document.getElementById('primaryNiche').value;
+        selectedNiche = niche; selectedSkills.clear();
+        const sg = document.getElementById('skillGrid');
+        sg.innerHTML = ''; sg.classList.remove('error');
+        document.getElementById('skillGrid-error').classList.remove('show');
+        if (niche && skillsByNiche[niche]) {
+            skillsByNiche[niche].forEach(skill => {
+                const b = document.createElement('div');
+                b.className = 'skill-badge'; b.textContent = skill;
+                b.onclick = function () { toggleSkill(this); };
+                sg.appendChild(b);
+            });
+        }
+        document.getElementById('skillCount').textContent = '0';
+    }
 
-function addCertificateField() {
-  const index = certificates.length;
-  document.getElementById('certificatesList').insertAdjacentHTML('beforeend', `
-    <div id="cert-group-${index}" style="padding:16px;background:var(--ivory-card);border-radius:var(--radius-md);margin-bottom:12px;border:1px solid var(--border);">
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Certificate Title</label>
-          <input type="text" class="form-control" id="cert-title-${index}" placeholder="e.g., AWS Solutions Architect, PMP, CPA" onchange="updateCertificateTitle(${index})">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Upload Certificate</label>
-          <div style="display:flex;gap:8px;">
-            <input type="file" id="cert-file-${index}" style="display:none;" accept="image/*,.pdf" onchange="handleCertificateUpload(this,${index})">
-            <button type="button" class="btn btn-outline" onclick="document.getElementById('cert-file-${index}').click()" style="flex:1;">Choose File</button>
-            <button type="button" class="btn btn-outline" style="padding:0 16px;color:var(--red);border-color:var(--red);" onclick="removeCertificate(${index})">✕</button>
+    function toggleSkill(elem) {
+        elem.classList.toggle('selected');
+        const skill = elem.textContent;
+        elem.classList.contains('selected') ? selectedSkills.add(skill) : selectedSkills.delete(skill);
+        document.getElementById('skillCount').textContent = selectedSkills.size;
+        if (selectedSkills.size >= 1) {
+            document.getElementById('skillGrid').classList.remove('error');
+            document.getElementById('skillGrid-error').classList.remove('show');
+        }
+    }
+
+    function selectEducation(elem, value) {
+        document.querySelectorAll('.education-card').forEach(e => e.classList.remove('selected', 'error'));
+        elem.classList.add('selected'); selectedEducation = value;
+        document.getElementById('educationSelect-error').classList.remove('show');
+    }
+
+    /* file upload helpers */
+    function addDragHover(e) { e.preventDefault(); e.stopPropagation(); e.currentTarget.classList.add('drag-over'); }
+    function removeDragHover(e) { e.currentTarget.classList.remove('drag-over'); }
+    function handleFilesDrop(e, type) {
+        e.preventDefault(); e.stopPropagation(); e.currentTarget.classList.remove('drag-over');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            const fi = document.getElementById(type + 'File');
+            const dt = new DataTransfer(); dt.items.add(files[0]); fi.files = dt.files;
+            fi.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    }
+    function getFileIcon(n) { if (n.endsWith('.pdf')) return '📕'; if (n.match(/\.(jpg|jpeg|png|gif)$/i)) return '🖼️'; return '📄'; }
+    function formatFileSize(b) { if (!b) return ''; if (b < 1024) return b + ' B'; if (b < 1048576) return (b / 1024).toFixed(1) + ' KB'; return (b / 1048576).toFixed(1) + ' MB'; }
+
+    function previewFile(input, type) {
+        const file = input.files[0]; if (!file) return;
+        if (type === 'id') {
+            const valid = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            if (!valid.includes(file.type)) { alert('ID document must be an image file (JPG, PNG, GIF, or WebP)'); input.value = ''; return; }
+        }
+        if (type === 'cv') cvFileRef = file;
+        document.getElementById(type + 'FileSelected').value = file.name;
+        showFilePreview(type, file);
+    }
+
+    function showFilePreview(type, file) {
+        const uz = document.getElementById(type + 'UploadZone');
+        const pd = document.getElementById(type + 'FilePreview');
+        pd.innerHTML = `<div class="file-preview"><div class="file-preview-icon">${getFileIcon(file.name)}</div><div class="file-preview-info"><div class="file-preview-name">${file.name}</div><div class="file-preview-size">${formatFileSize(file.size)}</div></div><button type="button" class="file-preview-remove" onclick="removeFilePreview('${type}')">✕ Remove</button></div>`;
+        uz.style.display = 'none'; pd.style.display = 'block';
+        uz.classList.remove('error');
+        const em = document.getElementById(type + 'UploadZone-error');
+        if (em) em.classList.remove('show');
+    }
+
+    function removeFilePreview(type) {
+        const uz = document.getElementById(type + 'UploadZone');
+        const pd = document.getElementById(type + 'FilePreview');
+        document.getElementById(type + 'File').value = '';
+        document.getElementById(type + 'FileSelected').value = '';
+        if (type === 'cv') cvFileRef = null;
+        pd.style.display = 'none'; uz.style.display = 'block';
+    }
+
+    function addCertificateField() {
+        const index = certificates.length;
+        document.getElementById('certificatesList').insertAdjacentHTML('beforeend', `
+        <div id="cert-group-${index}" style="padding:16px;background:var(--ivory-card);border-radius:var(--radius-md);margin-bottom:12px;border:1px solid var(--border);">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Certificate Title</label>
+              <input type="text" class="form-control" id="cert-title-${index}" placeholder="e.g., AWS Solutions Architect, PMP, CPA" onchange="updateCertificateTitle(${index})">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Upload Certificate</label>
+              <div style="display:flex;gap:8px;">
+                <input type="file" id="cert-file-${index}" style="display:none;" accept="image/*,.pdf" onchange="handleCertificateUpload(this,${index})">
+                <button type="button" class="btn btn-outline" onclick="document.getElementById('cert-file-${index}').click()" style="flex:1;">Choose File</button>
+                <button type="button" class="btn btn-outline" style="padding:0 16px;color:var(--red);border-color:var(--red);" onclick="removeCertificate(${index})">✕</button>
+              </div>
+              <p id="cert-file-status-${index}" style="font-size:.75rem;color:var(--ink-muted);margin-top:4px;">No file selected</p>
+            </div>
           </div>
-          <p id="cert-file-status-${index}" style="font-size:.75rem;color:var(--ink-muted);margin-top:4px;">No file selected</p>
-        </div>
-      </div>
-    </div>`);
-  certificates.push({index, title:'', file:null});
-  updateCertificateCount();
-}
+        </div>`);
+        certificates.push({ index, title: '', file: null });
+        updateCertificateCount();
+    }
 
-function updateCertificateTitle(index){ if(certificates[index]) certificates[index].title = document.getElementById('cert-title-'+index)?.value.trim(); }
-function handleCertificateUpload(input, index){ const f=input.files[0]; if(f){ certificates[index].file=f; document.getElementById('cert-file-status-'+index).textContent='File: '+f.name; } }
-function removeCertificate(index){ document.getElementById('cert-group-'+index)?.remove(); certificates[index]=null; updateCertificateCount(); }
-function updateCertificateCount(){ document.getElementById('certStatus').textContent = certificates.filter(c=>c!==null&&c.file!==null).length; }
+    function updateCertificateTitle(index) { if (certificates[index]) certificates[index].title = document.getElementById('cert-title-' + index)?.value.trim(); }
+    function handleCertificateUpload(input, index) { const f = input.files[0]; if (f) { certificates[index].file = f; document.getElementById('cert-file-status-' + index).textContent = 'File: ' + f.name; } }
+    function removeCertificate(index) { document.getElementById('cert-group-' + index)?.remove(); certificates[index] = null; updateCertificateCount(); }
+    function updateCertificateCount() { document.getElementById('certStatus').textContent = certificates.filter(c => c !== null && c.file !== null).length; }
 
-/* validation */
-function clearErrors() {
-  document.querySelectorAll('.form-control,.education-card,.skill-grid').forEach(e => e.classList.remove('error'));
-  document.querySelectorAll('.error-message').forEach(e => e.classList.remove('show'));
-}
-function showError(fid) {
-  const f = document.getElementById(fid); const em = document.getElementById(fid+'-error');
-  if (f) { if(f.classList.contains('form-control')||f.classList.contains('skill-grid')) f.classList.add('error'); else if(fid.includes('education')) document.querySelectorAll('.education-card').forEach(c=>c.classList.add('error')); }
-  if (em) em.classList.add('show');
-}
-function validateStep1() {
-  clearErrors(); let ok = true;
-  const name = document.getElementById('fullName').value.trim();
-  if (!name || !/^[a-zA-Z\s]+$/.test(name)) { showError('fullName'); ok=false; }
-  const dob = document.getElementById('dateOfBirth').value.trim();
-  if (!dob || !/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[012])\/\d{4}$/.test(dob)) { showError('dateOfBirth'); ok=false; }
-  else {
-    const [d,m,y] = dob.split('/'); const bd = new Date(y,m-1,d); const now = new Date();
-    const age = now.getFullYear()-bd.getFullYear(); const md = now.getMonth()-bd.getMonth(); const dd = now.getDate()-bd.getDate();
-    if (age<18||(age===18&&md<0)||(age===18&&md===0&&dd<0)) { showError('dateOfBirth'); ok=false; }
-  }
-  const ph = document.getElementById('phoneNumber').value.trim();
-  if (!ph || !/^(\+|00)[0-9]{1,15}$/.test(ph)) { showError('phoneNumber'); ok=false; }
-  if (!document.getElementById('primaryNiche').value) { showError('primaryNiche'); ok=false; }
-  if (selectedSkills.size < 1) { showError('skillGrid'); ok=false; }
-  if (!selectedEducation) { showError('educationSelect'); ok=false; }
-  return ok;
-}
-function validateStep2() {
-  clearStep2Errors(); let ok = true;
-  if (!document.getElementById('idFileSelected').value) { showStep2Error('idUploadZone'); ok=false; }
-  if (!document.getElementById('educationFileSelected').value) { showStep2Error('educationUploadZone'); ok=false; }
-  return ok;
-}
-function showStep2Error(fid) { document.getElementById(fid)?.classList.add('error'); document.getElementById(fid+'-error')?.classList.add('show'); }
-function clearStep2Errors() {
-  document.querySelectorAll('.upload-zone').forEach(e=>e.classList.remove('error'));
-  document.querySelectorAll('#idUploadZone-error,#educationUploadZone-error').forEach(e=>e.classList.remove('show'));
-}
+    /* validation */
+    function clearErrors() {
+        document.querySelectorAll('.form-control,.education-card,.skill-grid').forEach(e => e.classList.remove('error'));
+        document.querySelectorAll('.error-message').forEach(e => e.classList.remove('show'));
+    }
+    function showError(fid) {
+        const f = document.getElementById(fid); const em = document.getElementById(fid + '-error');
+        if (f) { if (f.classList.contains('form-control') || f.classList.contains('skill-grid')) f.classList.add('error'); else if (fid.includes('education')) document.querySelectorAll('.education-card').forEach(c => c.classList.add('error')); }
+        if (em) em.classList.add('show');
+    }
+    function validateStep1() {
+        clearErrors(); let ok = true;
+        const name = document.getElementById('fullName').value.trim();
+        if (!name || !/^[a-zA-Z\s]+$/.test(name)) { showError('fullName'); ok = false; }
+        const dob = document.getElementById('dateOfBirth').value.trim();
+        if (!dob || !/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[012])\/\d{4}$/.test(dob)) { showError('dateOfBirth'); ok = false; }
+        else {
+            const [d, m, y] = dob.split('/'); const bd = new Date(y, m - 1, d); const now = new Date();
+            const age = now.getFullYear() - bd.getFullYear(); const md = now.getMonth() - bd.getMonth(); const dd = now.getDate() - bd.getDate();
+            if (age < 18 || (age === 18 && md < 0) || (age === 18 && md === 0 && dd < 0)) { showError('dateOfBirth'); ok = false; }
+        }
+        const ph = document.getElementById('phoneNumber').value.trim();
+        if (!ph || !/^(\+|00)[0-9]{1,15}$/.test(ph)) { showError('phoneNumber'); ok = false; }
+        if (!document.getElementById('primaryNiche').value) { showError('primaryNiche'); ok = false; }
+        if (selectedSkills.size < 1) { showError('skillGrid'); ok = false; }
+        if (!selectedEducation) { showError('educationSelect'); ok = false; }
+        return ok;
+    }
+    function validateStep2() {
+        clearStep2Errors(); let ok = true;
+        if (!document.getElementById('idFileSelected').value) { showStep2Error('idUploadZone'); ok = false; }
+        if (!document.getElementById('educationFileSelected').value) { showStep2Error('educationUploadZone'); ok = false; }
+        return ok;
+    }
+    function showStep2Error(fid) { document.getElementById(fid)?.classList.add('error'); document.getElementById(fid + '-error')?.classList.add('show'); }
+    function clearStep2Errors() {
+        document.querySelectorAll('.upload-zone').forEach(e => e.classList.remove('error'));
+        document.querySelectorAll('#idUploadZone-error,#educationUploadZone-error').forEach(e => e.classList.remove('show'));
+    }
 
-function collectFormData() {
-  formData = {
-    fullName: document.getElementById('fullName').value.trim(),
-    dateOfBirth: document.getElementById('dateOfBirth').value.trim(),
-    phoneNumber: document.getElementById('phoneNumber').value.trim(),
-    niche: selectedNiche, nicheDisplay: nicheDisplayNames[selectedNiche]||'',
-    skills: Array.from(selectedSkills),
-    education: selectedEducation, educationDisplay: educationDisplayNames[selectedEducation]||'',
-    summary: document.querySelector('.form-group textarea')?.value.trim()||'',
-    idFileName: document.getElementById('idFileSelected').value||'',
-    educationFileName: document.getElementById('educationFileSelected').value||'',
-    cvFileName: document.getElementById('cvFileSelected').value||'',
-    certificates: certificates.filter(c=>c!==null&&c.title).map(c=>({
-      title: document.getElementById('cert-title-'+c.index)?.value.trim()||c.title,
-      fileName: document.getElementById('cert-file-status-'+c.index)?.textContent||''
-    }))
-  };
-}
+    function collectFormData() {
+        formData = {
+            fullName: document.getElementById('fullName').value.trim(),
+            dateOfBirth: document.getElementById('dateOfBirth').value.trim(),
+            phoneNumber: document.getElementById('phoneNumber').value.trim(),
+            niche: selectedNiche, nicheDisplay: nicheDisplayNames[selectedNiche] || '',
+            skills: Array.from(selectedSkills),
+            education: selectedEducation, educationDisplay: educationDisplayNames[selectedEducation] || '',
+            summary: document.querySelector('.form-group textarea')?.value.trim() || '',
+            idFileName: document.getElementById('idFileSelected').value || '',
+            educationFileName: document.getElementById('educationFileSelected').value || '',
+            cvFileName: document.getElementById('cvFileSelected').value || '',
+            certificates: certificates.filter(c => c !== null && c.title).map(c => ({
+                title: document.getElementById('cert-title-' + c.index)?.value.trim() || c.title,
+                fileName: document.getElementById('cert-file-status-' + c.index)?.textContent || ''
+            }))
+        };
+    }
 
-function displayReviewData() {
-  document.getElementById('reviewName').textContent = formData.fullName||'—';
-  document.getElementById('reviewDOB').textContent = formData.dateOfBirth||'—';
-  document.getElementById('reviewPhone').textContent = formData.phoneNumber||'—';
-  document.getElementById('reviewNiche').textContent = formData.nicheDisplay||'—';
-  document.getElementById('reviewEducation').textContent = formData.educationDisplay||'—';
-  document.getElementById('reviewSkillsSelected').textContent = formData.skills.length?formData.skills.join(', '):'—';
-  document.getElementById('reviewBio').textContent = formData.summary||'—';
+    function displayReviewData() {
+        document.getElementById('reviewName').textContent = formData.fullName || '—';
+        document.getElementById('reviewDOB').textContent = formData.dateOfBirth || '—';
+        document.getElementById('reviewPhone').textContent = formData.phoneNumber || '—';
+        document.getElementById('reviewNiche').textContent = formData.nicheDisplay || '—';
+        document.getElementById('reviewEducation').textContent = formData.educationDisplay || '—';
+        document.getElementById('reviewSkillsSelected').textContent = formData.skills.length ? formData.skills.join(', ') : '—';
+        document.getElementById('reviewBio').textContent = formData.summary || '—';
 
-  const sc = document.getElementById('reviewSkillsCerts'); sc.innerHTML = '';
-  formData.skills.forEach(s=>{ const b=document.createElement('span'); b.className='badge badge-gold'; b.textContent=s; sc.appendChild(b); });
-  formData.certificates.forEach(c=>{ const b=document.createElement('span'); b.className='badge badge-default'; b.textContent=c.title; sc.appendChild(b); });
-  if(!formData.skills.length&&!formData.certificates.length) sc.innerHTML='<span style="color:var(--ink-muted);">No skills or certificates</span>';
+        const sc = document.getElementById('reviewSkillsCerts'); sc.innerHTML = '';
+        formData.skills.forEach(s => { const b = document.createElement('span'); b.className = 'badge badge-gold'; b.textContent = s; sc.appendChild(b); });
+        formData.certificates.forEach(c => { const b = document.createElement('span'); b.className = 'badge badge-default'; b.textContent = c.title; sc.appendChild(b); });
+        if (!formData.skills.length && !formData.certificates.length) sc.innerHTML = '<span style="color:var(--ink-muted);">No skills or certificates</span>';
 
-  const dc = document.getElementById('reviewDocuments');
-  const docs = [];
-  if (formData.idFileName) docs.push({title:'Identity Document',fileName:formData.idFileName});
-  if (formData.educationFileName) docs.push({title:'Education Proof',fileName:formData.educationFileName});
-  if (formData.cvFileName) docs.push({title:'Curriculum Vitae',fileName:formData.cvFileName});
-  formData.certificates.forEach(c=>docs.push({title:c.title,fileName:c.fileName.replace('File: ','')||c.title}));
-  dc.innerHTML = docs.length ? docs.map(d=>`<div style="padding:12px;background:var(--gold-pale);border-radius:var(--radius-sm);margin-bottom:12px;"><div style="font-weight:600;font-size:.9rem;">${d.title}</div><div style="font-size:.8rem;color:var(--ink-muted);margin-top:4px;">${d.fileName}</div><div style="font-size:.75rem;color:var(--gold);margin-top:6px;font-weight:600;">Under Review</div></div>`).join('') : '<div style="color:var(--ink-muted);">No documents uploaded</div>';
-}
+        const dc = document.getElementById('reviewDocuments');
+        const docs = [];
+        if (formData.idFileName) docs.push({ title: 'Identity Document', fileName: formData.idFileName });
+        if (formData.educationFileName) docs.push({ title: 'Education Proof', fileName: formData.educationFileName });
+        if (formData.cvFileName) docs.push({ title: 'Curriculum Vitae', fileName: formData.cvFileName });
+        formData.certificates.forEach(c => docs.push({ title: c.title, fileName: c.fileName.replace('File: ', '') || c.title }));
+        dc.innerHTML = docs.length ? docs.map(d => `<div style="padding:12px;background:var(--gold-pale);border-radius:var(--radius-sm);margin-bottom:12px;"><div style="font-weight:600;font-size:.9rem;">${d.title}</div><div style="font-size:.8rem;color:var(--ink-muted);margin-top:4px;">${d.fileName}</div><div style="font-size:.75rem;color:var(--gold);margin-top:6px;font-weight:600;">Under Review</div></div>`).join('') : '<div style="color:var(--ink-muted);">No documents uploaded</div>';
+    }
 
-function validateStep3() {
-  const atg = document.getElementById('agreeTermsGroup'); const em = document.getElementById('agreeTerms-error');
-  if (!document.getElementById('agreeTerms').checked) { atg.classList.add('checkbox-group','error'); em.classList.add('show'); return false; }
-  atg.classList.remove('checkbox-group','error'); em.classList.remove('show'); return true;
-}
+    function validateStep3() {
+        const atg = document.getElementById('agreeTermsGroup'); const em = document.getElementById('agreeTerms-error');
+        if (!document.getElementById('agreeTerms').checked) { atg.classList.add('checkbox-group', 'error'); em.classList.add('show'); return false; }
+        atg.classList.remove('checkbox-group', 'error'); em.classList.remove('show'); return true;
+    }
 
-function submitProfile() {
-  if (!validateStep3()) return;
-  // TODO: POST formData to PHP backend
-  window.location.href = 'dashboard-freelancer.html';
-}
+    function submitProfile() {
+        if (!validateStep3()) return;
+        document.getElementById('signup-form').submit();
+    }
 
-/* init upload zone clicks after DOM ready */
-document.addEventListener('DOMContentLoaded', function() {
-  document.getElementById('idUploadZone').addEventListener('click', ()=>document.getElementById('idFile').click());
-  document.getElementById('educationUploadZone').addEventListener('click', ()=>document.getElementById('educationFile').click());
-  document.getElementById('cvUploadZone').addEventListener('click', ()=>document.getElementById('cvFile').click());
+    /* init upload zone clicks after DOM ready */
+    document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('idUploadZone').addEventListener('click', () => document.getElementById('idFile').click());
+        document.getElementById('educationUploadZone').addEventListener('click', () => document.getElementById('educationFile').click());
+        document.getElementById('cvUploadZone').addEventListener('click', () => document.getElementById('cvFile').click());
 
-  document.getElementById('agreeTerms').addEventListener('change', function(){
-    if (this.checked) { document.getElementById('agreeTermsGroup').classList.remove('checkbox-group','error'); document.getElementById('agreeTerms-error').classList.remove('show'); }
-  });
+        document.getElementById('agreeTerms').addEventListener('change', function () {
+            if (this.checked) { document.getElementById('agreeTermsGroup').classList.remove('checkbox-group', 'error'); document.getElementById('agreeTerms-error').classList.remove('show'); }
+        });
 
-  document.getElementById('fullName').addEventListener('input', function(){
-    this.value = this.value.replace(/[^a-zA-Z\s]/g,'');
-    if (this.value.trim() && /^[a-zA-Z\s]+$/.test(this.value)) { this.classList.remove('error'); document.getElementById('fullName-error').classList.remove('show'); }
-  });
-  document.getElementById('dateOfBirth').addEventListener('input', function(){
-    let v = this.value.replace(/[^0-9/]/g,'');
-    if (v.length===2&&!v.includes('/')) v+='/';
-    else if (v.length===5&&v.split('/').length===2) v+='/';
-    this.value = v;
-    if (/^\d{2}\/\d{2}\/\d{4}$/.test(v)) { this.classList.remove('error'); document.getElementById('dateOfBirth-error').classList.remove('show'); }
-  });
-  document.getElementById('phoneNumber').addEventListener('input', function(){
-    this.value = this.value.replace(/[^0-9+]/g,'');
-    if (/^(\+|00)[0-9]{1,15}$/.test(this.value)) { this.classList.remove('error'); document.getElementById('phoneNumber-error').classList.remove('show'); }
-  });
-  document.getElementById('primaryNiche').addEventListener('change', function(){
-    if (this.value) { this.classList.remove('error'); document.getElementById('primaryNiche-error').classList.remove('show'); }
-  });
-});
+        document.getElementById('fullName').addEventListener('input', function () {
+            this.value = this.value.replace(/[^a-zA-Z\s]/g, '');
+            if (this.value.trim() && /^[a-zA-Z\s]+$/.test(this.value)) { this.classList.remove('error'); document.getElementById('fullName-error').classList.remove('show'); }
+        });
+        document.getElementById('dateOfBirth').addEventListener('input', function () {
+            let v = this.value.replace(/[^0-9/]/g, '');
+            if (v.length === 2 && !v.includes('/')) v += '/';
+            else if (v.length === 5 && v.split('/').length === 2) v += '/';
+            this.value = v;
+            if (/^\d{2}\/\d{2}\/\d{4}$/.test(v)) { this.classList.remove('error'); document.getElementById('dateOfBirth-error').classList.remove('show'); }
+        });
+        document.getElementById('phoneNumber').addEventListener('input', function () {
+            this.value = this.value.replace(/[^0-9+]/g, '');
+            if (/^(\+|00)[0-9]{1,15}$/.test(this.value)) { this.classList.remove('error'); document.getElementById('phoneNumber-error').classList.remove('show'); }
+        });
+        document.getElementById('primaryNiche').addEventListener('change', function () {
+            if (this.value) { this.classList.remove('error'); document.getElementById('primaryNiche-error').classList.remove('show'); }
+        });
+    });
+
+      function validateSignupForm() {
+        const form    = document.getElementById('signup-form');
+        const fname   = form.querySelector('[name="fname"]').value.trim();
+        const email   = form.querySelector('[name="email"]').value.trim();
+        const password = form.querySelector('[name="password"]').value;
+        const confirm  = form.querySelector('[name="confirm_password"]').value;
+        const terms    = document.getElementById('terms').checked;
+
+        document.querySelectorAll('.auth-field-error').forEach(e => e.remove());
+        document.querySelectorAll('.form-control').forEach(e => e.classList.remove('error'));
+
+        let ok = true;
+
+        function markError(input, msg) {
+            input.classList.add('error');
+            const p = document.createElement('p');
+            p.className = 'error-msg auth-field-error';
+            p.textContent = msg;
+            input.closest('.form-group').appendChild(p);
+            ok = false;
+        }
+
+        if (!fname)
+            markError(form.querySelector('[name="fname"]'), 'First name is required.');
+
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+            markError(form.querySelector('[name="email"]'), 'A valid email is required.');
+
+        if (!password || password.length < 10)
+            markError(form.querySelector('[name="password"]'), 'Password must be at least 10 characters.');
+
+        if (password !== confirm)
+            markError(form.querySelector('[name="confirm_password"]'), 'Passwords do not match.');
+
+        if (!terms) {
+            const p = document.createElement('p');
+            p.className = 'error-msg auth-field-error';
+            p.textContent = 'You must agree to the Terms of Service.';
+            document.querySelector('label[for="terms"]').parentElement.appendChild(p);
+            ok = false;
+        }
+
+        return ok;
+    }
+
+    function handleSignup() {
+        if (!validateSignupForm()) return;   // ← stop here if invalid
+
+        const role = document.getElementById('role-input').value;
+        if (role === 'Freelancer') {
+            showWizard();
+        } else {
+            document.getElementById('signup-form').submit();
+        }
+    }
 </script>
-
 </body>
 </html>
