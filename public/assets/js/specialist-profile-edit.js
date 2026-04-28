@@ -699,8 +699,27 @@ document.addEventListener('click', e => {
   if (!e.target.closest('.dropdown')) document.getElementById('user-dd')?.classList.add('hidden');
 });
 
+// ── TAX RATE MAPPING ──
+const TAX_VAT_RATES = {
+  'USA — US Dollar (USD)': '0% (No VAT)',
+  'Germany — Euro (EUR)': '19% (Germany Standard)',
+  'United Kingdom — Pound Sterling (GBP)': '20% (UK Standard)',
+  'Egypt — Egyptian Pound (EGP)': '14% (Egypt Standard)',
+  'Saudi Arabia — Riyal (SAR)': '15% (KSA Standard)',
+  'Kuwait — Kuwaiti Dinar (KWD)': '0% (No VAT)'
+};
+
+function updateVatRate() {
+  const select = document.getElementById('tax-jurisdiction-select');
+  const vatInput = document.getElementById('vat-rate-input');
+  if (!select || !vatInput) return;
+  vatInput.value = TAX_VAT_RATES[select.value] || 'N/A';
+}
+
+window.addEventListener('DOMContentLoaded', updateVatRate);
+
 // ── SCROLL SPY ──
-const sections = ['sec-identity','sec-about','sec-skills','sec-credentials','sec-portfolio','sec-rates','sec-privacy'];
+const sections = ['sec-identity','sec-about','sec-skills','sec-credentials','sec-portfolio','sec-billing','sec-rates','sec-privacy'];
 const links = document.querySelectorAll('.edit-nav-link[href^="#"]');
 function updateActiveNav() {
   let current = sections[0];

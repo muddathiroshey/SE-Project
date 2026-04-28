@@ -66,9 +66,13 @@
       <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="3" width="14" height="11" rx="1"/><path d="M5 3V2h6v1"/></svg>
       Portfolio
     </a>
+    <a class="edit-nav-link" href="#sec-billing" onclick="setActive(this)">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M2 4h12a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zm0 2v6h12V6H2zm9 1h2v2h-2V7z"/></svg>
+      Billing &amp; Tax
+    </a>
     <a class="edit-nav-link" href="#sec-rates" onclick="setActive(this)">
       <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1v14M4 5h6a2 2 0 0 1 0 4H6a2 2 0 0 0 0 4h6"/></svg>
-      Rates &amp; Availability
+      Rates
     </a>
     <a class="edit-nav-link" href="#sec-privacy" onclick="setActive(this)">
       <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1L2 4v4c0 3.3 2.5 6.4 6 7 3.5-.6 6-3.7 6-7V4L8 1z"/></svg>
@@ -597,11 +601,93 @@ I am particularly experienced in working within the constraints of regulated ind
       </div>
     </div>
 
-    <!-- ════ SECTION 6: RATES ════ -->
-    <div class="edit-section" id="sec-rates">
+    <!-- ════ SECTION 6: BILLING & TAX ════ -->
+    <div class="edit-section" id="sec-billing">
       <div class="edit-section-title">
         <div>
           <div class="edit-section-label">Section 06</div>
+          <div class="edit-section-heading">Billing &amp; Tax</div>
+          <div class="edit-section-desc">Manage payment methods, invoicing preferences, and tax registration details used for VAT calculation.</div>
+        </div>
+        <a href="escrow-wallet.html" class="btn btn-outline btn-sm">View Full Wallet →</a>
+      </div>
+
+      <h4 style="font-size:.9rem;margin-bottom:14px;">Payment Methods</h4>
+      <!-- PHP: foreach($paymentMethods as $pm): -->
+      <div id="payment-methods-list">
+        <div class="payment-card default">
+          <div class="card-chip">MC</div>
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:.875rem;">Mastercard ···· 4821</div>
+            <div class="text-xs text-muted">Expires 09/27</div>
+          </div>
+          <span class="badge badge-verified" style="font-size:.625rem;">Default</span>
+          <button class="btn btn-ghost btn-sm" style="color:var(--rust);">Remove</button>
+        </div>
+        <div class="payment-card">
+          <div class="card-chip visa">VISA</div>
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:.875rem;">Visa ···· 2201</div>
+            <div class="text-xs text-muted">Expires 03/26</div>
+          </div>
+          <button class="btn btn-ghost btn-sm">Set Default</button>
+          <button class="btn btn-ghost btn-sm" style="color:var(--rust);">Remove</button>
+        </div>
+      </div>
+      <button class="btn btn-outline btn-sm mt-8" onclick="document.getElementById('add-card-modal').classList.remove('hidden')">+ Add Payment Method</button>
+
+      <hr class="divider">
+      <h4 style="font-size:.9rem;margin-bottom:14px;">Tax Information</h4>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tax Jurisdiction</label>
+          <select id="tax-jurisdiction-select" class="form-control" onchange="updateVatRate(); markUnsaved()">
+            <option selected>USA — US Dollar (USD)</option>
+            <option>Germany — Euro (EUR)</option>
+            <option>United Kingdom — Pound Sterling (GBP)</option>
+            <option>Egypt — Egyptian Pound (EGP)</option>
+            <option>Saudi Arabia — Riyal (SAR)</option>
+            <option>Kuwait — Kuwaiti Dinar (KWD)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Applicable VAT Rate</label>
+          <input id="vat-rate-input" type="text" class="form-control" value="0% (No VAT)" readonly style="background:var(--ivory-deep);">
+          <p class="form-hint">Auto-calculated from jurisdiction.</p>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">VAT Registration Number</label>
+          <input type="text" class="form-control" value="EG-VAT-28841-C" oninput="markUnsaved()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tax ID / TIN</label>
+          <input type="text" class="form-control" value="EGY-TIN-774821" oninput="markUnsaved()">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Billing Address for Invoices</label>
+        <textarea class="form-control" rows="2" oninput="markUnsaved()">Cairo, Egypt</textarea>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--ivory-deep);border:1px solid var(--border);border-radius:var(--radius-sm);">
+        <div><div style="font-weight:700;font-size:.875rem;">Currency</div><div class="text-xs text-muted">All invoices and receipts issued in</div></div>
+        <select class="form-control" style="width:160px;" onchange="markUnsaved()">
+          <option selected>USD — US Dollar</option>
+          <option>EUR — Euro</option>
+          <option>GBP — Pound Sterling</option>
+          <option>EGP — Egyptian Pound</option>
+          <option>SAR — Saudi Riyal</option>
+          <option>KWD — Kuwaiti Dinar</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- ════ SECTION 7: RATES ════ -->
+    <div class="edit-section" id="sec-rates">
+      <div class="edit-section-title">
+        <div>
+          <div class="edit-section-label">Section 07</div>
           <div class="edit-section-heading">Rates</div>
           <div class="edit-section-desc">Set your minimum fixed-project floor.</div>
         </div>
@@ -620,11 +706,11 @@ I am particularly experienced in working within the constraints of regulated ind
       </div>
     </div>
 
-    <!-- ════ SECTION 7: PRIVACY ════ -->
+    <!-- ════ SECTION 8: PRIVACY ════ -->
     <div class="edit-section" id="sec-privacy">
       <div class="edit-section-title">
         <div>
-          <div class="edit-section-label">Section 07</div>
+          <div class="edit-section-label">Section 08</div>
           <div class="edit-section-heading">Privacy &amp; Visibility</div>
           <div class="edit-section-desc">Control what information is visible to different audiences. Sensitive fields can be masked while metrics remain public.</div>
         </div>
