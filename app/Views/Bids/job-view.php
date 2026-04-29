@@ -185,7 +185,7 @@
         <button class="tab-item active" onclick="switchTab(0)">Project Brief</button>
         <button class="tab-item" onclick="switchTab(1)">Milestones</button>
         <button class="tab-item" onclick="switchTab(2)">NDA &amp; Privacy</button>
-        <button class="tab-item" onclick="switchTab(3)">Client Pro  file</button>
+        <button class="tab-item" onclick="switchTab(3)">Client Profile</button>
       </div>
 
       <!-- ══ TAB 0: PROJECT BRIEF ══ -->
