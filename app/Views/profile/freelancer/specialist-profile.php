@@ -215,7 +215,8 @@
         </div>
         <button class="btn btn-primary w-full" style="justify-content:center;margin-bottom:10px;" onclick="document.getElementById('bid-modal').classList.remove('hidden')">Invite to Bid</button>
         <button class="btn btn-outline w-full" style="justify-content:center;margin-bottom:10px;" onclick="window.location='messages.php'">Send Message</button>
-        <button class="btn btn-ghost w-full" style="justify-content:center;font-size:.8125rem;">Schedule Interview</button>
+        <button class="btn btn-ghost w-full" style="justify-content:center;font-size:.8125rem;margin-bottom:10px;">Schedule Interview</button>
+        <button class="btn btn-ghost w-full" style="justify-content:center;font-size:.8125rem;" onclick="document.getElementById('save-specialist-modal').classList.remove('hidden')">★ Save Specialist</button>
         <hr class="divider">
         <div class="text-xs text-muted text-center">
           <div>🛡 KYC &amp; Credential Verified</div>
@@ -260,6 +261,27 @@
   </div>
 </div>
 
+<!-- SAVE SPECIALIST MODAL -->
+<div id="save-specialist-modal" class="modal-backdrop hidden">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3>Save Specialist</h3>
+      <button class="modal-close" onclick="document.getElementById('save-specialist-modal').classList.add('hidden')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="text-sm text-muted mb-16">Saved specialists appear in your dashboard for quick access. You'll also receive alerts when they post availability updates or new services.</p>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <input type="checkbox" id="alert-specialist-update" checked style="accent-color:var(--gold);">
+        <label for="alert-specialist-update" style="font-size:.875rem;">Notify me when Dr. Rania posts availability updates in my niche</label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="document.getElementById('save-specialist-modal').classList.add('hidden')">Cancel</button>
+      <button class="btn btn-gold" onclick="saveSpecialist()">★ Save Specialist</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast-stack" id="toast-stack"></div>
 
@@ -272,6 +294,23 @@ function switchTab(i) {
 function showToast() {
   const s = document.getElementById('toast-stack');
   s.innerHTML = `<div class="toast success"><span class="toast-icon">✓</span><div><div class="toast-title">Invitation sent</div><div class="toast-body">Dr. Rania Khalil has been notified. NDA generated and pending signature.</div></div></div>`;
+  setTimeout(() => s.innerHTML = '', 4000);
+}
+
+function saveSpecialist() {
+  const modal = document.getElementById('save-specialist-modal');
+  const checkbox = document.getElementById('alert-specialist-update');
+  const isAlertEnabled = checkbox ? checkbox.checked : false;
+  
+  // Close modal
+  if (modal) modal.classList.add('hidden');
+  
+  // Show success toast
+  const s = document.getElementById('toast-stack');
+  const msg = isAlertEnabled 
+    ? 'Specialist saved. You\'ll be notified of availability updates in your niche.'
+    : 'Specialist saved to your dashboard.';
+  s.innerHTML = `<div class="toast success"><span class="toast-icon">★</span><div><div class="toast-title">Specialist saved</div><div class="toast-body">${msg}</div></div></div>`;
   setTimeout(() => s.innerHTML = '', 4000);
 }
 
