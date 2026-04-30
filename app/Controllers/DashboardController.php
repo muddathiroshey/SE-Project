@@ -19,13 +19,35 @@ class DashboardController extends Controller
         if (!isset($_SESSION)) {
             session_start();
         }
-
+        
         if (!isset($_SESSION['email'])) {
             header("Location: /login");
             exit();
         }
 
-        $conn = $this->getDb();
+        $conn = $this->getDb(); 
+        $role = $conn->query("SELECT role FROM userData WHERE id = " . $_SESSION['user_id']);
+        if ($role == 'Freelancer') {
+            $is_verified = $conn->query("SELECT is_verified FROM userData WHERE id = " . $_SESSION['user_id']);
+            $projects = $conn->query("SELECT COUNT(*) AS active_projects FROM projects WHERE freelancer_id = " . $_SESSION['user_id'] . " AND status IN ('active', 'pending')");
+
+            if ($is_verified == 0) {
+                header('/profile');
+            }else if ($projects > 0) {
+                $this->view('dashboard/freelancer/dashboard-freelancer', [
+                    'active_projects' => $projects
+                ]);
+            } else {
+                $this->view('dashboard/freelancer/dashboard-freelancer-empty');
+            }
+            $this->view('dashboard/freelancer/dashboard-freelancer');
+        } 
+        
+
+
+
+
+        $conn = $this->getDb(); 
         $stmt = $conn->prepare("SELECT is_verified FROM userData WHERE id = ?");
         $stmt->bind_param("i", $_SESSION['user_id']);
         $stmt->execute();
@@ -58,5 +80,6 @@ class DashboardController extends Controller
         $this->view('dashboard/client/dashboard-client-empty', [
             'active_projects' => $active_projects
         ]);
+
     }   
 }

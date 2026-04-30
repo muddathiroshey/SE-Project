@@ -29,8 +29,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- PHP: <title>Bid on: <?= htmlspecialchars($job['title']) ?> · Nexus</title> -->
   <title>Bid on: MENA Expansion — Cross-Border Contract Review · Nexus</title>
-  <link rel="stylesheet" href="assets/style.css">
-  <link rel="stylesheet" href="assets/bid-submit.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/bid-submit.css">
 </head>
 
 <body>

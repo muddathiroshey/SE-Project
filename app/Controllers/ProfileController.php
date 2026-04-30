@@ -1,10 +1,12 @@
 <?php
 namespace App\Controllers;
-
+use App\Controllers\AuthController;
 use App\Core\Controller;
 
 class ProfileController extends Controller
 {
+
+
     public function index(): void
     {
         
@@ -18,16 +20,8 @@ class ProfileController extends Controller
             exit();
         }
         
-        $view = match($_SESSION['role'] ?? 'Client') {
-            'Freelancer' => 'profile/freelancer/index',
-            'Admin'      => 'profile/admin/index',
-            'Arbitrator' => 'profile/arbitrator/index',
-            default      => 'profile/client/index'
-        };
+      $this->view('/profile/freelancer/index');
 
-        $this->view($view, [
-            'title' => ($_SESSION['user_name'] ?? 'User') . "'s Profile"
-        ]);
         
     }
 }
