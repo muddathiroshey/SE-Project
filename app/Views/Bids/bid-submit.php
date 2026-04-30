@@ -528,9 +528,33 @@ My proposed approach for Phase 1 would be..." oninput="countChars(this,1500,'clc
             <div id="file-list"></div>
           </div>
 
-          <!-- ════ SECTION F: TERMS & CONFIRM ════ -->
+          <!-- ════ SECTION G: REVIEW PRICING ════ -->
+          <div class="form-section">
+            <div class="form-section-label">G — Review Pricing</div>
+            <p class="form-section-desc">Set your rate for additional reviews after the client has used their included free reviews. This is optional and can be set per review.</p>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Price Per Additional Review</label>
+                <div class="input-affix-wrap">
+                  <span class="input-prefix">$</span>
+                  <input type="number" class="form-control has-prefix" name="review_price" id="review-price" 
+                    placeholder="e.g. 450" min="0" step="50" oninput="syncReviewPrice()">
+                </div>
+                <p class="form-hint">Charged per review request beyond included reviews in the contract.</p>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Number of Free Reviews Included</label>
+                <input type="number" class="form-control" name="free_reviews" id="free-reviews" value="2" 
+                  min="1" max="10" oninput="syncReviewPrice()">
+                <p class="form-hint">How many free reviews are included per milestone.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- ════ SECTION H: TERMS & CONFIRM ════ -->
           <div class="form-section" style="margin-bottom:0;">
-            <div class="form-section-label">F — Terms &amp; Submission</div>
+            <div class="form-section-label">H — Terms &amp; Submission</div>
 
             <!-- NDA NOTICE -->
             <div
