@@ -25,7 +25,7 @@ function showError($e){ return !empty($e) ? '<p class="error-msg">'.$e.'</p>' : 
 
     <!-- LEFT PANEL -->
     <div class="auth-panel-left">
-      <a class="auth-logo" href="index.html">Nexus<span>.</span></a>
+      <a class="auth-logo" href="/">Nexus<span>.</span></a>
       <div class="auth-left-body">
         <h2 class="auth-headline">Professional Work,<br><em>Properly</em> Structured.</h2>
         <p class="auth-sub">Join the marketplace designed for engagements where credentials, milestones, and trust are not optional — they are foundational.</p>

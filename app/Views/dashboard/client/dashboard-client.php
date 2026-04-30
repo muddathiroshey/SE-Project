@@ -5,14 +5,14 @@
 <title><?= htmlspecialchars($title) ?></title>
 <link rel="stylesheet" href="assets/css/style.css">
 <link rel="stylesheet" href="assets/css/dashboard-client.css">
+<link rel="stylesheet" href="assets/css/dashboard-client-empty.css">
+<link rel="stylesheet" href="assets/css/dashboard-client-pending.css">
 </head>
 <body>
-
-<!-- TOPNAV -->
 <nav class="topnav">
   <div class="container">
     <div class="topnav-actions" style="margin-left: auto;">
-      <a href="notifications.html" class="btn btn-ghost btn-icon" style="position:relative;">
+    <a href="notifications.html" class="btn btn-ghost btn-icon" style="position:relative;">
         <svg xmlns="http://www.w3.org/2000/svg" height="22px" viewBox="0 -960 960 960" width="22px" fill="currentColor">
           <path d="M160-200v-80h80v-280q0-83 50-147.5T420-792v-28q0-25 17.5-42.5T480-880q25 0 42.5 17.5T540-820v28q80 20 130 84.5T720-560v280h80v80H160Zm320-300Zm0 420q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80Z"/>
         </svg><span style="position:absolute;top:0;right:0;width:8px;height:8px;background:var(--rust);border-radius:50%;"></span>
@@ -38,6 +38,22 @@
 </nav>
 
 <div class="main-layout">
+  <div class="empty-state">
+      <div class="empty-state-icon">📋</div>
+      <div class="empty-state-title">Get Started with Your First Project</div>
+      <div class="empty-state-description">Post your first project to connect with top experts.</div>
+      <a href="/post-job" class="empty-state-cta">Post Your First Project</a>
+      <div style="margin-top:40px;padding:32px;background:var(--ivory-card);border:1px solid var(--border);border-radius:var(--radius-md);max-width:500px;">
+        <h3 style="font-size:1rem;font-weight:700;margin-bottom:16px;">How it works</h3>
+        <ol style="text-align:left;font-size:0.9rem;line-height:1.8;color:var(--ink-mid);padding-left:20px;">
+          <li style="margin-bottom:12px;"><strong>Post a Project</strong> — Describe your requirements and budget</li>
+          <li style="margin-bottom:12px;"><strong>Receive Bids</strong> — Qualified experts respond with proposals</li>
+          <li style="margin-bottom:12px;"><strong>Review & Select</strong> — Compare bids and select your expert</li>
+          <li><strong>Work & Pay</strong> — Collaborate securely with funds held in escrow</li>
+        </ol>
+      </div>
+    </div>
+  </div>
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-section">
@@ -284,5 +300,6 @@ document.addEventListener('click', e => {
   if (!e.target.closest('.dropdown')) document.getElementById('user-dd')?.classList.add('hidden');
 });
 </script>
+?endif; ?>
 </body>
 </html>

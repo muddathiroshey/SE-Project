@@ -45,7 +45,7 @@ class AuthController extends Controller
         }
         $conn     = $this->getDb();
         $email    = trim($_POST['email']    ?? '');
-        $password = trim($_POST['password'] ?? '');
+        $password = $_POST['password'];
 
         $stmt = $conn->prepare("SELECT id, user_name, user_email, user_password, user_role FROM userData WHERE user_email = ?");
         $stmt->bind_param("s", $email);
