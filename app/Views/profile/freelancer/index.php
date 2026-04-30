@@ -349,7 +349,722 @@
 </div>
 
 <script>
+let currentStep = 1;
+let selectedSkills = new Set();
+let selectedNiche = '';
+let selectedEducation = '';
+let certificates = [];
+let cvFile = null;
 
+// Skill mapping by niche
+const skillsByNiche = {
+  'data-science': ['Python', 'Machine Learning', 'Data Analysis', 'SQL', 'Statistics', 'NLP', 'Deep Learning', 'MLOps', 'Time Series'],
+  'legal': ['Contract Review', 'Legal Research', 'Compliance Audit', 'Risk Assessment', 'Legal Writing', 'Case Law Analysis', 'Document Drafting', 'Due Diligence'],
+  'translation': ['Technical Writing', 'Localization', 'Terminology Management', 'Machine Translation', 'File Format Conversion', 'Quality Assurance', 'Domain Expertise', 'Cultural Adaptation'],
+  'financial': ['Excel Modeling', 'Financial Analysis', 'Valuation', 'Forecasting', 'Investment Analysis', 'Risk Analysis', 'Budget Planning', 'Scenario Analysis'],
+  'biomedical': ['Research Methodology', 'Data Analysis', 'Literature Review', 'Scientific Writing', 'Statistical Analysis', 'Lab Techniques', 'Regulatory Compliance', 'Publication Support'],
+  'cybersecurity': ['Penetration Testing', 'Vulnerability Assessment', 'Security Audits', 'Risk Management', 'Threat Analysis', 'Security Protocols', 'Incident Response', 'Compliance']
+};
+
+// Display name mappings
+const nicheDisplayNames = {
+  'data-science': 'Data Science & Machine Learning',
+  'legal': 'Legal Consulting & Compliance',
+  'translation': 'Technical Translation & Localization',
+  'financial': 'Financial Modelling & Analysis',
+  'biomedical': 'Biomedical Research & Publishing',
+  'cybersecurity': 'Cybersecurity Audit & Analysis'
+};
+
+const educationDisplayNames = {
+  'high-school': 'High School',
+  'bachelor': "Bachelor's Degree",
+  'master': "Master's Degree",
+  'phd': 'PhD / Doctorate'
+};
+
+// Form data object to store all collected data
+let formData = {
+  fullName: '',
+  dateOfBirth: '',
+  phoneNumber: '',
+  niche: '',
+  nicheDisplay: '',
+  skills: [],
+  education: '',
+  educationDisplay: '',
+  summary: '',
+  idFileName: '',
+  educationFileName: '',
+  cvFileName: '',
+  certificates: []
+};
+
+function goToStep(step) {
+  if (step < currentStep) {
+    currentStep = step;
+    updateUI();
+    return;
+  }
+  
+  // Validate current step before moving forward
+  if (currentStep === 1 && !validateStep1()) {
+    return;
+  }
+  if (currentStep === 2 && !validateStep2()) {
+    return;
+  }
+  
+  currentStep = step;
+  updateUI();
+  
+  // Collect data and display review when moving to Step 3
+  if (step === 3) {
+    collectFormData();
+    displayReviewData();
+  }
+}
+
+function updateUI() {
+  // Hide all panels
+  document.querySelectorAll('.wizard-step-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('step' + currentStep).classList.add('active');
+  
+  // Update sidebar
+  for (let i = 1; i <= 3; i++) {
+    const dot = document.getElementById('dot' + i);
+    const title = document.getElementById('t' + i);
+    
+    if (i < currentStep) {
+      dot.classList.add('done');
+      dot.classList.remove('active');
+      dot.textContent = '✓';
+      title.classList.add('done');
+      title.classList.remove('active');
+    } else if (i === currentStep) {
+      dot.classList.add('active');
+      dot.classList.remove('done');
+      dot.textContent = i;
+      title.classList.add('active');
+      title.classList.remove('done');
+    } else {
+      dot.classList.remove('active', 'done');
+      dot.textContent = i;
+      title.classList.remove('active', 'done');
+    }
+  }
+  window.scrollTo(0, 0);
+}
+
+function updateSkillsForNiche() {
+  const niche = document.getElementById('primaryNiche').value;
+  selectedNiche = niche;
+  selectedSkills.clear();
+  
+  const skillGrid = document.getElementById('skillGrid');
+  skillGrid.innerHTML = '';
+  skillGrid.classList.remove('error');
+  document.getElementById('skillGrid-error').classList.remove('show');
+  
+  if (niche && skillsByNiche[niche]) {
+    const skills = skillsByNiche[niche];
+    skills.forEach(skill => {
+      const badge = document.createElement('div');
+      badge.className = 'skill-badge';
+      badge.textContent = skill;
+      badge.onclick = function() { toggleSkill(this); };
+      skillGrid.appendChild(badge);
+    });
+  }
+  
+  document.getElementById('skillCount').textContent = '0';
+}
+
+function collectFormData() {
+  // Collect Step 1 data
+  formData.fullName = document.getElementById('fullName').value.trim();
+  formData.dateOfBirth = document.getElementById('dateOfBirth').value.trim();
+  formData.phoneNumber = document.getElementById('phoneNumber').value.trim();
+  formData.niche = selectedNiche;
+  formData.nicheDisplay = nicheDisplayNames[selectedNiche] || '';
+  formData.skills = Array.from(selectedSkills);
+  formData.education = selectedEducation;
+  formData.educationDisplay = educationDisplayNames[selectedEducation] || '';
+  formData.summary = document.querySelector('.form-group textarea')?.value.trim() || '';
+  
+  // Collect Step 2 data
+  formData.idFileName = document.getElementById('idFileSelected').value || '';
+  formData.educationFileName = document.getElementById('educationFileSelected').value || '';
+  formData.cvFileName = document.getElementById('cvFileSelected').value || '';
+  
+  // Collect certificate data
+  formData.certificates = certificates
+    .filter(c => c !== null && c.title)
+    .map(c => ({
+      title: document.getElementById('cert-title-' + c.index)?.value.trim() || c.title,
+      fileName: document.getElementById('cert-file-status-' + c.index)?.textContent || ''
+    }));
+}
+
+function displayReviewData() {
+  // Display personal information
+  document.getElementById('reviewName').textContent = formData.fullName || '—';
+  document.getElementById('reviewDOB').textContent = formData.dateOfBirth || '—';
+  document.getElementById('reviewPhone').textContent = formData.phoneNumber || '—';
+  document.getElementById('reviewNiche').textContent = formData.nicheDisplay || '—';
+  document.getElementById('reviewEducation').textContent = formData.educationDisplay || '—';
+  
+  // Display selected skills in personal info section
+  const skillsSelected = formData.skills.length > 0 ? formData.skills.join(', ') : '—';
+  document.getElementById('reviewSkillsSelected').textContent = skillsSelected;
+  
+  // Display professional summary/bio
+  const summary = formData.summary || '—';
+  document.getElementById('reviewBio').textContent = summary;
+  
+  // Display skills and certificates together
+  const skillsCertsContainer = document.getElementById('reviewSkillsCerts');
+  skillsCertsContainer.innerHTML = '';
+  
+  // Add all selected skills as badges
+  if (formData.skills.length > 0) {
+    formData.skills.forEach(skill => {
+      const badge = document.createElement('span');
+      badge.className = 'badge badge-gold';
+      badge.textContent = skill;
+      skillsCertsContainer.appendChild(badge);
+    });
+  }
+  
+  // Add all certificates as badges
+  if (formData.certificates.length > 0) {
+    formData.certificates.forEach(cert => {
+      const badge = document.createElement('span');
+      badge.className = 'badge badge-default';
+      badge.textContent = cert.title;
+      skillsCertsContainer.appendChild(badge);
+    });
+  }
+  
+  // If nothing to show
+  if (formData.skills.length === 0 && formData.certificates.length === 0) {
+    skillsCertsContainer.innerHTML = '<span style="color:var(--ink-muted);">No skills or certificates</span>';
+  }
+  
+  // Display all documents under review
+  const docsContainer = document.getElementById('reviewDocuments');
+  let docsHTML = '';
+  
+  const documentList = [];
+  
+  // Add ID
+  if (formData.idFileName) {
+    documentList.push({
+      title: 'Identity Document',
+      fileName: formData.idFileName
+    });
+  }
+  
+  // Add Education
+  if (formData.educationFileName) {
+    documentList.push({
+      title: 'Education Proof',
+      fileName: formData.educationFileName
+    });
+  }
+  
+  // Add CV
+  if (formData.cvFileName) {
+    documentList.push({
+      title: 'Curriculum Vitae',
+      fileName: formData.cvFileName
+    });
+  }
+  
+  // Add certificates
+  if (formData.certificates.length > 0) {
+    formData.certificates.forEach(cert => {
+      documentList.push({
+        title: cert.title,
+        fileName: cert.fileName.replace('File: ', '') || cert.title
+      });
+    });
+  }
+  
+  // Display all documents
+  if (documentList.length > 0) {
+    documentList.forEach(doc => {
+      docsHTML += `
+        <div style="padding:12px;background:var(--gold-pale);border-radius:var(--radius-sm);margin-bottom:12px;">
+          <div style="font-weight:600;font-size:.9rem;color:var(--ink);">${doc.title}</div>
+          <div style="font-size:.8rem;color:var(--ink-muted);margin-top:4px;">${doc.fileName}</div>
+          <div style="font-size:.75rem;color:var(--gold);margin-top:6px;font-weight:600;">Under Review</div>
+        </div>
+      `;
+    });
+  } else {
+    docsHTML = '<div style="color:var(--ink-muted);">No documents uploaded</div>';
+  }
+  
+  docsContainer.innerHTML = docsHTML;
+}
+
+function toggleSkill(elem) {
+  elem.classList.toggle('selected');
+  const skill = elem.textContent;
+  if (elem.classList.contains('selected')) {
+    selectedSkills.add(skill);
+  } else {
+    selectedSkills.delete(skill);
+  }
+  document.getElementById('skillCount').textContent = selectedSkills.size;
+  
+  // Clear error if at least 1 skill is selected
+  if (selectedSkills.size >= 1) {
+    document.getElementById('skillGrid').classList.remove('error');
+    document.getElementById('skillGrid-error').classList.remove('show');
+  }
+}
+
+function selectEducation(elem, value) {
+  document.querySelectorAll('.education-card').forEach(e => e.classList.remove('selected', 'error'));
+  elem.classList.add('selected');
+  selectedEducation = value;
+  
+  // Clear error when education is selected
+  document.getElementById('educationSelect-error').classList.remove('show');
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  e.stopPropagation();
+}
+
+function addDragHover(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  e.currentTarget.classList.add('drag-over');
+}
+
+function removeDragHover(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+
+function handleFilesDrop(e, type) {
+  e.preventDefault();
+  e.stopPropagation();
+  e.currentTarget.classList.remove('drag-over');
+  
+  const files = e.dataTransfer.files;
+  if (files.length > 0) {
+    const fileInput = document.getElementById(type + 'File');
+    // Create a new FileList-like object
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(files[0]);
+    fileInput.files = dataTransfer.files;
+    
+    // Trigger the change event
+    const event = new Event('change', { bubbles: true });
+    fileInput.dispatchEvent(event);
+  }
+}
+
+function handleDrop(e, type) {
+  e.preventDefault();
+  e.stopPropagation();
+  if (type === 'id') {
+    document.getElementById('idFile').click();
+  } else if (type === 'education') {
+    document.getElementById('educationFile').click();
+  } else if (type === 'cv') {
+    document.getElementById('cvFile').click();
+  }
+}
+
+function getFileIcon(filename) {
+  if (filename.endsWith('.pdf')) return '📕';
+  if (filename.match(/\.(jpg|jpeg|png|gif)$/i)) return '🖼️';
+  return '📄';
+}
+
+function formatFileSize(bytes) {
+  if (!bytes) return '';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function previewFile(input, type) {
+  if (type === 'id') {
+    const file = input.files[0];
+    if (file) {
+      // Validate ID is image only
+      const validImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      if (!validImageTypes.includes(file.type)) {
+        alert('ID document must be an image file (JPG, PNG, GIF, or WebP)');
+        input.value = '';
+        return;
+      }
+      document.getElementById('idFileSelected').value = file.name;
+      document.getElementById('idStatus').textContent = file.name;
+      showFilePreview('id', file);
+    }
+  } else if (type === 'education') {
+    const file = input.files[0];
+    if (file) {
+      document.getElementById('educationFileSelected').value = file.name;
+      document.getElementById('educationStatus').textContent = file.name;
+      showFilePreview('education', file);
+    }
+  } else if (type === 'cv') {
+    const file = input.files[0];
+    if (file) {
+      cvFile = file;
+      document.getElementById('cvFileSelected').value = file.name;
+      document.getElementById('cvStatus').textContent = file.name;
+      showFilePreview('cv', file);
+    }
+  }
+}
+
+function showFilePreview(type, file) {
+  const uploadZone = document.getElementById(type + 'UploadZone');
+  const previewDiv = document.getElementById(type + 'FilePreview');
+  
+  const icon = getFileIcon(file.name);
+  const size = formatFileSize(file.size);
+  
+  previewDiv.innerHTML = `
+    <div class="file-preview">
+      <div class="file-preview-icon">${icon}</div>
+      <div class="file-preview-info">
+        <div class="file-preview-name">${file.name}</div>
+        <div class="file-preview-size">${size}</div>
+      </div>
+      <button type="button" class="file-preview-remove" onclick="removeFilePreview('${type}')">✕ Remove</button>
+    </div>
+  `;
+  
+  uploadZone.style.display = 'none';
+  previewDiv.style.display = 'block';
+  
+  // Clear error when file is uploaded
+  uploadZone.classList.remove('error');
+  const errorMsg = document.getElementById(type + 'UploadZone-error');
+  if (errorMsg) {
+    errorMsg.classList.remove('show');
+  }
+}
+
+function removeFilePreview(type) {
+  const uploadZone = document.getElementById(type + 'UploadZone');
+  const previewDiv = document.getElementById(type + 'FilePreview');
+  const fileInput = document.getElementById(type + 'File');
+  
+  // Reset file input
+  fileInput.value = '';
+  document.getElementById(type + 'FileSelected').value = '';
+  if (type === 'cv') {
+    cvFile = null;
+  }
+  
+  // Update status
+  if (type === 'id') {
+    document.getElementById('idStatus').textContent = 'Not uploaded';
+  } else if (type === 'education') {
+    document.getElementById('educationStatus').textContent = 'Not uploaded';
+  } else if (type === 'cv') {
+    document.getElementById('cvStatus').textContent = 'Not uploaded';
+  }
+  
+  // Hide preview and show upload zone
+  previewDiv.style.display = 'none';
+  uploadZone.style.display = 'block';
+}
+
+function addCertificateField() {
+  const index = certificates.length;
+  const fieldId = 'cert-' + index;
+  
+  const certFieldHTML = `
+    <div id="cert-group-${index}" style="padding:16px;background:var(--ivory-card);border-radius:var(--radius-md);margin-bottom:12px;border:1px solid var(--border);">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Certificate Title</label>
+          <input type="text" class="form-control" id="cert-title-${index}" placeholder="e.g., AWS Solutions Architect, PMP, CPA" value="" onchange="updateCertificateTitle(${index})">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Upload Certificate</label>
+          <div style="display:flex;gap:8px;">
+            <input type="file" id="cert-file-${index}" style="display:none;" accept="image/*,.pdf" onchange="handleCertificateUpload(this, ${index})">
+            <button type="button" class="btn btn-outline" onclick="document.getElementById('cert-file-${index}').click()" style="flex:1;">Choose File</button>
+            <button type="button" class="btn btn-outline" style="padding:0 16px;color:var(--red);border-color:var(--red);" onclick="removeCertificate(${index})">✕</button>
+          </div>
+          <p id="cert-file-status-${index}" style="font-size:.75rem;color:var(--ink-muted);margin-top:4px;">No file selected</p>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.getElementById('certificatesList').insertAdjacentHTML('beforeend', certFieldHTML);
+  certificates.push({
+    index: index,
+    title: '',
+    file: null
+  });
+  updateCertificateCount();
+}
+
+function updateCertificateTitle(index) {
+  const title = document.getElementById('cert-title-' + index)?.value.trim();
+  if (certificates[index]) {
+    certificates[index].title = title;
+  }
+}
+
+function handleCertificateUpload(input, index) {
+  const file = input.files[0];
+  if (file) {
+    certificates[index].file = file;
+    document.getElementById('cert-file-status-' + index).textContent = 'File: ' + file.name;
+  }
+}
+
+function removeCertificate(index) {
+  const certGroup = document.getElementById('cert-group-' + index);
+  if (certGroup) {
+    certGroup.remove();
+  }
+  certificates[index] = null;
+  updateCertificateCount();
+}
+
+function updateCertificateCount() {
+  const count = certificates.filter(c => c !== null && c.file !== null).length;
+  document.getElementById('certStatus').textContent = count;
+}
+
+function clearErrors() {
+  // Clear error messages and styling
+  document.querySelectorAll('.form-control, .education-card, .skill-grid').forEach(elem => {
+    elem.classList.remove('error');
+  });
+  document.querySelectorAll('.error-message').forEach(elem => {
+    elem.classList.remove('show');
+  });
+}
+
+function showError(fieldId) {
+  const field = document.getElementById(fieldId);
+  const errorMsg = document.getElementById(fieldId + '-error');
+  
+  if (field) {
+    if (field.classList.contains('form-control') || field.classList.contains('skill-grid')) {
+      field.classList.add('error');
+    } else if (fieldId.includes('education')) {
+      document.querySelectorAll('.education-card').forEach(card => {
+        card.classList.add('error');
+      });
+    }
+  }
+  
+  if (errorMsg) {
+    errorMsg.classList.add('show');
+  }
+}
+
+function validateStep1() {
+  clearErrors();
+  let isValid = true;
+  
+  // Check full name (letters only)
+  const fullName = document.getElementById('fullName').value.trim();
+  const nameRegex = /^[a-zA-Z\s]+$/;
+  if (!fullName || !nameRegex.test(fullName)) {
+    showError('fullName');
+    isValid = false;
+  }
+  
+  // Check date of birth (DD/MM/YYYY format)
+  const dateOfBirth = document.getElementById('dateOfBirth').value.trim();
+  const dateRegex = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[012])\/\d{4}$/;
+  if (!dateOfBirth || !dateRegex.test(dateOfBirth)) {
+    showError('dateOfBirth');
+    isValid = false;
+  } else {
+    // Parse and validate age (18+)
+    const [day, month, year] = dateOfBirth.split('/');
+    const birthDate = new Date(year, month - 1, day);
+    const today = new Date();
+    const age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    const dayDiff = today.getDate() - birthDate.getDate();
+    
+    if (age < 18 || (age === 18 && monthDiff < 0) || (age === 18 && monthDiff === 0 && dayDiff < 0)) {
+      showError('dateOfBirth');
+      isValid = false;
+    }
+  }
+  
+  // Check phone number (must start with + or 00)
+  const phoneNumber = document.getElementById('phoneNumber').value.trim();
+  const phoneRegex = /^(\+|00)[0-9]{1,15}$/;
+  if (!phoneNumber || !phoneRegex.test(phoneNumber)) {
+    showError('phoneNumber');
+    isValid = false;
+  }
+  
+  // Check niche selection
+  const niche = document.getElementById('primaryNiche').value;
+  if (!niche) {
+    showError('primaryNiche');
+    isValid = false;
+  }
+  
+  // Check skills (minimum 1)
+  if (selectedSkills.size < 1) {
+    showError('skillGrid');
+    isValid = false;
+  }
+  
+  // Check education level
+  if (!selectedEducation) {
+    showError('educationSelect');
+    isValid = false;
+  }
+  
+  return isValid;
+}
+
+function validateStep2() {
+  clearStep2Errors();
+  let isValid = true;
+  
+  const idUploaded = document.getElementById('idFileSelected').value !== '';
+  const educationUploaded = document.getElementById('educationFileSelected').value !== '';
+  
+  if (!idUploaded) {
+    showStep2Error('idUploadZone');
+    isValid = false;
+  }
+  
+  if (!educationUploaded) {
+    showStep2Error('educationUploadZone');
+    isValid = false;
+  }
+  
+  return isValid;
+}
+
+function showStep2Error(fieldId) {
+  const uploadZone = document.getElementById(fieldId);
+  const errorMsg = document.getElementById(fieldId + '-error');
+  
+  if (uploadZone) {
+    uploadZone.classList.add('error');
+  }
+  
+  if (errorMsg) {
+    errorMsg.classList.add('show');
+  }
+}
+
+function clearStep2Errors() {
+  document.querySelectorAll('.upload-zone').forEach(elem => {
+    elem.classList.remove('error');
+  });
+  document.querySelectorAll('#idUploadZone-error, #educationUploadZone-error').forEach(elem => {
+    elem.classList.remove('show');
+  });
+}
+
+function submitProfile() {
+  if (!validateStep3()) {
+    return;
+  }
+  
+  // TODO: Send data to PHP backend
+  window.location.href = 'dashboard-freelancer.html';
+}
+
+function validateStep3() {
+  const agreeTermsGroup = document.getElementById('agreeTermsGroup');
+  const errorMsg = document.getElementById('agreeTerms-error');
+  
+  if (!document.getElementById('agreeTerms').checked) {
+    agreeTermsGroup.classList.add('checkbox-group', 'error');
+    errorMsg.classList.add('show');
+    return false;
+  }
+  
+  agreeTermsGroup.classList.remove('checkbox-group', 'error');
+  errorMsg.classList.remove('show');
+  return true;
+}
+
+// Real-time error clearing for terms checkbox
+document.addEventListener('DOMContentLoaded', function() {
+  const agreeTermsCheckbox = document.getElementById('agreeTerms');
+  if (agreeTermsCheckbox) {
+    agreeTermsCheckbox.addEventListener('change', function() {
+      if (this.checked) {
+        document.getElementById('agreeTermsGroup').classList.remove('checkbox-group', 'error');
+        document.getElementById('agreeTerms-error').classList.remove('show');
+      }
+    });
+  }
+});
+
+// Make upload zones clickable
+document.getElementById('idUploadZone').addEventListener('click', () => document.getElementById('idFile').click());
+document.getElementById('educationUploadZone').addEventListener('click', () => document.getElementById('educationFile').click());
+document.getElementById('cvUploadZone').addEventListener('click', () => document.getElementById('cvFile').click());
+
+// Real-time error clearing for form fields
+document.getElementById('fullName').addEventListener('input', function() {
+  this.value = this.value.replace(/[^a-zA-Z\s]/g, ''); // Remove non-letter characters
+  if (this.value.trim() && /^[a-zA-Z\s]+$/.test(this.value)) {
+    this.classList.remove('error');
+    document.getElementById('fullName-error').classList.remove('show');
+  }
+});
+
+document.getElementById('dateOfBirth').addEventListener('input', function() {
+  // Allow only digits and forward slashes
+  let value = this.value.replace(/[^0-9/]/g, '');
+  
+  // Auto-format as DD/MM/YYYY
+  if (value.length === 2 && !value.includes('/')) {
+    value = value + '/';
+  } else if (value.length === 5 && value.split('/').length === 2) {
+    value = value + '/';
+  }
+  
+  this.value = value;
+  
+  if (value && /^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
+    this.classList.remove('error');
+    document.getElementById('dateOfBirth-error').classList.remove('show');
+  }
+});
+
+document.getElementById('phoneNumber').addEventListener('input', function() {
+  // Allow only + and digits
+  let value = this.value.trim();
+  this.value = value.replace(/[^0-9+]/g, '');
+  
+  if (this.value && /^(\+|00)[0-9]{1,15}$/.test(this.value)) {
+    this.classList.remove('error');
+    document.getElementById('phoneNumber-error').classList.remove('show');
+  }
+});
+
+document.getElementById('primaryNiche').addEventListener('change', function() {
+  if (this.value) {
+    this.classList.remove('error');
+    document.getElementById('primaryNiche-error').classList.remove('show');
+  }
+});
 </script>
 
 </body>
