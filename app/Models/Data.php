@@ -137,4 +137,45 @@ class Data {
 
         return $verified;
     }
+    public function getUserByEmail(string $email): ?array
+{
+    $conn = $this->getDb();
+    $stmt = $conn->prepare(
+        "SELECT id, user_name, user_email, user_role, is_verified, user_SSN
+         FROM userData WHERE user_email = ?"
+    );
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $user = $result->num_rows > 0 ? $result->fetch_assoc() : null;
+
+    $stmt->close();
+    $conn->close();
+
+    return $user;
+}
+
+public function getActiveProjectsCount(int $user_id, string $role): int
+{
+    $conn = $this->getDb();
+
+    $column = $role === 'Freelancer' ? 'freelancer_id' : 'client_id';
+
+    $stmt = $conn->prepare(
+        "SELECT COUNT(*) as count FROM projects
+         WHERE {$column} = ? AND status = 'active'"
+    );
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $row   = $result->fetch_assoc();
+    $count = (int) ($row['count'] ?? 0);
+
+    $stmt->close();
+    $conn->close();
+
+    return $count;
+}
 }
