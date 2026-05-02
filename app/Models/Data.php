@@ -94,7 +94,47 @@ class Data {
         $users = $result->fetch_all(MYSQLI_ASSOC);
 
         $conn->close();
-
+    
         return $users;
+    }
+
+    public function getRole(string $email): ?string
+    {
+        $conn = $this->getDb();
+        $stmt = $conn->prepare("SELECT user_role FROM userData WHERE user_email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        $role = null;
+        if ($result->num_rows > 0) {
+            $row  = $result->fetch_assoc();
+            $role = $row['user_role'];
+        }
+        
+        $stmt->close();
+        $conn->close();
+
+        return $role;
+    }
+    public function is_verified(string $email): bool
+    {
+        $conn = $this->getDb();
+        $stmt = $conn->prepare('SELECT is_verified FROM userData WHERE user_email = ?');
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        $verified = false;
+
+        if ($result->num_rows > 0) {
+            $row      = $result->fetch_assoc();
+            $verified = (bool) $row['is_verified'];
+        }
+
+        $stmt->close();
+        $conn->close();
+
+        return $verified;
     }
 }
