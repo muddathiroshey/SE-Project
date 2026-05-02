@@ -2,66 +2,59 @@
 namespace App\Controllers;
 
 use App\Core\Controller;
+use App\Models\Data;
 
 class AuthController extends Controller
 {
-    private function getDb(): \mysqli
+    protected Data $conn;
+
+    public function __construct()
     {
-        $conn = new \mysqli('db', 'appuser', 'apppass', 'freelance_marketplace');
-        if ($conn->connect_error) {
-            die("Connection failed: " . $conn->connect_error);
-        }
-        return $conn;
+        $this->conn = new Data();
     }
 
     public function showLogin(): void
-{
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if (isset($_SESSION['user_id'])) {
+            header('Location: /dashboard');
+            exit();
+        }
+
+        $errors = [
+            'login'  => $_SESSION['error_login']  ?? '',
+            'signup' => $_SESSION['error_signup'] ?? ''
+        ];
+        $active_form = $_SESSION['active_form'] ?? 'login';
+        session_unset();
+
+        $this->view('login/index', [
+            'errors'      => $errors,
+            'active_form' => $active_form
+        ]);
     }
-
-    if (isset($_SESSION['user_id'])) {
-        header('Location: /dashboard');
-        exit();
-    }
-
-    $errors = [
-        'login'  => $_SESSION['error_login']  ?? '',
-        'signup' => $_SESSION['error_signup'] ?? ''
-    ];
-    $active_form = $_SESSION['active_form'] ?? 'login';
-    session_unset();
-
-    $this->view('login/index', [
-        'errors'      => $errors,
-        'active_form' => $active_form
-    ]);
-}
 
     public function login(): void
     {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-        $conn     = $this->getDb();
+
         $email    = trim($_POST['email']    ?? '');
-        $password = $_POST['password'];
+        $password = $_POST['password']      ?? '';
 
-        $stmt = $conn->prepare("SELECT id, user_name, user_email, user_password, user_role FROM userData WHERE user_email = ?");
-        $stmt->bind_param("s", $email);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        $user = $this->conn->checkPass($password, $email);
 
-        if ($result->num_rows > 0) {
-            $user = $result->fetch_assoc();
-            if (password_verify($password, $user['user_password'])) {
-                $_SESSION['user_id']   = $user['id'];
-                $_SESSION['user_name'] = $user['user_name'];
-                $_SESSION['email']     = $user['user_email'];
-                $_SESSION['role']      = $user['user_role'];
-                header("Location: /dashboard");
-                exit();
-            }
+        if ($user) {
+            $_SESSION['user_id']   = $user['id'];
+            $_SESSION['user_name'] = $user['user_name'];
+            $_SESSION['email']     = $user['user_email'];
+            $_SESSION['role']      = $user['user_role'];
+            header("Location: /dashboard");
+            exit();
         }
 
         $_SESSION['error_login'] = "Invalid email or password.";
@@ -75,81 +68,51 @@ class AuthController extends Controller
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-        $conn     = $this->getDb();
-        $fname    = trim($_POST['fname']           ?? '');
-        $lname    = trim($_POST['lname']           ?? '');
-        $email    = trim($_POST['email']           ?? '');
-        $raw_pass = $_POST['password']             ?? '';
-        $confirm  = $_POST['confirm_password']     ?? '';
-        $role     = $_POST['role']                 ?? 'Client';
 
-        // ① Empty field check  (was using undefined $raw — fixed to $raw_pass)
+        $fname    = trim($_POST['fname']            ?? '');
+        $lname    = trim($_POST['lname']            ?? '');
+        $email    = trim($_POST['email']            ?? '');
+        $raw_pass = $_POST['password']              ?? '';
+        $confirm  = $_POST['confirm_password']      ?? '';
+        $role     = $_POST['role']                  ?? 'Client';
+
+        // Validation
         if (!$fname || !$email || !$raw_pass || !$confirm) {
-            $_SESSION['error_signup'] = "All required fields must be filled in.";
-            $_SESSION['active_form']  = "signup";
-            header("Location: /login");
-            exit();
+            $this->signupError("All required fields must be filled in.");
         }
 
-        // ② Email format
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $_SESSION['error_signup'] = "Please enter a valid email address.";
-            $_SESSION['active_form']  = "signup";
-            header("Location: /login");
-            exit();
+            $this->signupError("Please enter a valid email address.");
         }
 
-        // ③ Password length
         if (strlen($raw_pass) < 10) {
-            $_SESSION['error_signup'] = "Password must be at least 10 characters.";
-            $_SESSION['active_form']  = "signup";
-            header("Location: /login");
-            exit();
+            $this->signupError("Password must be at least 10 characters.");
         }
 
-        // ④ Password match  (duplicate block removed)
         if ($raw_pass !== $confirm) {
-            $_SESSION['error_signup'] = "Passwords do not match.";
-            $_SESSION['active_form']  = "signup";
-            header("Location: /login");
+            $this->signupError("Passwords do not match.");
+        }
+
+        if ($this->conn->checkEmail($email)) {
+            $this->signupError("An account with that email already exists.");
+        }
+
+        // Insert
+        $full_name = trim("$fname $lname");
+        $new_id    = $this->conn->AddUser($email, $raw_pass, $full_name, $role);
+
+        if ($new_id) {
+            $_SESSION['user_id']   = $new_id;
+            $_SESSION['user_name'] = $full_name;
+            $_SESSION['email']     = $email;
+            $_SESSION['role']      = $role;
+            header("Location: /dashboard");
             exit();
         }
 
-        $password  = password_hash($raw_pass, PASSWORD_DEFAULT);
-        $full_name = trim("$fname $lname");
-
-        // ⑤ Duplicate email check
-        $check = $conn->prepare("SELECT id FROM userData WHERE user_email = ?");
-        $check->bind_param("s", $email);
-        $check->execute();
-        $check->store_result();
-
-        if ($check->num_rows > 0) {
-            $_SESSION['error_signup'] = "An account with that email already exists.";
-            $_SESSION['active_form']  = "signup";
-        } else {
-            // ⑥ Insert
-            $stmt = $conn->prepare(
-                "INSERT INTO userData (user_email, user_password, user_name, user_role) VALUES (?, ?, ?, ?)"
-            );
-            $stmt->bind_param("ssss", $email, $password, $full_name, $role);
-
-            if ($stmt->execute()) {
-                $_SESSION['user_id']   = $conn->insert_id;
-                $_SESSION['user_name'] = $full_name;
-                $_SESSION['email']     = $email;
-                $_SESSION['role']      = $role;
-                header("Location: /dashbord");
-                exit();
-            } else {
-                $_SESSION['error_signup'] = "Registration failed. Please try again.";
-                $_SESSION['active_form']  = "signup";
-            }
-        }
-
-        header("Location: /login");
-        exit();
+        $this->signupError("Registration failed. Please try again.");
     }
+
     public function logout(): void
     {
         if (session_status() === PHP_SESSION_NONE) {
@@ -157,6 +120,15 @@ class AuthController extends Controller
         }
         session_destroy();
         header("Location: /");
+        exit();
+    }
+
+    // Helper to avoid repeating the 3-line error pattern
+    private function signupError(string $message): never
+    {
+        $_SESSION['error_signup'] = $message;
+        $_SESSION['active_form']  = 'signup';
+        header("Location: /login");
         exit();
     }
 }

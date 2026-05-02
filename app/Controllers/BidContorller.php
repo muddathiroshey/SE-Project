@@ -2,7 +2,7 @@
 namespace App\Controllers;
 use App\Core\Controller;
 
-class bitContorller extends Controller
+class <B></B>idController extends Controller
 {
     public function index(): void
     {
