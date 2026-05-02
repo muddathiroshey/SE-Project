@@ -1,27 +1,302 @@
 <?php
 namespace App\Controllers;
-use App\Controllers\AuthController;
+
 use App\Core\Controller;
+use App\Models\ClientProfile;
+use App\Models\Data;
 
 class ProfileController extends Controller
 {
+    private ClientProfile $profile;
+    private Data $auth;
 
+    public function __construct()
+    {
+        $this->profile = new ClientProfile();
+        $this->auth    = new Data();
+    }
+
+    //  GET /profile 
+    // Redirect to setup wizard if no profile yet, else to edit view
 
     public function index(): void
     {
-        
-        if (!isset($_SESSION)) {
-            session_start();
+        $this->requireAuth();
+
+        $user_id = (int) $_SESSION['user_id'];
+        $client  = $this->profile->getByUserId($user_id);
+
+        if (!$client) {
+            header("Location: /profile/setup");
+            exit();
         }
-        
-        
-        if (!isset($_SESSION['email'])) {
+
+        header("Location: /profile/edit");
+        exit();
+    }
+
+    // GET /profile/setup
+    // 2-step wizard for first-time clients
+
+    public function setup(): void
+    {
+        $this->requireAuth();
+        $this->requireRole('Client');
+
+        $user_id = (int) $_SESSION['user_id'];
+
+        // Already set up — skip wizard
+        if ($this->profile->getByUserId($user_id)) {
+            header("Location: /profile/edit");
+            exit();
+        }
+
+        $this->view('profile/client/index');
+    }
+
+    // POST /profile/setup 
+    // Wizard submit: create profile row + upload ID doc
+
+    public function store(): void
+    {
+        $this->requireAuth();
+        $this->requireRole('Client');
+
+        $user_id = (int) $_SESSION['user_id'];
+        $errors  = [];
+
+        // --- Validate fields ---
+        $name  = trim($_POST['personalName']  ?? '');
+        $dob   = trim($_POST['personalDOB']   ?? '');
+        $phone = trim($_POST['personalPhone'] ?? '');
+        $bio   = trim($_POST['personalBio']   ?? '');
+
+        if (!$name || !preg_match('/^[\p{L}\s]+$/u', $name)) {
+            $errors[] = 'Full name is required (letters only).';
+        }
+        if (!preg_match('/^(0[1-9]|[12]\d|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/', $dob)) {
+            $errors[] = 'Date of birth must be in DD/MM/YYYY format.';
+        }
+        if (!preg_match('/^(\+|00)\d{6,15}$/', $phone)) {
+            $errors[] = 'Phone number must start with + or 00.';
+        }
+
+        // --- Validate ID upload ---
+        $upload    = $_FILES['idFile'] ?? null;
+        $id_path   = '';
+        $id_name   = '';
+        $allowed   = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        $max_bytes = 10 * 1024 * 1024; // 10 MB
+
+        if (!$upload || $upload['error'] !== UPLOAD_ERR_OK) {
+            $errors[] = 'ID document upload is required.';
+        } elseif (!in_array($upload['type'], $allowed, true)) {
+            $errors[] = 'ID must be an image (JPG, PNG, GIF, WebP).';
+        } elseif ($upload['size'] > $max_bytes) {
+            $errors[] = 'ID image must be 10 MB or less.';
+        }
+
+        if ($errors) {
+            $this->view('profile/client/index', ['errors' => $errors]);
+            return;
+        }
+
+        // --- Move uploaded ID ---
+        $ext     = pathinfo($upload['name'], PATHINFO_EXTENSION);
+        $id_name = $upload['name'];
+        $id_path = 'uploads/kyc/' . $user_id . '_id_' . time() . '.' . $ext;
+
+        if (!move_uploaded_file($upload['tmp_name'], $id_path)) {
+            $this->view('profile/client/index', [
+                'errors' => ['File upload failed. Please try again.']
+            ]);
+            return;
+        }
+
+        // --- Insert profile ---
+        $client_id = $this->profile->create($user_id, [
+            'job_title'          => '',
+            'country'            => '',
+            'timezone'           => '',
+            'phone_number'       => $phone,
+            'hiring_description' => $bio,
+        ]);
+
+        if (!$client_id) {
+            $this->view('profile/client/index', [
+                'errors' => ['Could not create profile. Please try again.']
+            ]);
+            return;
+        }
+
+        // --- Attach ID document ---
+        $this->profile->addKycDocument($client_id, [
+            'doc_type'  => 'identity',
+            'doc_title' => 'Government ID — ' . $name,
+            'file_path' => $id_path,
+            'file_name' => $id_name,
+        ]);
+
+        // --- Store legal name in userData.user_name if blank ---
+        // (optional: update user_name to legal name from wizard)
+
+        header("Location: /dashboard");
+        exit();
+    }
+
+    //  GET /profile/edit
+    // Full 6-section edit view
+
+    public function edit(): void
+    {
+        $this->requireAuth();
+        $this->requireRole('Client');
+
+        $user_id = (int) $_SESSION['user_id'];
+        $client  = $this->profile->getByUserId($user_id);
+
+        if (!$client) {
+            header("Location: /profile/setup");
+            exit();
+        }
+
+        $this->view('profile/client/client-profile-edit', [
+            'client'       => $client,
+            'kyc_docs'     => $this->profile->getKycDocuments($client['id']),
+            'niche_prefs'  => $this->profile->getNichePrefs($client['id']),
+            'keywords'     => $this->profile->getKeywords($client['id']),
+        ]);
+    }
+
+    // POST /profile/update
+    // Save all 6 sections from the edit form
+
+    public function update(): void
+    {
+        $this->requireAuth();
+        $this->requireRole('Client');
+
+        $user_id = (int) $_SESSION['user_id'];
+        $client  = $this->profile->getByUserId($user_id);
+
+        if (!$client) {
+            header("Location: /profile/setup");
+            exit();
+        }
+
+        $client_id = (int) $client['id'];
+        $errors    = [];
+
+        // --- Phone validation ---
+        $phone = trim($_POST['phone_number'] ?? '');
+        if ($phone && !preg_match('/^(\+|00)\d{6,15}$/', $phone)) {
+            $errors[] = 'Phone number must start with + or 00.';
+        }
+
+        if ($errors) {
+            $this->view('profile/client/client-profile-edit', [
+                'client'      => $client,
+                'kyc_docs'    => $this->profile->getKycDocuments($client_id),
+                'niche_prefs' => $this->profile->getNichePrefs($client_id),
+                'keywords'    => $this->profile->getKeywords($client_id),
+                'errors'      => $errors,
+            ]);
+            return;
+        }
+
+        // --- Handle logo upload ---
+        $logo = $_FILES['logo'] ?? null;
+        if ($logo && $logo['error'] === UPLOAD_ERR_OK) {
+            $allowed_img = ['image/jpeg', 'image/png', 'image/svg+xml'];
+            $max_bytes   = 5 * 1024 * 1024;
+
+            if (!in_array($logo['type'], $allowed_img, true)) {
+                $errors[] = 'Logo must be PNG, JPG, or SVG.';
+            } elseif ($logo['size'] > $max_bytes) {
+                $errors[] = 'Logo must be 5 MB or less.';
+            } else {
+                $ext      = pathinfo($logo['name'], PATHINFO_EXTENSION);
+                $logo_path = 'uploads/logos/' . $client_id . '_logo_' . time() . '.' . $ext;
+                if (move_uploaded_file($logo['tmp_name'], $logo_path)) {
+                    $this->profile->updateLogo($client_id, $logo_path);
+                }
+            }
+        }
+
+        // --- Main profile update ---
+        $this->profile->update($client_id, [
+            'job_title'          => trim($_POST['job_title']          ?? ''),
+            'country'            => trim($_POST['country']            ?? ''),
+            'timezone'           => trim($_POST['timezone']           ?? ''),
+            'phone_number'       => $phone,
+            'org_name'           => trim($_POST['org_name']           ?? ''),
+            'org_type'           => trim($_POST['org_type']           ?? ''),
+            'org_industry'       => trim($_POST['org_industry']       ?? ''),
+            'org_industry_other' => trim($_POST['org_industry_other'] ?? ''),
+            'org_website'        => trim($_POST['org_website']        ?? ''),
+            'org_reg_country'    => trim($_POST['org_reg_country']    ?? ''),
+            'org_reg_number'     => trim($_POST['org_reg_number']     ?? ''),
+            'org_bio'            => trim($_POST['org_bio']            ?? ''),
+            'org_address'        => trim($_POST['org_address']        ?? ''),
+            'hiring_description' => trim($_POST['hiring_description'] ?? ''),
+            'tax_jurisdiction'   => trim($_POST['tax_jurisdiction']   ?? ''),
+            'vat_number'         => trim($_POST['vat_number']         ?? ''),
+            'tax_id'             => trim($_POST['tax_id']             ?? ''),
+            'billing_address'    => trim($_POST['billing_address']    ?? ''),
+            'currency'           => trim($_POST['currency']           ?? 'USD'),
+            'profile_active'     => isset($_POST['profile_active'])     ? 1 : 0,
+            'show_project_count' => isset($_POST['show_project_count']) ? 1 : 0,
+            'show_spend_band'    => isset($_POST['show_spend_band'])     ? 1 : 0,
+            'allow_messages'     => isset($_POST['allow_messages'])      ? 1 : 0,
+        ]);
+
+        // --- Sync multi-value fields ---
+        $niches   = array_filter(explode(',', $_POST['niche_prefs'] ?? ''));
+        $keywords = array_filter(explode(',', $_POST['keywords']    ?? ''));
+
+        $this->profile->syncNichePrefs($client_id, $niches);
+        $this->profile->syncKeywords($client_id, $keywords);
+
+        header("Location: /profile/edit?saved=1");
+        exit();
+    }
+
+    //  POST /profile/kyc/delete 
+
+    public function deleteKycDoc(): void
+    {
+        $this->requireAuth();
+        $this->requireRole('Client');
+
+        $user_id = (int) $_SESSION['user_id'];
+        $client  = $this->profile->getByUserId($user_id);
+        $doc_id  = (int) ($_POST['doc_id'] ?? 0);
+
+        if ($client && $doc_id) {
+            $this->profile->deleteKycDocument($doc_id, (int) $client['id']);
+        }
+
+        header("Location: /profile/edit#sec-kyc");
+        exit();
+    }
+
+    // ── HELPERS 
+
+    private function requireAuth(): void
+    {
+        if (session_status() === PHP_SESSION_NONE) session_start();
+
+        if (!isset($_SESSION['user_id'])) {
             header("Location: /login");
             exit();
         }
-        
-      $this->view('/profile/freelancer/index');
+    }
 
-        
+    private function requireRole(string $role): void
+    {
+        if (($_SESSION['role'] ?? '') !== $role) {
+            header("Location: /dashboard");
+            exit();
+        }
     }
 }

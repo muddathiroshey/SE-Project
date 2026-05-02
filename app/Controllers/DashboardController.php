@@ -18,12 +18,7 @@ class DashboardController extends Controller
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-
-        if (!isset($_SESSION['email'])) {
-            header("Location: /login");
-            exit();
-        }
-
+        
         $user = $this->conn->getUserByEmail($_SESSION['email']);
 
         if (!$user) {
@@ -53,9 +48,7 @@ class DashboardController extends Controller
 
         // Client
         if (!$is_verified) {
-            $this->view('dashboard/client/dashboard-client-pending', [
-                'doc_status' => empty($user['user_SSN']) ? 'pending' : 'rejected'
-            ]);
+            header("Location: /profile");
             return;
         }
 
