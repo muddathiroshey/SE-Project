@@ -40,7 +40,7 @@
 <!-- TOPNAV -->
 <nav class="topnav">
   <div class="container">
-    <a class="topnav-logo" href="index.html">Nexus<span>.</span></a>
+    <a class="topnav-logo" href="dashboard-client.php">Nexus<span>.</span></a>
     <div class="topnav-links">
       <a href="dashboard-client.html">Dashboard</a>
     </div>
@@ -97,7 +97,7 @@
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">Bids</div>
-      <a class="sidebar-link" href="#">
+      <a class="sidebar-link" href="incoming-bids.php">
         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h12a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zm1 2v7h10V4H3zm1 1h2v2H4V5zm4 0h2v2H8V5zm4 0h2v2h-2V5z"/></svg>
         My Bids
         <span class="notif-count" style="margin-left:auto;">12</span>

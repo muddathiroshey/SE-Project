@@ -82,19 +82,19 @@
         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2z"/></svg>
         Post New Project
       </a>
-      <a class="sidebar-link active" href="project-detail.html">
+      <a class="sidebar-link active" href="client-active-projects.php">
         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h12v12H2V2zm1 1v10h10V3H3z"/></svg>
         Active Projects
         <span class="notif-count" style="margin-left:auto;">3</span>
       </a>
-      <a class="sidebar-link" href="#">
+      <a class="sidebar-link" href="client-completed-projects.php">
         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 1h8a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zm1 2v1h6V3H5zm0 3v1h6V6H5zm0 3v1h4V9H5z"/></svg>
         Completed
       </a>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">Bids</div>
-      <a class="sidebar-link" href="#">
+      <a class="sidebar-link" href="incoming-bids.php">
         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h12a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zm1 2v7h10V4H3zm1 1h2v2H4V5zm4 0h2v2H8V5zm4 0h2v2h-2V5z"/></svg>
         My Bids
         <span class="notif-count" style="margin-left:auto;">12</span>
