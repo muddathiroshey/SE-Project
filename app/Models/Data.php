@@ -9,10 +9,10 @@ class Data {
 
     public function __construct()
     {
-        $this->host = $_ENV['DB_HOST']     ?? '';
-        $this->name = $_ENV['DB_DATABASE'] ?? '';
-        $this->user = $_ENV['DB_USERNAME'] ?? '';
-        $this->pass = $_ENV['DB_PASSWORD'] ?? '';
+        $this->host = 'db';
+        $this->name = 'freelance_marketplace';
+        $this->user = 'appuser';
+        $this->pass = 'apppass';
     }
 
     public function getDb(): \mysqli
@@ -160,12 +160,22 @@ public function getActiveProjectsCount(int $user_id, string $role): int
 {
     $conn = $this->getDb();
 
-    $column = $role === 'Freelancer' ? 'freelancer_id' : 'client_id';
+    if ($role === 'Freelancer') {
+        $stmt = $conn->prepare(
+            "SELECT COUNT(*) as count
+             FROM projects p
+             JOIN specialistProfiles sp ON sp.id = p.specialist_id
+             WHERE sp.user_id = ? AND p.is_done = 0"
+        );
+    } else {
+        $stmt = $conn->prepare(
+            "SELECT COUNT(*) as count
+             FROM projects p
+             JOIN clientProfile cp ON cp.id = p.client_id
+             WHERE cp.user_id = ? AND p.is_done = 0"
+        );
+    }
 
-    $stmt = $conn->prepare(
-        "SELECT COUNT(*) as count FROM projects
-         WHERE {$column} = ? AND status = 'active'"
-    );
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
     $result = $stmt->get_result();

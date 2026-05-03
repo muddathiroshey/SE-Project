@@ -7,11 +7,11 @@ class Client
 
     public function __construct()
     {
-        $data      = new Data();
-        $this->db  = $data->getDb();
+        $data     = new Data();
+        $this->db = $data->getDb();
     }
 
-    // READ
+    // ── READ ──────────────────────────────────────────
 
     public function getByUserId(int $user_id): ?array
     {
@@ -65,14 +65,14 @@ class Client
         return array_column($rows, 'keyword');
     }
 
-    //  WRITE
+    // ── WRITE ─────────────────────────────────────────
 
     public function create(int $user_id, array $data): int
     {
         $stmt = $this->db->prepare(
             "INSERT INTO clientProfile
                 (user_id, job_title, country, timezone, phone_number, hiring_description)
-                VALUES (?, ?, ?, ?, ?, ?)"
+             VALUES (?, ?, ?, ?, ?, ?)"
         );
         $stmt->bind_param(
             "isssss",
@@ -119,7 +119,7 @@ class Client
              WHERE id = ?"
         );
         $stmt->bind_param(
-            "sssssssssssssssssssiiiis",   // 23 values + id
+            "sssssssssssssssssssiiiis",
             $data['job_title'],
             $data['country'],
             $data['timezone'],
@@ -163,7 +163,26 @@ class Client
         return $ok;
     }
 
-    //  KYC DOCUMENT
+    // ── VERIFY (demo — auto-approve on ID upload) ─────
+
+    public function verify(int $user_id, int $client_id): void
+    {
+        $stmt = $this->db->prepare(
+            "UPDATE userData SET is_verified = 1 WHERE id = ?"
+        );
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $stmt->close();
+
+        $stmt = $this->db->prepare(
+            "UPDATE clientProfile SET kyc_status = 'verified', kyc_verified_at = NOW() WHERE id = ?"
+        );
+        $stmt->bind_param("i", $client_id);
+        $stmt->execute();
+        $stmt->close();
+    }
+
+    // ── KYC DOCUMENTS ─────────────────────────────────
 
     public function addKycDocument(int $client_id, array $doc): int
     {
@@ -197,7 +216,7 @@ class Client
         return $ok;
     }
 
-    //NICHE PREFS 
+    // ── NICHE PREFS ───────────────────────────────────
 
     public function syncNichePrefs(int $client_id, array $niches): void
     {
@@ -220,7 +239,7 @@ class Client
         $ins->close();
     }
 
-    // KEYWORDS 
+    // ── KEYWORDS ──────────────────────────────────────
 
     public function syncKeywords(int $client_id, array $keywords): void
     {

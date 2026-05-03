@@ -2,22 +2,21 @@
 namespace App\Controllers;
 
 use App\Core\Controller;
-use App\Models\ClientProfile;
+use App\Models\Client;
 use App\Models\Data;
 
 class ProfileController extends Controller
 {
-    private ClientProfile $profile;
+    private Client $profile;
     private Data $auth;
 
     public function __construct()
     {
-        $this->profile = new ClientProfile();
+        $this->profile = new Client();
         $this->auth    = new Data();
     }
 
-    //  GET /profile 
-    // Redirect to setup wizard if no profile yet, else to edit view
+    // ── GET /profile ──────────────────────────────────
 
     public function index(): void
     {
@@ -35,8 +34,7 @@ class ProfileController extends Controller
         exit();
     }
 
-    // GET /profile/setup
-    // 2-step wizard for first-time clients
+    // ── GET /profile/setup ────────────────────────────
 
     public function setup(): void
     {
@@ -45,7 +43,6 @@ class ProfileController extends Controller
 
         $user_id = (int) $_SESSION['user_id'];
 
-        // Already set up — skip wizard
         if ($this->profile->getByUserId($user_id)) {
             header("Location: /profile/edit");
             exit();
@@ -54,8 +51,7 @@ class ProfileController extends Controller
         $this->view('profile/client/index');
     }
 
-    // POST /profile/setup 
-    // Wizard submit: create profile row + upload ID doc
+    // ── POST /profile/setup ───────────────────────────
 
     public function store(): void
     {
@@ -65,7 +61,6 @@ class ProfileController extends Controller
         $user_id = (int) $_SESSION['user_id'];
         $errors  = [];
 
-        // --- Validate fields ---
         $name  = trim($_POST['personalName']  ?? '');
         $dob   = trim($_POST['personalDOB']   ?? '');
         $phone = trim($_POST['personalPhone'] ?? '');
@@ -81,12 +76,11 @@ class ProfileController extends Controller
             $errors[] = 'Phone number must start with + or 00.';
         }
 
-        // --- Validate ID upload ---
         $upload    = $_FILES['idFile'] ?? null;
         $id_path   = '';
         $id_name   = '';
         $allowed   = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-        $max_bytes = 10 * 1024 * 1024; // 10 MB
+        $max_bytes = 10 * 1024 * 1024;
 
         if (!$upload || $upload['error'] !== UPLOAD_ERR_OK) {
             $errors[] = 'ID document upload is required.';
@@ -102,11 +96,17 @@ class ProfileController extends Controller
         }
 
         // --- Move uploaded ID ---
-        $ext     = pathinfo($upload['name'], PATHINFO_EXTENSION);
-        $id_name = $upload['name'];
+        $ext        = pathinfo($upload['name'], PATHINFO_EXTENSION);
+        $id_name    = $upload['name'];
+        $upload_dir = __DIR__ . '/../../public/uploads/kyc/';
+
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0755, true);
+        }
+
         $id_path = 'uploads/kyc/' . $user_id . '_id_' . time() . '.' . $ext;
 
-        if (!move_uploaded_file($upload['tmp_name'], $id_path)) {
+        if (!move_uploaded_file($upload['tmp_name'], $upload_dir . basename($id_path))) {
             $this->view('profile/client/index', [
                 'errors' => ['File upload failed. Please try again.']
             ]);
@@ -137,15 +137,15 @@ class ProfileController extends Controller
             'file_name' => $id_name,
         ]);
 
-        // --- Store legal name in userData.user_name if blank ---
-        // (optional: update user_name to legal name from wizard)
+        // --- Auto-verify (demo) ---
+        $this->profile->verify($user_id, $client_id);
+        $_SESSION['is_verified'] = 1;
 
         header("Location: /dashboard");
         exit();
     }
 
-    //  GET /profile/edit
-    // Full 6-section edit view
+    // ── GET /profile/edit ─────────────────────────────
 
     public function edit(): void
     {
@@ -161,15 +161,14 @@ class ProfileController extends Controller
         }
 
         $this->view('profile/client/client-profile-edit', [
-            'client'       => $client,
-            'kyc_docs'     => $this->profile->getKycDocuments($client['id']),
-            'niche_prefs'  => $this->profile->getNichePrefs($client['id']),
-            'keywords'     => $this->profile->getKeywords($client['id']),
+            'client'      => $client,
+            'kyc_docs'    => $this->profile->getKycDocuments($client['id']),
+            'niche_prefs' => $this->profile->getNichePrefs($client['id']),
+            'keywords'    => $this->profile->getKeywords($client['id']),
         ]);
     }
 
-    // POST /profile/update
-    // Save all 6 sections from the edit form
+    // ── POST /profile/update ──────────────────────────
 
     public function update(): void
     {
@@ -187,7 +186,6 @@ class ProfileController extends Controller
         $client_id = (int) $client['id'];
         $errors    = [];
 
-        // --- Phone validation ---
         $phone = trim($_POST['phone_number'] ?? '');
         if ($phone && !preg_match('/^(\+|00)\d{6,15}$/', $phone)) {
             $errors[] = 'Phone number must start with + or 00.';
@@ -215,9 +213,16 @@ class ProfileController extends Controller
             } elseif ($logo['size'] > $max_bytes) {
                 $errors[] = 'Logo must be 5 MB or less.';
             } else {
-                $ext      = pathinfo($logo['name'], PATHINFO_EXTENSION);
+                $ext        = pathinfo($logo['name'], PATHINFO_EXTENSION);
+                $upload_dir = __DIR__ . '/../../public/uploads/logos/';
+
+                if (!is_dir($upload_dir)) {
+                    mkdir($upload_dir, 0755, true);
+                }
+
                 $logo_path = 'uploads/logos/' . $client_id . '_logo_' . time() . '.' . $ext;
-                if (move_uploaded_file($logo['tmp_name'], $logo_path)) {
+
+                if (move_uploaded_file($logo['tmp_name'], $upload_dir . basename($logo_path))) {
                     $this->profile->updateLogo($client_id, $logo_path);
                 }
             }
@@ -261,7 +266,7 @@ class ProfileController extends Controller
         exit();
     }
 
-    //  POST /profile/kyc/delete 
+    // POST /profile/kyc/delete 
 
     public function deleteKycDoc(): void
     {
@@ -280,7 +285,7 @@ class ProfileController extends Controller
         exit();
     }
 
-    // ── HELPERS 
+    //HELPERS 
 
     private function requireAuth(): void
     {
