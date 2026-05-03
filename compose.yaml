@@ -11,8 +11,8 @@ services:
     depends_on:
       - db
     command: >
-      sh -c "mkdir -p /var/www/html/public/uploads/kyc
-             /var/www/html/public/uploads/logos &&
+      sh -c "mkdir -p /var/www/html/public/uploads/kyc &&
+             mkdir -p /var/www/html/public/uploads/logos &&
              chmod -R 777 /var/www/html/public/uploads &&
              apache2-foreground"
 
