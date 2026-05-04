@@ -153,7 +153,7 @@ Full software engineering documentation was produced alongside the implementatio
 
 ## Team
 
-Developed by the CS251 Software Engineering team at [University Name].
+Developed by the CS251 Software Engineering team at [CAPITAL University].
 
 | Name | Role |
 |---|---|
