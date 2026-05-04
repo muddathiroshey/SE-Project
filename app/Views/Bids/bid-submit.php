@@ -38,6 +38,9 @@
   <!-- ══════════ TOPNAV ══════════
      PHP: include 'partials/topnav.php'; ['role'=>'specialist','user'=>$specialist]
 -->
+     <!-- أزلنا الـ onsubmit لنلغي تدخل الجافا سكريبت مؤقتاً -->
+
+
   <nav class="topnav">
     <div class="container">
       <a class="topnav-logo" href="index.html">Nexus<span>.</span></a>
@@ -140,7 +143,7 @@
 
     <!-- FORM + SIDEBAR -->
     <!-- PHP: <form method="POST" action="/jobs/<?= $job['id'] ?>/bid" enctype="multipart/form-data" id="bid-form"> -->
-    <form id="bid-form" onsubmit="return handleSubmit(event)">
+    <form id="bid-form" action="/bid" method="POST" enctype="multipart/form-data" onsubmit="return handleSubmit(event)">
       <!-- PHP: csrf_field() -->
       <!-- PHP: <input type="hidden" name="_method" value="<?= $bid ? 'PATCH' : 'POST' ?>"> -->
 
@@ -1134,7 +1137,6 @@ My proposed approach for Phase 1 would be..." oninput="countChars(this,1500,'clc
     }
 
     function handleSubmit(e) {
-      e.preventDefault();
       let valid = true;
 
       const cl = document.getElementById('cover-letter');
@@ -1171,10 +1173,13 @@ My proposed approach for Phase 1 would be..." oninput="countChars(this,1500,'clc
         } else { rat.classList.remove('invalid'); document.getElementById('err-rationale').classList.remove('show'); }
       }
 
-      if (!valid) return false;
-      // PHP: form submits to POST /jobs/{id}/bid
-      document.getElementById('success-modal').classList.remove('hidden');
-      return false;
+      if (!valid) {
+        // prevent submission when invalid and keep user on page
+        e.preventDefault();
+        return false;
+      }
+      // allow normal submission to backend
+      return true;
     }
 
     function saveDraft() {

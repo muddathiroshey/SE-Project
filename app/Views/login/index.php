@@ -1,9 +1,15 @@
-<?php
+ <?php
+// use App\Core\Controller;
+// use App\Models\Data;
+// use App\Controllers\Authcontroller;
+// $cont = new AuthController();
+
+// $cont->login();
+// // login();/
 $errors      = $errors ?? ['login' => '', 'signup' => ''];
 $active_form = $active_form ?? 'login';
-function showError($e){ return !empty($e) ? '<p class="error-msg">'.$e.'</p>' : ''; }
-
-?>
+ function showError($e){ return !empty($e) ? '<p class="error-msg">'.$e.'</p>' : ''; }
+?> 
 <!DOCTYPE html>
 <html lang="en">
 <head>

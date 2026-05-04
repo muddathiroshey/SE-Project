@@ -1,7 +1,12 @@
 <?php
 namespace App\Models;
 
+use PDO;
+use PDOException;
+
+
 class Data {
+    
     private string $host;
     private string $name;
     private string $user;
@@ -188,4 +193,4 @@ public function getActiveProjectsCount(int $user_id, string $role): int
 
     return $count;
 }
-}
+  }

@@ -2,6 +2,8 @@
 
 namespace App\Core;
 
+use App\Controllers\BidController;
+
 class Router
 {
     private array $routes = [];
@@ -23,7 +25,7 @@ class Router
 
         if (!$action) {
             http_response_code(404);
-            echo "404 Not Found";
+            echo "404 Not Found bro";
             return;
         }
 
@@ -31,4 +33,5 @@ class Router
         $instance = new $controller();
         $instance->$handler();
     }
+
 }

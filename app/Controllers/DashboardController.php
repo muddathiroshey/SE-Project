@@ -19,16 +19,23 @@ class DashboardController extends Controller
             session_start();
         }
         
-        $user = $this->conn->getUserByEmail($_SESSION['email']);
+        $email = $_SESSION['email'] ?? null;
 
+        if (!$email) {
+            header("Location: /login");
+            exit();
+        }
+
+        $user = $this->conn->getUserByEmail($email);
         if (!$user) {
             header("Location: /login");
             exit();
         }
 
-        $role            = $user['user_role'];
-        $is_verified     = (bool) $user['is_verified'];
-        $active_projects = $this->conn->getActiveProjectsCount((int) $_SESSION['email'], $role);
+        $role = $user['user_role'];
+        $is_verified = (bool) $user['is_verified'];
+        $user_id = isset($user['id']) ? (int) $user['id'] : 0;
+        $active_projects = $this->conn->getActiveProjectsCount($user_id, $role);
 
         if ($role === 'Freelancer') {
             if (!$is_verified) {
