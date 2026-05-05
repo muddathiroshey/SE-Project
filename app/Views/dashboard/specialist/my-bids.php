@@ -23,6 +23,14 @@
       $p['hours_remaining'],     — int
       $p['milestones'],  $p['cover_letter'], $p['attachments'],
       $p['client_notes']         — feedback if declined
+
+      Logos for different niches:
+        Legal -> ⚖️
+        Data scince and machine learning -> 🧠
+        Technical Translation -> 🌐
+        Financial Modeling -> 📈
+        Biomedical Research -> 🔬
+        Cybersecurity Audit -> 🔐
     ============================================================
 -->
 <html lang="en">

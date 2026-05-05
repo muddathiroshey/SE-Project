@@ -22,6 +22,14 @@
       $p['status'],  — active|pending_review|revision|overdue|dispute
       $p['unread_messages'],
       $p['started_at'],       $p['progress_pct']
+
+      Logos for different niches:
+        Legal -> ⚖️
+        Data scince and machine learning -> 🧠
+        Technical Translation -> 🌐
+        Financial Modeling -> 📈
+        Biomedical Research -> 🔬
+        Cybersecurity Audit -> 🔐
     ============================================================
 -->
 <html lang="en">
