@@ -17,7 +17,7 @@ $router->post('/logout', [AuthController::class,  'logout']);
 
 //  Dashboard 
 $router->get('/dashboard', [DashboardController::class, 'index']);
-
+$router->get('/dashboard/my-bids', [DashboardController::class, 'bids']);
 //Profile 
 $router->get('/profile',          [ProfileController::class, 'index']);
 $router->get('/profile/setup',    [ProfileController::class, 'setup']);

@@ -193,4 +193,55 @@ public function getActiveProjectsCount(int $user_id, string $role): int
 
     return $count;
 }
+
+public function getActiveProjects(int $user_id, string $role): array
+{
+    $conn = $this->getDb();
+
+    if ($role === 'Freelancer') {
+        $stmt = $conn->prepare(
+            "SELECT
+                p.project_id,
+                p.created_at,
+                p.ended_at,
+                p.is_done,
+                sp.primary_niche,
+                COALESCE(cp.org_name, clientUser.user_name, 'Client') AS client_name,
+                clientUser.is_verified AS client_verified
+             FROM projects p
+             JOIN specialistProfiles sp ON sp.id = p.specialist_id
+             JOIN clientProfile cp ON cp.id = p.client_id
+             JOIN userData clientUser ON clientUser.id = cp.user_id
+             WHERE sp.user_id = ? AND p.is_done = 0
+             ORDER BY p.created_at DESC"
+        );
+    } else {
+        $stmt = $conn->prepare(
+            "SELECT
+                p.project_id,
+                p.created_at,
+                p.ended_at,
+                p.is_done,
+                sp.primary_niche,
+                COALESCE(specialistUser.user_name, sp.full_legal_name, 'Specialist') AS specialist_name,
+                specialistUser.is_verified AS specialist_verified
+             FROM projects p
+             JOIN clientProfile cp ON cp.id = p.client_id
+             JOIN specialistProfiles sp ON sp.id = p.specialist_id
+             JOIN userData specialistUser ON specialistUser.id = sp.user_id
+             WHERE cp.user_id = ? AND p.is_done = 0
+             ORDER BY p.created_at DESC"
+        );
+    }
+
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $projects = $result->fetch_all(MYSQLI_ASSOC);
+
+    $stmt->close();
+    $conn->close();
+
+    return $projects;
+}
   }
