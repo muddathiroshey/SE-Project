@@ -552,12 +552,15 @@
       <!-- OVERALL RATING -->
       <div class="form-group">
         <label class="form-label">Overall Rating</label>
-        <div class="star-input" id="star-input">
-          <button type="button" class="star-btn" onclick="setStars(1)">★</button>
-          <button type="button" class="star-btn" onclick="setStars(2)">★</button>
-          <button type="button" class="star-btn" onclick="setStars(3)">★</button>
-          <button type="button" class="star-btn" onclick="setStars(4)">★</button>
-          <button type="button" class="star-btn" onclick="setStars(5)">★</button>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="star-input" id="star-input">
+            <span class="star-btn">★</span>
+            <span class="star-btn">★</span>
+            <span class="star-btn">★</span>
+            <span class="star-btn">★</span>
+            <span class="star-btn">★</span>
+          </div>
+          <div id="rating-average" class="rating-average">5.0</div>
         </div>
       </div>
 
@@ -565,25 +568,25 @@
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
         <div class="form-group" style="margin:0;">
           <label class="form-label text-xs">Brief Quality &amp; Clarity</label>
-          <select class="form-control" style="font-size:.875rem;">
+          <select class="form-control" style="font-size:.875rem;" onchange="updateRatingPreview()">
             <option>5 — Exceptional</option><option>4 — Good</option><option>3 — Satisfactory</option><option>2 — Poor</option><option>1 — Unacceptable</option>
           </select>
         </div>
         <div class="form-group" style="margin:0;">
           <label class="form-label text-xs">Communication</label>
-          <select class="form-control" style="font-size:.875rem;">
+          <select class="form-control" style="font-size:.875rem;" onchange="updateRatingPreview()">
             <option>5 — Exceptional</option><option>4 — Good</option><option>3 — Satisfactory</option><option>2 — Poor</option><option>1 — Unacceptable</option>
           </select>
         </div>
         <div class="form-group" style="margin:0;">
           <label class="form-label text-xs">Deliverable Quality</label>
-          <select class="form-control" style="font-size:.875rem;">
+          <select class="form-control" style="font-size:.875rem;" onchange="updateRatingPreview()">
             <option>5 — Exceptional</option><option>4 — Good</option><option>3 — Satisfactory</option><option>2 — Poor</option><option>1 — Unacceptable</option>
           </select>
         </div>
         <div class="form-group" style="margin:0;">
           <label class="form-label text-xs">Milestone Adherence</label>
-          <select class="form-control" style="font-size:.875rem;">
+          <select class="form-control" style="font-size:.875rem;" onchange="updateRatingPreview()">
             <option>5 — Exceptional</option><option>4 — Good</option><option>3 — Satisfactory</option><option>2 — Poor</option><option>1 — Unacceptable</option>
           </select>
         </div>
@@ -693,15 +696,23 @@ function openRatingModal(cardIdx) {
   const titles = ['Dr. Rania Khalil', 'James Moreau', 'Lena Bergmann', 'Dr. Rania Khalil'];
   document.getElementById('rating-modal-title').textContent = 'Rate ' + (titles[cardIdx] || 'Specialist');
   document.getElementById('rating-modal').classList.remove('hidden');
-  setStars(5); // default 5 stars
+  updateRatingPreview();
 }
 
-let selectedStars = 5;
 function setStars(n) {
-  selectedStars = n;
   document.querySelectorAll('.star-btn').forEach((btn, i) => {
     btn.classList.toggle('active', i < n);
   });
+}
+
+function updateRatingPreview() {
+  const selects = Array.from(document.querySelectorAll('#rating-modal select'));
+  const values = selects.map(select => parseInt(select.value, 10)).filter(v => !isNaN(v));
+  const avg = values.length ? values.reduce((sum, v) => sum + v, 0) / values.length : 0;
+  const rounded = Math.round(avg * 10) / 10;
+  setStars(Math.round(avg));
+  const avgEl = document.getElementById('rating-average');
+  if (avgEl) avgEl.textContent = rounded.toFixed(1);
 }
 
 function countRChars(el) {
