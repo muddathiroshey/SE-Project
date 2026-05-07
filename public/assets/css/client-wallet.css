@@ -1,0 +1,62 @@
+.wallet-hero {
+  background:var(--ink); padding:40px 0; position:relative; overflow:hidden;
+}
+.wallet-hero::before {
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(-45deg,transparent,transparent 60px,rgba(201,168,76,.04) 60px,rgba(201,168,76,.04) 61px);
+  pointer-events:none;
+}
+.wallet-hero-inner { display:grid; grid-template-columns:repeat(5, minmax(0,1fr)); gap:0; position:relative; z-index:1; }
+.wallet-stat { padding:0 28px; border-right:1px solid rgba(247,244,239,.1); }
+.wallet-stat:first-child { padding-left:0; }
+.wallet-stat:last-child { border-right:none; }
+.wallet-val { font-family:var(--font-display); font-size:2.2rem; font-weight:300; color:var(--ivory); line-height:1; margin-bottom:4px; }
+.wallet-lbl { font-size:.7rem; letter-spacing:.1em; text-transform:uppercase; color:rgba(247,244,239,.45); font-weight:700; }
+.wallet-delta { font-size:.8125rem; font-family:var(--font-mono); color:rgba(247,244,239,.5); margin-top:4px; }
+.wallet-body { display:grid; grid-template-columns:1fr 320px; gap:32px; padding:32px 0 48px; }
+.escrow-project-card {
+  border:1px solid var(--border); border-radius:var(--radius-md);
+  background:var(--ivory-card); overflow:hidden; margin-bottom:12px;
+}
+.escrow-project-header {
+  padding:16px 20px; border-bottom:1px solid var(--border);
+  display:flex; justify-content:space-between; align-items:center;
+  background:var(--ivory-deep);
+}
+.escrow-project-body { padding:16px 20px; }
+.escrow-phase-row {
+  display:flex; align-items:center; gap:14px;
+  padding:10px 0; border-bottom:1px solid var(--border); font-size:.875rem;
+}
+.escrow-phase-row:last-child { border-bottom:none; }
+.phase-status-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.escrow-phase-amount { font-family:var(--font-mono); font-weight:500; margin-left:auto; }
+.tx-row {
+  display:flex; align-items:center; gap:14px;
+  padding:13px 0; border-bottom:1px solid var(--border); font-size:.875rem;
+}
+.tx-row:last-child { border-bottom:none; }
+.tx-icon { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.875rem; flex-shrink:0; }
+.tx-icon.credit { background:#EBF3EA; }
+.tx-icon.debit { background:#FBEAE7; }
+.tx-icon.lock { background:var(--gold-pale); }
+.tx-amount { font-family:var(--font-mono); font-weight:600; margin-left:auto; }
+.tx-amount.credit { color:var(--sage); }
+.tx-amount.debit { color:var(--rust); }
+.tx-amount.lock { color:var(--gold); }
+.payment-method-card {
+  border:1.5px solid var(--border); border-radius:var(--radius-md);
+  padding:16px 20px; display:flex; align-items:center; gap:16px;
+  margin-bottom:10px; cursor:pointer; transition:all .15s;
+}
+.payment-method-card:hover { border-color:var(--gold); }
+.payment-method-card.active { border-color:var(--gold); background:var(--gold-pale); }
+.card-logo { width:48px; height:32px; border-radius:4px; background:var(--ink); display:flex; align-items:center; justify-content:center; font-size:.625rem; font-family:var(--font-mono); color:var(--gold); letter-spacing:.06em; }
+.tax-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:.875rem; }
+.tax-row:last-child { border-bottom:none; }
+.multi-currency-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border); font-size:.875rem; }
+.multi-currency-row:last-child { border-bottom:none; }
+.currency-flag { width:28px; height:20px; border-radius:2px; background:var(--ivory-deep); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:.75rem; }
+.payout-schedule { background:var(--ivory-deep); border:1px solid var(--border); border-radius:var(--radius-sm); padding:16px; margin-top:12px; }
+.payout-schedule h5 { font-size:.75rem; letter-spacing:.1em; text-transform:uppercase; font-weight:700; color:var(--ink-muted); margin-bottom:10px; }
+.cooling-bar { background:var(--ivory-card); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px 14px; margin-top:10px; font-size:.8125rem; display:flex; justify-content:space-between; align-items:center; }
