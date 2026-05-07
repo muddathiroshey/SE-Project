@@ -4,6 +4,7 @@ use App\Core\Controller;
 use App\Models\Data;
 use App\Models\Bid;
 use App\Models\BidMilestone;
+use App\Models\Project;
 
 class BidController extends Controller
 {   
@@ -85,4 +86,76 @@ class BidController extends Controller
         header('Location: /dashboard');
         exit();
     }
+
+    public function index2(): void
+    {
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            @session_start();
+        }
+
+        $jobId = isset($_GET['job_id']) ? intval($_GET['job_id']) : 0;
+        if ($jobId <= 0) {
+            die('Project ID is required.');
+        }
+
+        $projectModel = new Project();
+        $project = $projectModel->gitdata($jobId);
+        if (!$project) {
+            die('Project not found.');
+        }
+
+        $bids = $this->getBidsForProject($jobId);
+
+        $this->view('Bids/bid-review', [
+            'job' => $project,
+            'bids' => $bids,
+        ]);
+    }
+
+    private function getBidsForProject(int $jobId): array
+    {
+        $db = new Data();
+        $conn = $db->getDb();
+
+        $sql = "SELECT b.*, u.user_name AS specialist_name
+                FROM bids b
+                JOIN userData u ON b.user_id = u.id
+                WHERE b.job_id = ?
+                ORDER BY b.created_at DESC";
+        $stmt = $conn->prepare($sql);
+
+        if (!$stmt) {
+            die('Prepare failed: ' . $conn->error);
+        }
+
+        $stmt->bind_param('i', $jobId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        $bids = [];
+        while ($row = $result->fetch_assoc()) {
+            $bids[] = $row;
+        }
+
+        $stmt->close();
+        $conn->close();
+
+        return $bids;
+    }
+
+    public function store2(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: /bid-review');
+            exit();
+        }
+
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            @session_start();
+        }
+
+        // Construct Bid object and populate from POST
+        $bid = new Bid();
+    }
+
 }

@@ -311,7 +311,7 @@
 
   <!-- WIZARD RIGHT PANELS -->
   <div class="wizard-right">
-  <form id="project-post-form" method="post" action="post-job.php" enctype="multipart/form-data" novalidate>
+  <form id="project-post-form" method="post" action= "/post-job" enctype="multipart/form-data" novalidate>
 
     <!-- STEP 1: NICHE -->
     <div class="wizard-step-panel active" id="step1">

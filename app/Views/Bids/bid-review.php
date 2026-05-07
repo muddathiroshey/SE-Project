@@ -21,8 +21,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- PHP: <title>Proposals — <?= htmlspecialchars($job['title']) ?> · Nexus</title> -->
-<title>Proposals — MENA Expansion · Nexus</title>
+<!-- PHP: <title>Proposals — <?= htmlspecialchars($job['project_title'] ?? 'Project') ?> · Nexus</title> -->
+<title>Proposals — <?php echo htmlspecialchars($job['project_title'] ?? 'Project'); ?> · Nexus</title>
 <link rel="stylesheet" href="assets/css/style.css">
 <link rel="stylesheet" href="assets/css/bid-review.css">
 </head>
@@ -68,15 +68,12 @@
     <div>
       <div class="breadcrumb" style="font-family:var(--font-mono);font-size:.75rem;color:var(--ink-muted);margin-bottom:6px;">
         Proposals <span style="margin:0 6px;color:var(--ink-faint);">›</span>
-        <!-- PHP: htmlspecialchars(Str::limit($job['title'], 38)) -->
-        MENA Expansion — Cross-Border Contract Review
-        
+        <?php echo htmlspecialchars($job['project_title'] ?? 'Project'); ?>
       </div>
       <div class="flex items-center gap-14 flex-wrap">
         <h2 style="font-family:var(--font-display);font-size:1.4rem;font-weight:500;">Review Proposals</h2>
         <div class="flex items-center gap-8">
-          <!-- PHP: stats from $bids collection -->
-          <span class="badge badge-default font-mono" style="font-size:.75rem;">7 total</span>
+          <span class="badge badge-default font-mono" style="font-size:.75rem;"><?php echo count($bids); ?> total</span>
           <span class="badge badge-verified badge-dot" style="font-size:.75rem;">1 interview</span>
         </div>
       </div>
@@ -107,91 +104,31 @@
       </div>
     </div>
 
-    <!-- PHP: foreach($bids as $b): -->
-
-    <div class="bid-card-item active" onclick="selectBid(this, 0)">
-      <div class="flex justify-between items-start mb-4">
-        <div class="bid-item-name">Dr. Rania Khalil</div>
-        <span class="bid-item-amount at-budget">$12,000</span>
+    <?php if (!empty($bids)): ?>
+      <?php foreach ($bids as $index => $b): ?>
+      <div class="bid-card-item <?php echo $index === 0 ? 'active' : ''; ?>" onclick="selectBid(this, <?php echo $index; ?>)">
+        <div class="flex justify-between items-start mb-4">
+          <div class="bid-item-name"><?php echo htmlspecialchars($b['specialist_name'] ?? 'Specialist'); ?></div>
+          <span class="bid-item-amount <?php echo ($b['total_bid_amount'] ?? 0) > ($job['total_budget'] ?? 0) ? 'over-budget' : 'at-budget'; ?>">$<?php echo number_format($b['total_bid_amount'] ?? 0, 2); ?></span>
+        </div>
+        <div class="flex items-center gap-6 mb-4">
+          <div class="stars" style="font-size:.75rem;">★★★★★</div>
+          <span style="font-size:.75rem;color:var(--ink-muted);"><?php echo htmlspecialchars($b['specialist_name'] ? 'Top rated' : 'New'); ?> · <?php echo intval($b['user_id'] ?? 0); ?> projects</span>
+        </div>
+        <div class="flex gap-16 flex-wrap">
+          <span class="badge badge-default" style="font-size:.6rem;"><?php echo htmlspecialchars(ucfirst($b['status'] ?? 'pending')); ?></span>
+        </div>
+        <div class="bid-item-meta mt-4"><?php echo isset($b['start_date']) ? intval((strtotime('now') - strtotime($b['created_at'])) / 86400) . 'd' : 'TBD'; ?> · Submitted <?php echo isset($b['created_at']) ? date('M j', strtotime($b['created_at'])) : 'N/A'; ?></div>
       </div>
-      <div class="flex items-center gap-6 mb-4">
-        <div class="stars" style="font-size:.75rem;">★★★★★</div>
-        <span style="font-size:.75rem;color:var(--ink-muted);">4.97 · 83 projects</span>
+      <?php endforeach; ?>
+    <?php else: ?>
+      <div style="padding:20px;text-align:center;color:var(--ink-muted);">
+        No proposals received yet.
       </div>
-      <div class="flex gap-16 flex-wrap">
-        <span class="badge badge-gold" style="font-size:.6rem;">95% match</span>
-      </div>
-      <div class="bid-item-meta mt-4">49d · Submitted Apr 12</div>
-    </div>
-
-    <!-- BID 2 — INTERVIEW SCHEDULED -->
-    <div class="bid-card-item" onclick="selectBid(this, 1)">
-      <div class="flex justify-between items-start mb-4">
-        <div class="bid-item-name">James Moreau</div>
-        <span class="bid-item-amount under-budget">$11,200</span>
-      </div>
-      <div class="flex items-center gap-6 mb-4">
-        <div class="stars" style="font-size:.75rem;">★★★★★</div>
-        <span style="font-size:.75rem;color:var(--ink-muted);">4.91 · 61 projects</span>
-      </div>
-      <div class="flex gap-16 flex-wrap">
-        <span class="bid-status-pill interview">🎙 Interview Set</span>
-        <span class="badge badge-default" style="font-size:.6rem;">88% match</span>
-      </div>
-      <div class="bid-item-meta mt-4">44d · Submitted Apr 11</div>
-    </div>
-
-    <!-- BID 3 — NEW -->
-    <div class="bid-card-item" onclick="selectBid(this, 2)">
-      <div class="bid-new-dot"></div>
-      <div class="flex justify-between items-start mb-4">
-        <div class="bid-item-name">Nadia Al-Farsi</div>
-        <span class="bid-item-amount over-budget">$14,500</span>
-      </div>
-      <div class="flex items-center gap-6 mb-4">
-        <div class="stars" style="font-size:.75rem;">★★★★☆</div>
-        <span style="font-size:.75rem;color:var(--ink-muted);">4.82 · 29 projects</span>
-      </div>
-      <div class="flex gap-16 flex-wrap">
-        <span class="bid-status-pill new">● New</span>
-        <span class="badge badge-default" style="font-size:.6rem;">81% match</span>
-      </div>
-      <div class="bid-item-meta mt-4">52d · Submitted Apr 13</div>
-    </div>
-
-    <!-- BID 4 — NEW -->
-    <div class="bid-card-item" onclick="selectBid(this, 3)">
-      <div class="bid-new-dot"></div>
-      <div class="flex justify-between items-start mb-4">
-        <div class="bid-item-name">Youssef Benali</div>
-        <span class="bid-item-amount under-budget">$9,800</span>
-      </div>
-      <div class="flex items-center gap-6 mb-4">
-        <div class="stars" style="font-size:.75rem;">★★★★☆</div>
-        <span style="font-size:.75rem;color:var(--ink-muted);">4.74 · 18 projects</span>
-      </div>
-      <div class="flex gap-16 flex-wrap">
-        <span class="bid-status-pill new">● New</span>
-        <span class="badge badge-default" style="font-size:.6rem;">74% match</span>
-      </div>
-      <div class="bid-item-meta mt-4">56d · Submitted Apr 13</div>
-    </div>
-
-    <!-- BID 5 — DECLINED -->
-    <div class="bid-card-item" onclick="selectBid(this, 4)">
-      <div class="flex justify-between items-start mb-4">
-        <div class="bid-item-name" style="color:var(--ink-faint);">Marcus Fernandez</div>
-        <span class="bid-item-amount" style="color:var(--ink-faint);font-family:var(--font-mono);font-size:.875rem;">$16,200</span>
-      </div>
-      <div class="flex gap-16 flex-wrap">
-        <span class="bid-status-pill declined">Declined</span>
-        <span class="badge badge-default" style="font-size:.6rem;">62% match</span>
-      </div>
-      <div class="bid-item-meta mt-4">60d · Submitted Apr 10</div>
-    </div>
+    <?php endif; ?>
 
     <div style="padding:20px;text-align:center;">
-      <button class="btn btn-ghost btn-sm" style="font-size:.75rem;">Load 2 more proposals</button>
+      <button class="btn btn-ghost btn-sm" style="font-size:.75rem;">Load more proposals</button>
     </div>
   </div>
 
