@@ -10,18 +10,14 @@ class AuthController extends Controller
 
     public function __construct()
     {
+        parent::__construct();
         $this->conn = new Data();
     }
 
     public function showLogin(): void
     {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
         if (isset($_SESSION['user_id'])) {
-            header('Location: /dashboard');
-            exit();
+            $this->redirect('/dashboard');
         }
 
         $errors = [
@@ -53,14 +49,12 @@ class AuthController extends Controller
             $_SESSION['user_name'] = $user['user_name'];
             $_SESSION['email']     = $user['user_email'];
             $_SESSION['role']      = $user['user_role'];
-            header("Location: /dashboard");
-            exit();
+            $this->redirect('/dashboard');
         }
 
         $_SESSION['error_login'] = "Invalid email or password.";
         $_SESSION['active_form'] = "login";
-        header("Location: /login");
-        exit();
+        $this->redirect('/login');
     }
 
     public function signup(): void
@@ -106,8 +100,7 @@ class AuthController extends Controller
             $_SESSION['user_name'] = $full_name;
             $_SESSION['email']     = $email;
             $_SESSION['role']      = $role;
-            header("Location: /dashboard");
-            exit();
+            $this->redirect('/dashboard');
         }
 
         $this->signupError("Registration failed. Please try again.");
@@ -119,8 +112,7 @@ class AuthController extends Controller
             session_start();
         }
         session_destroy();
-        header("Location: /");
-        exit();
+        $this->redirect('/');
     }
 
     // Helper to avoid repeating the 3-line error pattern
@@ -128,7 +120,6 @@ class AuthController extends Controller
     {
         $_SESSION['error_signup'] = $message;
         $_SESSION['active_form']  = 'signup';
-        header("Location: /login");
-        exit();
+        $this->redirect('/login');
     }
 }

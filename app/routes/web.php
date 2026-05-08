@@ -4,6 +4,7 @@ use App\Controllers\HomeController;
 use App\Controllers\ProfileController;
 use App\Controllers\DashboardController;
 use App\Controllers\BidController;
+use App\Controllers\PageController;
 use App\Controllers\ProjectController;
 
 
@@ -19,6 +20,12 @@ $router->post('/logout', [AuthController::class,  'logout']);
 //  Dashboard 
 $router->get('/dashboard', [DashboardController::class, 'index']);
 $router->get('/dashboard/my-bids', [DashboardController::class, 'bids']);
+$router->get('/browse-experts', [PageController::class, 'browseExperts']);
+$router->get('/browse-jobs', [PageController::class, 'browseJobs']);
+$router->get('/incoming-bids', [PageController::class, 'incomingBids']);
+$router->get('/chat', [PageController::class, 'chat']);
+$router->get('/dispute', [PageController::class, 'dispute']);
+$router->get('/admin', [PageController::class, 'adminDashboard']);
 
 //Profile 
 $router->get('/profile',          [ProfileController::class, 'index']);

@@ -10,12 +10,12 @@
 
 <nav class="topnav">
   <div class="container">
-    <a class="topnav-logo" href="index.html">Nexus<span>.</span></a>
+    <a class="topnav-logo" href="/">Nexus<span>.</span></a>
     <div class="topnav-links">
-      <a href="dashboard-client.html">Dashboard</a>
+      <a href="/dashboard">Dashboard</a>
     </div>
     <div class="topnav-actions">
-      <a href="notifications.html" class="btn btn-ghost btn-icon" style="position:relative;">🔔 <span class="notif-count" style="position:absolute;top:2px;right:2px;">2</span></a>
+      <a href="#" class="btn btn-ghost btn-icon" style="position:relative;">🔔 <span class="notif-count" style="position:absolute;top:2px;right:2px;">2</span></a>
       <div class="dropdown">
         <div class="flex items-center gap-8" style="cursor:pointer;" onclick="toggleDD()">
           <div class="avatar-badge"><div class="avatar avatar-sm">AT</div></div>
@@ -26,10 +26,10 @@
           <div class="dropdown-item" style="color:var(--ink-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;pointer-events:none;">Client Account</div>
           <hr class="dropdown-divider">
           <a class="dropdown-item" href="#">My Profile</a>
-          <a class="dropdown-item" href="escrow-wallet.html">Wallet &amp; Escrow</a>
+          <a class="dropdown-item" href="/dashboard">Wallet &amp; Escrow</a>
           <a class="dropdown-item" href="#">Account Settings</a>
           <hr class="dropdown-divider">
-          <a class="dropdown-item" href="login.html" style="color:var(--rust);">Sign Out</a>
+          <a class="dropdown-item" href="/login" style="color:var(--rust);">Sign Out</a>
         </div>
       </div>
     </div>
@@ -248,7 +248,7 @@
         <div class="escrow-line"><span>Phase 2 Locked</span><span class="font-mono" style="color:var(--gold);">$3,360</span></div>
         <div class="escrow-line"><span>Remaining Phases</span><span class="font-mono text-muted">$3,360</span></div>
         <div class="escrow-line" style="font-weight:700;"><span>Total</span><span class="font-mono">$8,400</span></div>
-        <a href="escrow-wallet.html" class="btn btn-outline btn-sm w-full mt-12" style="justify-content:center;">View Wallet →</a>
+        <a href="/dashboard" class="btn btn-outline btn-sm w-full mt-12" style="justify-content:center;">View Wallet →</a>
       </div>
 
       <div class="escrow-sidebar-card">
@@ -263,8 +263,8 @@
         </div>
         <div class="text-xs text-muted mb-8">NDA Active · Signed Apr 3, 2025</div>
         <div style="display:flex;flex-direction:column;gap:8px;">
-          <a href="messages.html" class="btn btn-outline btn-sm" style="justify-content:center;">💬 Message</a>
-          <a href="expert-profile.html" class="btn btn-ghost btn-sm" style="justify-content:center;">View Profile</a>
+          <a href="/chat" class="btn btn-outline btn-sm" style="justify-content:center;">💬 Message</a>
+          <a href="/profile" class="btn btn-ghost btn-sm" style="justify-content:center;">View Profile</a>
         </div>
       </div>
 

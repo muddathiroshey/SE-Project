@@ -27,19 +27,20 @@
 <link rel="stylesheet" href="assets/css/bid-review.css">
 </head>
 <body>
+<?php $activeBidId = (int) ($bids[0]['id'] ?? 0); ?>
 
 <!-- ══════════ TOPNAV
      PHP: include 'partials/topnav.php'; ['role'=>'client','user'=>$client]
 -->
 <nav class="topnav">
   <div class="container" style="max-width:100%;padding:0 32px;">
-    <a class="topnav-logo" href="index.html">Nexus<span>.</span></a>
+    <a class="topnav-logo" href="/">Nexus<span>.</span></a>
     <div class="topnav-links">
-      <a href="proposals.html">← Proposals</a>
-      <a href="dashboard-client.html">Dashboard</a>
+      <a href="/bid-review">← Proposals</a>
+      <a href="/dashboard">Dashboard</a>
     </div>
     <div class="topnav-actions">
-      <a href="notifications.html" class="btn btn-ghost btn-icon" style="position:relative;">
+      <a href="#" class="btn btn-ghost btn-icon" style="position:relative;">
         🔔 <span class="notif-count" style="position:absolute;top:2px;right:2px;">4</span>
       </a>
       <div class="dropdown">
@@ -52,10 +53,10 @@
           <div class="dropdown-item" style="color:var(--ink-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;pointer-events:none;">Client Account</div>
           <hr class="dropdown-divider">
           <a class="dropdown-item" href="#">My Profile</a>
-          <a class="dropdown-item" href="escrow-wallet.html">Wallet &amp; Escrow</a>
+          <a class="dropdown-item" href="/dashboard">Wallet &amp; Escrow</a>
           <a class="dropdown-item" href="#">Account Settings</a>
           <hr class="dropdown-divider">
-          <a class="dropdown-item" href="login.html" style="color:var(--rust);">Sign Out</a>
+          <a class="dropdown-item" href="/login" style="color:var(--rust);">Sign Out</a>
         </div>
       </div>
     </div>
@@ -171,7 +172,7 @@
         </div>
       </div>
       <div style="text-align:right;flex-shrink:0;">
-        <a href="expert-profile.html" class="btn btn-outline btn-sm" target="_blank">View Full Profile →</a>
+        <a href="/profile" class="btn btn-outline btn-sm" target="_blank">View Full Profile →</a>
       </div>
     </div>
 
@@ -490,7 +491,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="document.getElementById('accept-modal').classList.add('hidden')">Cancel</button>
-      <button class="btn btn-primary" onclick="acceptBid()">✦ Confirm &amp; Issue Contract</button>
+      <form method="post" action="/bid-review" style="margin:0;"><input type="hidden" name="action" value="accept"><input type="hidden" name="job_id" value="<?php echo (int) ($job['id'] ?? 0); ?>"><input type="hidden" class="selected-bid-id" name="bid_id" value="<?php echo $activeBidId; ?>"><button class="btn btn-primary" type="submit">Accept &amp; Issue Contract</button></form>
     </div>
   </div>
 </div>
@@ -639,7 +640,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="document.getElementById('decline-modal').classList.add('hidden')">Cancel</button>
-      <button class="btn btn-danger" onclick="declineBid()">Decline Proposal</button>
+      <form method="post" action="/bid-review" style="margin:0;"><input type="hidden" name="action" value="decline"><input type="hidden" name="job_id" value="<?php echo (int) ($job['id'] ?? 0); ?>"><input type="hidden" class="selected-bid-id" name="bid_id" value="<?php echo $activeBidId; ?>"><button class="btn btn-danger" type="submit">Decline Proposal</button></form>
     </div>
   </div>
 </div>
@@ -653,8 +654,8 @@
       <p class="text-sm text-muted mb-6">A contract and NDA have been sent to <strong>Dr. Rania Khalil</strong>. Work begins once the NDA is signed and Phase 1 escrow is confirmed.</p>
       <div class="font-mono text-xs text-muted mb-24">Contract Ref: CON-NX-4821-2025</div>
       <div style="display:flex;flex-direction:column;gap:10px;">
-        <a href="project-detail.html" class="btn btn-primary" style="justify-content:center;">Go to Project Page</a>
-        <a href="messages.html" class="btn btn-outline" style="justify-content:center;">Open Project Messages</a>
+        <a href="/project-detail" class="btn btn-primary" style="justify-content:center;">Go to Project Page</a>
+        <a href="/chat" class="btn btn-outline" style="justify-content:center;">Open Project Messages</a>
       </div>
     </div>
   </div>
@@ -722,6 +723,16 @@
 // PHP: Pass bids data to JS
 const bidsData = <?php echo json_encode($bids); ?>;
 
+function escapeHtml(value) {
+  const div = document.createElement('div');
+  div.textContent = value || '';
+  return div.innerHTML;
+}
+
+function textWithBreaks(value) {
+  return escapeHtml(value).replace(/\n/g, '<br>');
+}
+
 function toggleDD() {
   document.getElementById('user-dd').classList.toggle('hidden');
 }
@@ -736,17 +747,20 @@ function selectBid(el, idx) {
 
   const bid = bidsData[idx];
   if (bid) {
+    document.querySelectorAll('.selected-bid-id').forEach(input => {
+      input.value = bid.id || '';
+    });
     document.getElementById('bid-specialist-name').textContent = bid.specialist_name || 'Specialist';
     document.getElementById('bid-total-amount').textContent = '$' + (bid.total_bid_amount || 0).toLocaleString();
 
     const coverLetterEl = document.getElementById('bid-cover-letter');
-    coverLetterEl.innerHTML = bid.proposal_message ? bid.proposal_message.replace(/\n/g, '<br>') : 'No cover letter provided.';
+    coverLetterEl.innerHTML = bid.proposal_message ? textWithBreaks(bid.proposal_message) : 'No cover letter provided.';
 
     const differentiatorsEl = document.getElementById('bid-differentiators');
-    differentiatorsEl.innerHTML = bid.key_differentiators ? bid.key_differentiators.replace(/\n/g, '<br>') : 'No key differentiators provided.';
+    differentiatorsEl.innerHTML = bid.key_differentiators ? textWithBreaks(bid.key_differentiators) : 'No key differentiators provided.';
 
     const pastWorkEl = document.getElementById('bid-past-work');
-    pastWorkEl.innerHTML = bid.relevant_work ? bid.relevant_work.replace(/\n/g, '<br>') : 'No relevant past work provided.';
+    pastWorkEl.innerHTML = bid.relevant_work ? textWithBreaks(bid.relevant_work) : 'No relevant past work provided.';
 
     const dayRateEl = document.getElementById('bid-day-rate');
     const duration = bid.total_duration || 0;

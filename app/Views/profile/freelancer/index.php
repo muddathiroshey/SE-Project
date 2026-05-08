@@ -10,7 +10,7 @@
 
 <nav class="topnav">
   <div class="container">
-    <a class="topnav-logo" href="index.html">Nexus<span>.</span></a>
+    <a class="topnav-logo" href="/">Nexus<span>.</span></a>
     <div class="topnav-actions">
       <span class="text-sm text-muted">Profile Setup</span>
     </div>
@@ -49,6 +49,16 @@
 
   <!-- WIZARD RIGHT PANELS -->
   <div class="wizard-right">
+  <?php if (!empty($errors)): ?>
+    <div class="error-message show" style="display:block;margin-bottom:18px;padding:14px 16px;border:1px solid var(--rust);border-radius:var(--radius-sm);background:rgba(197,79,46,.08);">
+      <?php foreach ($errors as $error): ?>
+        <div><?php echo htmlspecialchars($error); ?></div>
+      <?php endforeach; ?>
+    </div>
+  <?php endif; ?>
+  <form id="specialist-setup-form" method="post" action="/profile/setup" enctype="multipart/form-data">
+    <input type="hidden" id="skillsPayload" name="skills" value="">
+    <input type="hidden" id="educationPayload" name="education_level" value="">
 
     <!-- STEP 1: PROFESSIONAL PROFILE -->
     <div class="wizard-step-panel active" id="step1">
@@ -61,7 +71,7 @@
       <!-- LEGAL NAME -->
       <div class="form-group">
         <label class="form-label">Full Name (as on legal document)</label>
-        <input type="text" id="fullName" class="form-control" placeholder="Enter your full name exactly as it appears in your ID" value="">
+        <input type="text" id="fullName" name="full_name" class="form-control" placeholder="Enter your full name exactly as it appears in your ID" value="">
         <p class="error-message" id="fullName-error">Please enter your full name (letters only)</p>
         <p class="input-hint">This will be verified against your ID during KYC</p>
       </div>
@@ -70,13 +80,13 @@
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Date of Birth (dd/mm/yyyy)</label>
-          <input type="text" id="dateOfBirth" class="form-control" placeholder="DD/MM/YYYY">
+          <input type="text" id="dateOfBirth" name="date_of_birth" class="form-control" placeholder="DD/MM/YYYY">
           <p class="error-message" id="dateOfBirth-error">Please enter a valid date in DD/MM/YYYY format (must be 18+)</p>
           <p class="input-hint">Must be 18+ to work on Nexus</p>
         </div>
         <div class="form-group">
           <label class="form-label">Phone Number</label>
-          <input type="text" id="phoneNumber" class="form-control" placeholder="+20 or 0020 (Egypt example)">
+          <input type="text" id="phoneNumber" name="phone_number" class="form-control" placeholder="+20 or 0020 (Egypt example)">
           <p class="error-message" id="phoneNumber-error">Please enter a valid phone number starting with + or 00</p>
         </div>
       </div>
@@ -84,7 +94,7 @@
       <!-- PRIMARY NICHE -->
       <div class="form-group">
         <label class="form-label">Primary Niche / Discipline</label>
-        <select name="primaryNiche" id="primaryNiche" class="form-control" onchange="updateSkillsForNiche()">
+        <select name="primary_niche" id="primaryNiche" class="form-control" onchange="updateSkillsForNiche()">
           <option value="">Select your primary niche</option>
           <option value="data-science">Data Science & Machine Learning</option>
           <option value="legal">Legal Consulting & Compliance</option>
@@ -166,7 +176,7 @@
               <div style="font-size:2rem;margin-bottom:8px;">📤</div>
               <p style="margin:0 0 6px 0;font-weight:700;">Drag and drop or click to upload</p>
               <p style="margin:0;font-size:.8rem;color:var(--ink-muted);">JPG, PNG, PDF • Max 10MB</p>
-              <input type="file" id="idFile" style="display:none;" accept="image/*,.pdf" onchange="previewFile(this, 'id')">
+              <input type="file" id="idFile" name="id_file" style="display:none;" accept="image/*,.pdf" onchange="previewFile(this, 'id')">
               <input type="hidden" id="idFileSelected" value="">
             </div>
             <div id="idFilePreview" style="display:none;margin-top:12px;"></div>
@@ -192,7 +202,7 @@
               <div style="font-size:2rem;margin-bottom:8px;">📤</div>
               <p style="margin:0 0 6px 0;font-weight:700;">Drag and drop or click to upload</p>
               <p style="margin:0;font-size:.8rem;color:var(--ink-muted);">JPG, PNG, PDF • Max 10MB</p>
-              <input type="file" id="educationFile" style="display:none;" accept="image/*,.pdf" onchange="previewFile(this, 'education')">
+              <input type="file" id="educationFile" name="education_file" style="display:none;" accept="image/*,.pdf" onchange="previewFile(this, 'education')">
               <input type="hidden" id="educationFileSelected" value="">
             </div>
             <div id="educationFilePreview" style="display:none;margin-top:12px;"></div>
@@ -345,10 +355,15 @@
       </div>
     </div>
 
+  </form>
   </div>
 </div>
 
 <script>
+document.querySelectorAll('#specialist-setup-form button:not([type])').forEach(button => {
+  button.type = 'button';
+});
+
 let currentStep = 1;
 let selectedSkills = new Set();
 let selectedNiche = '';
@@ -982,9 +997,10 @@ function submitProfile() {
   if (!validateStep3()) {
     return;
   }
-  
-  // TODO: Send data to PHP backend
-  window.location.href = 'dashboard-freelancer.html';
+
+  document.getElementById('skillsPayload').value = Array.from(selectedSkills).join(',');
+  document.getElementById('educationPayload').value = selectedEducation;
+  document.getElementById('specialist-setup-form').submit();
 }
 
 function validateStep3() {

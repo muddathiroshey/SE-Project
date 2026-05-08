@@ -36,14 +36,14 @@
 -->
 <nav class="topnav">
   <div class="container">
-    <a class="topnav-logo" href="index.html">Nexus<span>.</span></a>
+    <a class="topnav-logo" href="/">Nexus<span>.</span></a>
     <div class="topnav-links">
       <!-- PHP: back href determined by HTTP_REFERER or default -->
-      <a href="browse-experts.html">← Back to Jobs</a>
-      <a href="dashboard-freelancer.html">Dashboard</a>
+      <a href="/browse-experts">← Back to Jobs</a>
+      <a href="/dashboard">Dashboard</a>
     </div>
     <div class="topnav-actions">
-      <a href="notifications.html" class="btn btn-ghost btn-icon" style="position:relative;">
+      <a href="#" class="btn btn-ghost btn-icon" style="position:relative;">
         🔔<span class="notif-count" style="position:absolute;top:2px;right:2px;">7</span>
       </a>
       <div class="dropdown">
@@ -57,10 +57,10 @@
           <div class="dropdown-item" style="color:var(--ink-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;pointer-events:none;">Client Account</div>
           <hr class="dropdown-divider">
           <a class="dropdown-item" href="#">My Profile</a>
-          <a class="dropdown-item" href="escrow-wallet.html">Wallet &amp; Escrow</a>
+          <a class="dropdown-item" href="/dashboard">Wallet &amp; Escrow</a>
           <a class="dropdown-item" href="#">Account Settings</a>
           <hr class="dropdown-divider">
-          <a class="dropdown-item" href="login.html" style="color:var(--rust);">Sign Out</a>
+          <a class="dropdown-item" href="/login" style="color:var(--rust);">Sign Out</a>
         </div>
       </div>
     </div>
@@ -123,7 +123,7 @@
       <div style="flex-shrink:0;text-align:right;min-width:160px;">
         <div style="font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-muted);font-weight:700;margin-bottom:8px;font-family:var(--font-body);">Posted by</div>
         <!-- PHP: link to /client/{$client['slug']} -->
-        <a href="client-profile-public.html" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);">
+        <a href="/profile" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);">
           <div style="width:36px;height:36px;border-radius:var(--radius-sm);background:var(--ink);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:.875rem;font-weight:600;color:var(--gold);">FC</div>
           <div style="text-align:left;">
             <!-- PHP: htmlspecialchars($client['org']['name']) -->
@@ -400,7 +400,7 @@
           <div class="client-mini-stat"><span class="text-muted">Auto-Approval Window</span><span class="font-mono">72h</span></div>
         </div>
 
-        <a href="client-profile-public.html" class="btn btn-outline btn-sm">View Full Client Profile →</a>
+        <a href="/profile" class="btn btn-outline btn-sm">View Full Client Profile →</a>
 
       </div><!-- end tab-4 -->
 
@@ -415,7 +415,7 @@
         <div class="client-mini-stat"><span class="text-muted">Payment Reliability</span><span class="font-mono font-bold" style="color:var(--sage);">100%</span></div>
         <div class="client-mini-stat"><span class="text-muted">Avg. Approval Time</span><span class="font-mono font-bold" style="color:var(--sage);">38h</span></div>
         <div class="client-mini-stat"><span class="text-muted">Dispute Rate</span><span class="font-mono">2.1%</span></div>
-        <a href="client-profile-public.html" style="display:block;text-align:center;margin-top:12px;font-size:.8125rem;color:var(--gold);">View full client profile →</a>
+        <a href="/profile" style="display:block;text-align:center;margin-top:12px;font-size:.8125rem;color:var(--gold);">View full client profile →</a>
       </div>
 
     </div><!-- end right column -->
@@ -436,7 +436,7 @@
       <!-- PHP: <span class="font-mono text-xs text-muted">Proposal Ref: BID-<?= $newBid['id'] ?></span> -->
       <span class="font-mono text-xs text-muted" id="bid-ref">Proposal Ref: BID-NX-4821-DR</span>
       <div style="display:flex;flex-direction:column;gap:10px;margin-top:24px;">
-        <a href="dashboard-freelancer.html" class="btn btn-primary" style="justify-content:center;">Back to Dashboard</a>
+        <a href="/dashboard" class="btn btn-primary" style="justify-content:center;">Back to Dashboard</a>
         <button class="btn btn-outline" style="justify-content:center;" onclick="document.getElementById('success-modal').classList.add('hidden')">View Proposal Details</button>
       </div>
     </div>

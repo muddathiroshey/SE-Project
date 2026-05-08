@@ -43,14 +43,14 @@
 
   <nav class="topnav">
     <div class="container">
-      <a class="topnav-logo" href="index.html">Nexus<span>.</span></a>
+      <a class="topnav-logo" href="/">Nexus<span>.</span></a>
       <div class="topnav-links">
         <!-- PHP: <a href="/jobs/<?= $job['slug'] ?>">← Back to Job</a> -->
-        <a href="job-view.html">← Back to Job</a>
-        <a href="dashboard-freelancer.html">Dashboard</a>
+        <a href="/job-view">← Back to Job</a>
+        <a href="/dashboard">Dashboard</a>
       </div>
       <div class="topnav-actions">
-        <a href="notifications.html" class="btn btn-ghost btn-icon" style="position:relative;">
+        <a href="#" class="btn btn-ghost btn-icon" style="position:relative;">
           🔔 <span class="notif-count" style="position:absolute;top:2px;right:2px;">7</span>
         </a>
         <div class="dropdown">
@@ -68,10 +68,10 @@
               Client Account</div>
             <hr class="dropdown-divider">
             <a class="dropdown-item" href="#">My Profile</a>
-            <a class="dropdown-item" href="escrow-wallet.html">Wallet &amp; Escrow</a>
+            <a class="dropdown-item" href="/dashboard">Wallet &amp; Escrow</a>
             <a class="dropdown-item" href="#">Account Settings</a>
             <hr class="dropdown-divider">
-            <a class="dropdown-item" href="login.html" style="color:var(--rust);">Sign Out</a>
+            <form method="post" action="/logout" style="margin:0;"><button class="dropdown-item" type="submit" style="color:var(--rust);width:100%;text-align:left;background:none;border:0;">Sign Out</button></form>
           </div>
         </div>
       </div>
@@ -106,6 +106,13 @@
   </div>
 
   <div style="max-width:1200px;margin:0 auto;padding:36px 32px 80px;">
+    <?php if (!empty($errors)): ?>
+      <div class="field-error show" style="display:block;margin-bottom:18px;padding:14px 16px;border:1px solid var(--rust);border-radius:var(--radius-sm);background:rgba(197,79,46,.08);">
+        <?php foreach ($errors as $error): ?>
+          <div><?php echo htmlspecialchars($error); ?></div>
+        <?php endforeach; ?>
+      </div>
+    <?php endif; ?>
 
     <!-- PHP: if($bid && $bid['status'] !== 'draft'): show status bar -->
     <!-- EXAMPLE: submitted state — uncomment whichever state applies
@@ -609,7 +616,7 @@ My proposed approach for Phase 1 would be..." oninput="countChars(this,1500,'clc
               <button type="button" class="btn btn-outline" onclick="saveDraft()">
                 💾 Save Draft
               </button>
-              <a href="job-view.html" class="btn btn-ghost">Cancel</a>
+              <a href="/job-view" class="btn btn-ghost">Cancel</a>
             </div>
 
           </div>
@@ -725,7 +732,7 @@ My proposed approach for Phase 1 would be..." oninput="countChars(this,1500,'clc
             <div class="summary-row" style="padding:6px 0;border:none;border-bottom:none;"><span
                 class="summary-label">Withdrawal Window</span><span class="summary-val">48h after submission</span>
             </div>
-            <a href="client-profile-public.html"
+            <a href="/profile"
               style="font-size:.8125rem;color:var(--gold);display:block;margin-top:10px;">View full client profile →</a>
           </div>
 
@@ -789,7 +796,7 @@ My proposed approach for Phase 1 would be..." oninput="countChars(this,1500,'clc
           reviewed or shortlisted.</p>
         <div class="font-mono text-xs text-muted mb-24">Ref: BID-NX-4821-DR · Submitted Apr 12, 14:22 GMT+2</div>
         <div style="display:flex;flex-direction:column;gap:10px;">
-          <a href="dashboard-freelancer.html" class="btn btn-primary" style="justify-content:center;">Back to
+          <a href="/dashboard" class="btn btn-primary" style="justify-content:center;">Back to
             Dashboard</a>
           <button class="btn btn-outline" style="justify-content:center;" onclick="showWithdrawalWidget()">View
             Withdrawal Window</button>
@@ -1206,7 +1213,7 @@ My proposed approach for Phase 1 would be..." oninput="countChars(this,1500,'clc
     function confirmWithdraw() {
       document.getElementById('withdraw-modal').classList.add('hidden');
       showToast('Proposal withdrawn successfully. Your response-rate score is unaffected.', 'info');
-      setTimeout(() => { window.location.href = 'dashboard-freelancer.html'; }, 2500);
+      setTimeout(() => { window.location.href = '/dashboard'; }, 2500);
     }
 
     function showWithdrawalWidget() {

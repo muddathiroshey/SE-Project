@@ -26,10 +26,10 @@
           <div class="dropdown-item" style="color:var(--ink-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;pointer-events:none;">My Account</div>
           <hr class="dropdown-divider">
           <a class="dropdown-item" href="profile-edit.php">My Profile</a>
-          <a class="dropdown-item" href="escrow-wallet.html">Wallet &amp; Escrow</a>
+          <a class="dropdown-item" href="/dashboard">Wallet &amp; Escrow</a>
           <a class="dropdown-item" href="#">Account Settings</a>
           <hr class="dropdown-divider">
-          <a class="dropdown-item" href="login.html" style="color:var(--rust);">Sign Out</a>
+          <a class="dropdown-item" href="/login" style="color:var(--rust);">Sign Out</a>
         </div>
       </div>
     </div>
@@ -214,7 +214,7 @@
           <span class="font-mono">From $3,000</span>
         </div>
         <button class="btn btn-primary w-full" style="justify-content:center;margin-bottom:10px;" onclick="document.getElementById('bid-modal').classList.remove('hidden')">Invite to Bid</button>
-        <button class="btn btn-outline w-full" style="justify-content:center;margin-bottom:10px;" onclick="window.location='messages.php'">Send Message</button>
+        <button class="btn btn-outline w-full" style="justify-content:center;margin-bottom:10px;" onclick="window.location='/chat'">Send Message</button>
         <button class="btn btn-ghost w-full" style="justify-content:center;font-size:.8125rem;margin-bottom:10px;">Schedule Interview</button>
         <button class="btn btn-ghost w-full" style="justify-content:center;font-size:.8125rem;" onclick="document.getElementById('save-specialist-modal').classList.remove('hidden')">★ Save Specialist</button>
         <hr class="divider">

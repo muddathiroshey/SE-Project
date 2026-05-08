@@ -28,13 +28,13 @@
 -->
 <nav class="topnav">
   <div class="container">
-    <a class="topnav-logo" href="index.html">Nexus<span>.</span></a>
+    <a class="topnav-logo" href="/">Nexus<span>.</span></a>
     <div class="topnav-links">
       <!-- PHP: if(isset($_GET['from']) && $_GET['from']==='project'): -->
-      <a href="#" onclick="if(history.length>1){history.back();return false;}window.location='browse-experts.html';">← Back</a>
+      <a href="#" onclick="if(history.length>1){history.back();return false;}window.location='/browse-experts';">← Back</a>
     </div>
     <div class="topnav-actions">
-      <a href="notifications.html" class="btn btn-ghost btn-icon" style="position:relative;">
+      <a href="#" class="btn btn-ghost btn-icon" style="position:relative;">
         <svg xmlns="http://www.w3.org/2000/svg" height="22px" viewBox="0 -960 960 960" width="22px" fill="currentColor">
           <path d="M160-200v-80h80v-280q0-83 50-147.5T420-792v-28q0-25 17.5-42.5T480-880q25 0 42.5 17.5T540-820v28q80 20 130 84.5T720-560v280h80v80H160Zm320-300Zm0 420q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80Z"/>
         </svg><span class="notif-count" style="position:absolute;top:2px;right:2px;">7</span>
@@ -50,10 +50,10 @@
           <div class="dropdown-item" style="color:var(--ink-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;pointer-events:none;">Client Account</div>
           <hr class="dropdown-divider">
           <a class="dropdown-item" href="#">My Profile</a>
-          <a class="dropdown-item" href="escrow-wallet.html">Wallet &amp; Escrow</a>
+          <a class="dropdown-item" href="/dashboard">Wallet &amp; Escrow</a>
           <a class="dropdown-item" href="#">Account Settings</a>
           <hr class="dropdown-divider">
-          <a class="dropdown-item" href="login.html" style="color:var(--rust);">Sign Out</a>
+          <a class="dropdown-item" href="/login" style="color:var(--rust);">Sign Out</a>
         </div>
       </div>
     </div>
@@ -397,7 +397,7 @@
           <span class="text-muted">Avg. Project Value</span>
           <span class="font-mono">$8,400</span>
         </div>
-        <button class="btn btn-primary w-full" style="justify-content:center;margin-bottom:10px;" onclick="window.location='messages.html'">Send Message</button>
+        <button class="btn btn-primary w-full" style="justify-content:center;margin-bottom:10px;" onclick="window.location='/chat'">Send Message</button>
         <button class="btn btn-ghost w-full" style="justify-content:center;font-size:.8125rem;">Schedule Interview</button>
         <hr class="divider">
         <div class="text-xs text-muted text-center">

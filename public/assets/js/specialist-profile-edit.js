@@ -425,7 +425,7 @@ function savePreviewState() {
 function savePreviewStateAndGo(event) {
   if (event) event.preventDefault();
   savePreviewState();
-  window.location.href = 'expert-profile.php';
+  window.location.href = '/profile';
 }
 
 // ── PORTFOLIO ──

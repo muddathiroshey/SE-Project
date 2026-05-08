@@ -10,12 +10,12 @@
 
 <nav class="topnav">
   <div class="container">
-    <a class="topnav-logo" href="index.html">Nexus<span>.</span></a>
+    <a class="topnav-logo" href="/">Nexus<span>.</span></a>
     <div class="topnav-links">
-      <a href="dashboard-client.html">Dashboard</a>
+      <a href="/dashboard">Dashboard</a>
     </div>
     <div class="topnav-actions">
-      <a href="notifications.html" class="btn btn-ghost btn-icon">🔔</a>
+      <a href="#" class="btn btn-ghost btn-icon">🔔</a>
       <div class="dropdown">
         <button type="button" class="btn btn-ghost btn-icon" style="display:flex;align-items:center;gap:10px;" onclick="toggleProfileDD()">
           <div class="avatar avatar-sm">AT</div>
@@ -25,11 +25,11 @@
         <div class="dropdown-menu hidden" id="profile-dd">
           <div class="dropdown-item" style="color:var(--ink-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;pointer-events:none;">Freelancer Account</div>
           <hr class="dropdown-divider">
-          <a class="dropdown-item" href="expert-profile.html">My Profile</a>
-          <a class="dropdown-item" href="escrow-wallet.html">Earnings &amp; Wallet</a>
+          <a class="dropdown-item" href="/profile">My Profile</a>
+          <a class="dropdown-item" href="/dashboard">Earnings &amp; Wallet</a>
           <a class="dropdown-item" href="#">Account Settings</a>
           <hr class="dropdown-divider">
-          <a class="dropdown-item" href="login.html" style="color:var(--rust);">Sign Out</a>
+          <a class="dropdown-item" href="/login" style="color:var(--rust);">Sign Out</a>
         </div>
       </div>
     </div>

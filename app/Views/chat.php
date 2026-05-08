@@ -13,12 +13,12 @@
 
   <nav class="topnav">
     <div class="container">
-      <a class="topnav-logo" href="index.html">Nexus<span>.</span></a>
+      <a class="topnav-logo" href="/">Nexus<span>.</span></a>
       <div class="topnav-links">
-        <a href="dashboard-client.html">Dashboard</a>
+        <a href="/dashboard">Dashboard</a>
       </div>
       <div class="topnav-actions">
-        <a href="notifications.html" class="btn btn-ghost btn-icon" style="position:relative;">🔔 <span
+        <a href="#" class="btn btn-ghost btn-icon" style="position:relative;">🔔 <span
             class="notif-count" style="position:absolute;top:2px;right:2px;">4</span></a>
         <div class="dropdown">
           <div class="flex items-center gap-8" style="cursor:pointer;" onclick="toggleDD()">
@@ -34,10 +34,10 @@
               Specialist Account</div>
             <hr class="dropdown-divider">
             <a class="dropdown-item" href="#">My Profile</a>
-            <a class="dropdown-item" href="escrow-wallet.html">Wallet &amp; Escrow</a>
+            <a class="dropdown-item" href="/dashboard">Wallet &amp; Escrow</a>
             <a class="dropdown-item" href="#">Account Settings</a>
             <hr class="dropdown-divider">
-            <a class="dropdown-item" href="login.html" style="color:var(--rust);">Sign Out</a>
+            <a class="dropdown-item" href="/login" style="color:var(--rust);">Sign Out</a>
           </div>
         </div>
       </div>
@@ -132,7 +132,7 @@
           </div>
         </div>
         <div class="chat-topbar-actions">
-          <a href="project-detail.html" class="btn btn-outline btn-sm">Project Info</a>
+          <a href="/project-detail" class="btn btn-outline btn-sm">Project Info</a>
         </div>
       </div>
 
