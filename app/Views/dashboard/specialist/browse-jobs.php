@@ -45,12 +45,12 @@
 <!-- ══════════ TOPNAV ══════════ -->
 <nav class="topnav">
   <div class="container" style="max-width:100%;padding:0 32px;">
-    <a class="topnav-logo" href="index.html">Nexus<span>.</span></a>
+    <a class="topnav-logo" href="/">Nexus<span>.</span></a>
     <div class="topnav-links">
-      <a href="dashboard-freelancer.html">Dashboard</a>
+      <a href="/dashboard">Dashboard</a>
     </div>
     <div class="topnav-actions">
-      <a href="notifications.html" class="btn btn-ghost btn-icon" style="position:relative;">
+      <a href="#" class="btn btn-ghost btn-icon" style="position:relative;">
         🔔 <span class="notif-count" style="position:absolute;top:2px;right:2px;">7</span>
       </a>
       <div class="dropdown">
@@ -62,11 +62,11 @@
         <div class="dropdown-menu hidden" id="user-dd">
           <div class="dropdown-item" style="color:var(--ink-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;pointer-events:none;">Freelancer Account</div>
           <hr class="dropdown-divider">
-          <a class="dropdown-item" href="expert-profile.html">My Profile</a>
-          <a class="dropdown-item" href="escrow-wallet.html">Earnings &amp; Wallet</a>
+          <a class="dropdown-item" href="/profile">My Profile</a>
+          <a class="dropdown-item" href="/dashboard">Earnings &amp; Wallet</a>
           <a class="dropdown-item" href="#">Account Settings</a>
           <hr class="dropdown-divider">
-          <a class="dropdown-item" href="login.html" style="color:var(--rust);">Sign Out</a>
+          <a class="dropdown-item" href="/login" style="color:var(--rust);">Sign Out</a>
         </div>
       </div>
     </div>
@@ -167,7 +167,7 @@
         <div style="flex:1;min-width:0;">
           <div class="job-title">
             <!-- PHP: <a href="/jobs/<?= $j['slug'] ?>"> -->
-            <a href="job-view.html">Real-Time Anomaly Detection Pipeline — Banking Sector</a>
+            <a href="/job-view">Real-Time Anomaly Detection Pipeline — Banking Sector</a>
           </div>
           <div class="job-meta-row">
             <div class="client-mini-inline">
@@ -210,7 +210,7 @@
           </div>
         </div>
         <div class="job-actions">
-          <a href="job-view.html" class="btn btn-outline btn-sm">View Details</a>
+          <a href="/job-view" class="btn btn-outline btn-sm">View Details</a>
         </div>
       </div>
     </div>
@@ -221,7 +221,7 @@
       <div class="job-card-top">
         <div class="job-niche-icon ji-data">🧠</div>
         <div style="flex:1;min-width:0;">
-          <div class="job-title"><a href="job-view.html">NLP Sentiment Analysis — Arabic/English Social Media</a></div>
+          <div class="job-title"><a href="/job-view">NLP Sentiment Analysis — Arabic/English Social Media</a></div>
           <div class="job-meta-row">
             <div class="client-mini-inline">
               <div class="org-chip" style="background:#1A4A8A;">DH</div>
@@ -264,7 +264,7 @@
           </div>
         </div>
         <div class="job-actions">
-          <a href="job-view.html" class="btn btn-outline btn-sm">View Details</a>
+          <a href="/job-view" class="btn btn-outline btn-sm">View Details</a>
         </div>
       </div>
     </div>
@@ -274,7 +274,7 @@
       <div class="job-card-top">
         <div class="job-niche-icon ji-data">🧠</div>
         <div style="flex:1;min-width:0;">
-          <div class="job-title"><a href="job-view.html">Customer Churn Prediction — Telecom Platform</a></div>
+          <div class="job-title"><a href="/job-view">Customer Churn Prediction — Telecom Platform</a></div>
           <div class="job-meta-row">
             <div class="client-mini-inline">
               <div class="org-chip" style="background:#4A6741;">TG</div>
@@ -307,7 +307,7 @@
           <span>·</span><span>42 days est.</span>
         </div></div>
         <div class="job-actions">
-          <a href="job-view.html" class="btn btn-outline btn-sm">View Details</a>
+          <a href="/job-view" class="btn btn-outline btn-sm">View Details</a>
         </div>
       </div>
     </div>
@@ -317,7 +317,7 @@
       <div class="job-card-top">
         <div class="job-niche-icon ji-legal">⚖️</div>
         <div style="flex:1;min-width:0;">
-          <div class="job-title"><a href="job-view.html">GCC Distribution Agreement — Regulatory Review</a></div>
+          <div class="job-title"><a href="/job-view">GCC Distribution Agreement — Regulatory Review</a></div>
           <div class="job-meta-row">
             <div class="client-mini-inline">
               <div class="org-chip">FC</div>
@@ -351,7 +351,7 @@
           <span>·</span><span>28 days est.</span>
         </div></div>
         <div class="job-actions">
-          <a href="job-view.html" class="btn btn-outline btn-sm">View Details</a>
+          <a href="/job-view" class="btn btn-outline btn-sm">View Details</a>
         </div>
       </div>
     </div>
@@ -361,7 +361,7 @@
       <div class="job-card-top">
         <div class="job-niche-icon ji-fin">📈</div>
         <div style="flex:1;min-width:0;">
-          <div class="job-title"><a href="job-view.html">Financial Forecasting Model — FMCG Regional Expansion</a></div>
+          <div class="job-title"><a href="/job-view">Financial Forecasting Model — FMCG Regional Expansion</a></div>
           <div class="job-meta-row">
             <div class="client-mini-inline">
               <div class="org-chip" style="background:#8B3A2A;">MC</div>
@@ -394,7 +394,7 @@
           <span>·</span><span>30 days est.</span>
         </div></div>
         <div class="job-actions">
-          <a href="job-view.html" class="btn btn-outline btn-sm">View Details</a>
+          <a href="/job-view" class="btn btn-outline btn-sm">View Details</a>
         </div>
       </div>
     </div>

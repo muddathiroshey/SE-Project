@@ -30,10 +30,10 @@
           <div class="dropdown-item" style="color:var(--ink-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;pointer-events:none;">My Account</div>
           <hr class="dropdown-divider">
           <a class="dropdown-item" href="profile-edit.php">My Profile</a>
-          <a class="dropdown-item" href="escrow-wallet.html">Wallet &amp; Escrow</a>
+          <a class="dropdown-item" href="/dashboard">Wallet &amp; Escrow</a>
           <a class="dropdown-item" href="#">Account Settings</a>
           <hr class="dropdown-divider">
-          <a class="dropdown-item" href="login.html" style="color:var(--rust);">Sign Out</a>
+          <a class="dropdown-item" href="/login" style="color:var(--rust);">Sign Out</a>
         </div>
       </div>
     </div>
@@ -80,7 +80,7 @@
     </a>
 
     <div class="sidebar-label" style="margin-top:16px;">Actions</div>
-    <a class="edit-nav-link" href="expert-profile.php" onclick="savePreviewStateAndGo(event)">
+    <a class="edit-nav-link" href="/profile" onclick="savePreviewStateAndGo(event)">
       👁 Preview as Client
     </a>
   </aside>
@@ -609,7 +609,7 @@ I am particularly experienced in working within the constraints of regulated ind
           <div class="edit-section-heading">Billing &amp; Tax</div>
           <div class="edit-section-desc">Manage payment methods, invoicing preferences, and tax registration details used for VAT calculation.</div>
         </div>
-        <a href="escrow-wallet.html" class="btn btn-outline btn-sm">View Full Wallet →</a>
+        <a href="/dashboard" class="btn btn-outline btn-sm">View Full Wallet →</a>
       </div>
 
       <h4 style="font-size:.9rem;margin-bottom:14px;">Payment Methods</h4>

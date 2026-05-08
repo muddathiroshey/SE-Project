@@ -1,10 +1,6 @@
 <?php
 namespace App\Models;
 
-use PDO;
-use PDOException;
-
-
 class Data {
     
     private string $host;
@@ -14,10 +10,10 @@ class Data {
 
     public function __construct()
     {
-        $this->host = 'db';
-        $this->name = 'freelance_marketplace';
-        $this->user = 'appuser';
-        $this->pass = 'apppass';
+        $this->host = env_value('DB_HOST', 'db');
+        $this->name = env_value('DB_DATABASE', 'freelance_marketplace');
+        $this->user = env_value('DB_USERNAME', 'appuser');
+        $this->pass = env_value('DB_PASSWORD', 'apppass');
     }
 
     public function getDb(): \mysqli

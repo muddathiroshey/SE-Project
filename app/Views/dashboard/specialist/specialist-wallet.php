@@ -34,12 +34,12 @@
 <!-- ══════════ TOPNAV ══════════ -->
 <nav class="topnav">
   <div class="container" style="max-width:100%;padding:0 32px;">
-    <a class="topnav-logo" href="index.html">Nexus<span>.</span></a>
+    <a class="topnav-logo" href="/">Nexus<span>.</span></a>
     <div class="topnav-links">
-      <a href="dashboard-freelancer.html">Dashboard</a>
+      <a href="/dashboard">Dashboard</a>
     </div>
     <div class="topnav-actions">
-      <a href="notifications.html" class="btn btn-ghost btn-icon" style="position:relative;">
+      <a href="#" class="btn btn-ghost btn-icon" style="position:relative;">
         🔔 <span class="notif-count" style="position:absolute;top:2px;right:2px;">7</span>
       </a>
       <div class="dropdown">
@@ -53,10 +53,10 @@
           <div class="dropdown-item" style="color:var(--ink-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;pointer-events:none;">Client Account</div>
           <hr class="dropdown-divider">
           <a class="dropdown-item" href="#">My Profile</a>
-          <a class="dropdown-item" href="escrow-wallet.html">Wallet &amp; Escrow</a>
+          <a class="dropdown-item" href="/dashboard">Wallet &amp; Escrow</a>
           <a class="dropdown-item" href="#">Account Settings</a>
           <hr class="dropdown-divider">
-          <a class="dropdown-item" href="login.html" style="color:var(--rust);">Sign Out</a>
+          <a class="dropdown-item" href="/login" style="color:var(--rust);">Sign Out</a>
         </div>
       </div>
     </div>
@@ -154,7 +154,7 @@
         <div class="balance-lbl">On Hold</div>
         <div class="balance-val" style="color:var(--rust);">$1,000</div>
         <div class="balance-sub">Dispute DSP-NX-3801 · Awaiting verdict</div>
-        <a href="dispute.html" class="btn btn-sm btn-outline" style="margin-top:12px;font-size:.75rem;">View Dispute</a>
+        <a href="/dispute" class="btn btn-sm btn-outline" style="margin-top:12px;font-size:.75rem;">View Dispute</a>
       </div>
     </div>
 

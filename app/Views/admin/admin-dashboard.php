@@ -263,10 +263,10 @@
 
   <nav class="topnav" style="background:var(--ink);border-bottom:1px solid rgba(247,244,239,.1);">
     <div class="container" style="max-width:100%;padding:0 32px;">
-      <a class="topnav-logo" href="admin-dashboard.html" style="color:var(--ivory);">Nexus<span
+      <a class="topnav-logo" href="/admin" style="color:var(--ivory);">Nexus<span
           style="color:var(--gold);">.</span></a>
       <div class="topnav-links">
-        <a href="admin-dashboard.html" style="color:rgba(247,244,239,.6);">Dashboard</a>
+        <a href="/admin" style="color:rgba(247,244,239,.6);">Dashboard</a>
       </div>
       <div class="topnav-actions">
         <div class="flex items-center gap-8">
@@ -282,23 +282,23 @@
   <div class="admin-shell">
     <aside class="admin-sidebar">
       <div class="admin-sidebar-section">Overview</div>
-      <a class="admin-sidebar-link active" href="admin-dashboard.html">📊 Health Dashboard</a>
+      <a class="admin-sidebar-link active" href="/admin">📊 Health Dashboard</a>
 
       <div class="admin-sidebar-section">Marketplace</div>
-      <a class="admin-sidebar-link" href="admin-team.html">👤 Users</a>
+      <a class="admin-sidebar-link" href="#">👤 Users</a>
 
       <div class="admin-sidebar-section">Disputes</div>
-      <a class="admin-sidebar-link" href="open-disputes.html">⚖️ Active Disputes <span class="notif-count"
+      <a class="admin-sidebar-link" href="/dispute">⚖️ Active Disputes <span class="notif-count"
           style="margin-left:auto;background:var(--rust);">4</span></a>
 
       <div class="admin-sidebar-section">Verifications</div>
-      <a class="admin-sidebar-link" href="admin-kyc.html">🛡 KYC Queue</a>
+      <a class="admin-sidebar-link" href="#">🛡 KYC Queue</a>
 
       <div class="admin-sidebar-section">Sanctions</div>
-      <a class="admin-sidebar-link" href="sanctions.html">⚠️ User Sanctions</a>
+      <a class="admin-sidebar-link" href="#">⚠️ User Sanctions</a>
 
       <div class="admin-sidebar-section">Support</div>
-      <a class="admin-sidebar-link" href="admin-chat.html">💬 Chat Support</a>
+      <a class="admin-sidebar-link" href="/chat">💬 Chat Support</a>
     </aside>
 
     <!-- MAIN -->

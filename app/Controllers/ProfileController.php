@@ -4,15 +4,19 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Models\Client;
 use App\Models\Data;
+use App\Models\Specialist;
 
 class ProfileController extends Controller
 {
     private Client $profile;
+    private Specialist $specialistProfile;
     private Data $auth;
 
     public function __construct()
     {
+        parent::__construct();
         $this->profile = new Client();
+        $this->specialistProfile = new Specialist();
         $this->auth    = new Data();
     }
 
@@ -23,6 +27,16 @@ class ProfileController extends Controller
         $this->requireAuth();
 
         $user_id = (int) $_SESSION['user_id'];
+        if (($_SESSION['role'] ?? '') === 'Freelancer') {
+            if (!$this->specialistProfile->getByUserId($user_id)) {
+                header("Location: /profile/setup");
+                exit();
+            }
+
+            header("Location: /profile/edit");
+            exit();
+        }
+
         $client  = $this->profile->getByUserId($user_id);
 
         if (!$client) {
@@ -39,6 +53,16 @@ class ProfileController extends Controller
     public function setup(): void
     {
         $this->requireAuth();
+        if (($_SESSION['role'] ?? '') === 'Freelancer') {
+            if ($this->specialistProfile->getByUserId((int) $_SESSION['user_id'])) {
+                header("Location: /profile/edit");
+                exit();
+            }
+
+            $this->view('profile/freelancer/index');
+            return;
+        }
+
         $this->requireRole('Client');
 
         $user_id = (int) $_SESSION['user_id'];
@@ -56,6 +80,11 @@ class ProfileController extends Controller
     public function store(): void
     {
         $this->requireAuth();
+        if (($_SESSION['role'] ?? '') === 'Freelancer') {
+            $this->storeSpecialist();
+            return;
+        }
+
         $this->requireRole('Client');
 
         $user_id = (int) $_SESSION['user_id'];
@@ -150,6 +179,11 @@ class ProfileController extends Controller
     public function edit(): void
     {
         $this->requireAuth();
+        if (($_SESSION['role'] ?? '') === 'Freelancer') {
+            $this->view('profile/freelancer/specialist-profile-edit');
+            return;
+        }
+
         $this->requireRole('Client');
 
         $user_id = (int) $_SESSION['user_id'];
@@ -285,23 +319,111 @@ class ProfileController extends Controller
         exit();
     }
 
-    //HELPERS 
-
-    private function requireAuth(): void
+    private function storeSpecialist(): void
     {
-        if (session_status() === PHP_SESSION_NONE) session_start();
+        $this->requireRole('Freelancer');
 
-        if (!isset($_SESSION['user_id'])) {
-            header("Location: /login");
-            exit();
+        $user_id = (int) $_SESSION['user_id'];
+        $errors = [];
+
+        $name = trim($_POST['full_name'] ?? '');
+        $dob = trim($_POST['date_of_birth'] ?? '');
+        $phone = trim($_POST['phone_number'] ?? '');
+        $niche = trim($_POST['primary_niche'] ?? '');
+        $education = trim($_POST['education_level'] ?? '');
+        $skills = array_filter(array_map('trim', explode(',', $_POST['skills'] ?? '')));
+
+        if (!$name || !preg_match('/^[\p{L}\s]+$/u', $name)) {
+            $errors[] = 'Full name is required (letters only).';
+        }
+        if (!preg_match('/^(0[1-9]|[12]\d|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/', $dob)) {
+            $errors[] = 'Date of birth must be in DD/MM/YYYY format.';
+        }
+        if (!preg_match('/^(\+|00)\d{6,15}$/', $phone)) {
+            $errors[] = 'Phone number must start with + or 00.';
+        }
+        if ($niche === '') {
+            $errors[] = 'Primary niche is required.';
+        }
+        if (!in_array($education, ['high-school', 'bachelor', 'master', 'phd'], true)) {
+            $errors[] = 'Education level is required.';
+        }
+        if (!$skills) {
+            $errors[] = 'Select at least one skill.';
+        }
+
+        $idUpload = $_FILES['id_file'] ?? null;
+        $educationUpload = $_FILES['education_file'] ?? null;
+        foreach ([[$idUpload, 'ID document'], [$educationUpload, 'Education proof']] as [$upload, $label]) {
+            if (!$upload || $upload['error'] !== UPLOAD_ERR_OK) {
+                $errors[] = "{$label} upload is required.";
+            }
+        }
+
+        if ($errors) {
+            $this->view('profile/freelancer/index', ['errors' => $errors]);
+            return;
+        }
+
+        [$day, $month, $year] = explode('/', $dob);
+        $profileId = $this->specialistProfile->create($user_id, [
+            'full_legal_name' => $name,
+            'date_of_birth' => "{$year}-{$month}-{$day}",
+            'phone_number' => $phone,
+            'primary_niche' => $niche,
+            'education_level' => $education,
+            'summary' => '',
+        ]);
+
+        if (!$profileId) {
+            $this->view('profile/freelancer/index', ['errors' => ['Could not create specialist profile.']]);
+            return;
+        }
+
+        $this->specialistProfile->syncSkills($user_id, $skills);
+        $this->storeSpecialistDocument($user_id, $idUpload, 'identity', 'Government ID');
+        $this->storeSpecialistDocument($user_id, $educationUpload, 'education', 'Education proof');
+        $this->specialistProfile->verifyUser($user_id);
+        $_SESSION['is_verified'] = 1;
+
+        header("Location: /dashboard");
+        exit();
+    }
+
+    private function storeSpecialistDocument(int $userId, array $upload, string $type, string $title): void
+    {
+        $uploadDir = __DIR__ . '/../../public/uploads/kyc/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+
+        $ext = pathinfo($upload['name'], PATHINFO_EXTENSION);
+        $safeName = $userId . '_' . $type . '_' . time() . '.' . $ext;
+        if (move_uploaded_file($upload['tmp_name'], $uploadDir . $safeName)) {
+            $this->specialistProfile->addVerificationDocument($userId, [
+                'doc_type' => $type,
+                'doc_title' => $title,
+                'file_path' => 'uploads/kyc/' . $safeName,
+                'file_name' => $upload['name'],
+            ]);
         }
     }
 
-    private function requireRole(string $role): void
+    //HELPERS 
+
+    protected function requireAuth(): void
     {
+        if (!isset($_SESSION['user_id'])) {
+            $this->redirect('/login');
+        }
+    }
+
+    protected function requireRole(string $role): void
+    {
+        $this->requireAuth();
+
         if (($_SESSION['role'] ?? '') !== $role) {
-            header("Location: /dashboard");
-            exit();
+            $this->redirect('/dashboard');
         }
     }
 }

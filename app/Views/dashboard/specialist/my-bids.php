@@ -48,9 +48,9 @@
 -->
 <nav class="topnav">
   <div class="container">
-    <a class="topnav-logo" href="index.html">Nexus<span>.</span></a>
+    <a class="topnav-logo" href="/">Nexus<span>.</span></a>
     <div class="topnav-actions">
-      <a href="notifications.html" class="btn btn-ghost btn-icon" style="position:relative;">
+      <a href="#" class="btn btn-ghost btn-icon" style="position:relative;">
         <svg xmlns="http://www.w3.org/2000/svg" height="22px" viewBox="0 -960 960 960" width="22px" fill="currentColor">
           <path d="M160-200v-80h80v-280q0-83 50-147.5T420-792v-28q0-25 17.5-42.5T480-880q25 0 42.5 17.5T540-820v28q80 20 130 84.5T720-560v280h80v80H160Zm320-300Zm0 420q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80Z"/>
         </svg> <span class="notif-count" style="position:absolute;top:2px;right:2px;">7</span>
@@ -64,11 +64,11 @@
         <div class="dropdown-menu hidden" id="user-dd">
           <div class="dropdown-item" style="color:var(--ink-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;pointer-events:none;">Specialist Account</div>
           <hr class="dropdown-divider">
-          <a class="dropdown-item" href="expert-profile.html">My Profile</a>
-          <a class="dropdown-item" href="escrow-wallet.html">Wallet &amp; Escrow</a>
+          <a class="dropdown-item" href="/profile">My Profile</a>
+          <a class="dropdown-item" href="/dashboard">Wallet &amp; Escrow</a>
           <a class="dropdown-item" href="#">Account Settings</a>
           <hr class="dropdown-divider">
-          <a class="dropdown-item" href="login.html" style="color:var(--rust);">Sign Out</a>
+          <a class="dropdown-item" href="/login" style="color:var(--rust);">Sign Out</a>
         </div>
       </div>
     </div>
@@ -81,24 +81,24 @@
   <aside class="sidebar">
     <div class="sidebar-section">
       <div class="sidebar-label">Overview</div>
-      <a class="sidebar-link" href="dashboard-freelancer.html">
+      <a class="sidebar-link" href="/dashboard">
         <svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
         Dashboard
       </a>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">Work</div>
-      <a class="sidebar-link" href="specialist-active-projects.html">
+      <a class="sidebar-link" href="/dashboard">
         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 4a1 1 0 0 1 1-1h3l1 1h6a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4z"/></svg>
         Active Projects
         <span class="notif-count" style="margin-left:auto;display:inline-flex;align-items:center;justify-content:center;background:transparent;color:var(--gold);border:2px solid var(--gold);font-size:0.75rem;font-weight:700;padding:4px 10px;border-radius:12px;min-width:24px;text-align:center;">2</span>
       </a>
-      <a class="sidebar-link active" href="my-bids.html">
+      <a class="sidebar-link active" href="/dashboard/my-bids">
         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M3 2h10a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zm1 2v1h8V4H4zm0 2v1h8V6H4z"/></svg>
         My Proposals
         <span class="notif-count" style="margin-left:auto;display:inline-flex;align-items:center;justify-content:center;background:transparent;color:var(--gold);border:2px solid var(--gold);font-size:0.75rem;font-weight:700;padding:4px 10px;border-radius:12px;min-width:24px;text-align:center;">5</span>
       </a>
-      <a class="sidebar-link" href="specialist-completed-projects.html">
+      <a class="sidebar-link" href="/dashboard">
         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M6 1h4a1 1 0 0 1 1 1v2H5V2a1 1 0 0 1 1-1z"/><path d="M3 4h10v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4z"/></svg>
         Completed Work
       </a>
@@ -112,25 +112,25 @@
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">Profile</div>
-      <a class="sidebar-link" href="expert-profile.html">
+      <a class="sidebar-link" href="/profile">
         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M2 14s1-1.5 6-1.5S14 14 14 14v1H2v-1z"/></svg>
         My Profile
       </a>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">Finance</div>
-      <a class="sidebar-link" href="escrow-wallet.html">
+      <a class="sidebar-link" href="/dashboard">
         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 4h12v8H2V4zm1 1v6h10V5H3zm2 2h2v2H5V7z"/></svg>
         Earnings &amp; Payouts
       </a>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">Support</div>
-      <a class="sidebar-link" href="dispute.html">
+      <a class="sidebar-link" href="/dispute">
         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 1 1 0 14A7 7 0 0 1 8 1zm0 4a.75.75 0 0 0 0 1.5.75.75 0 0 0 0-1.5zm-.25 3v4.5h1.5V7h-1.5z"/></svg>
         Disputes
       </a>
-      <a class="sidebar-link" href="messages.html">
+      <a class="sidebar-link" href="/chat">
         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 1h12a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-3l-4 3v-3H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z"/></svg>
         Messages
       </a>
@@ -344,9 +344,9 @@
         </div>
         <!-- CARD ACTIONS -->
         <div class="pc-actions">
-          <a href="messages.html" class="btn btn-outline btn-sm">💬 Message Client</a>
-          <a href="job-view.html" class="btn btn-ghost btn-sm">View Job Posting</a>
-          <a href="client-profile-public.html" class="btn btn-ghost btn-sm">View Client Profile</a>
+          <a href="/chat" class="btn btn-outline btn-sm">💬 Message Client</a>
+          <a href="/job-view" class="btn btn-ghost btn-sm">View Job Posting</a>
+          <a href="/profile" class="btn btn-ghost btn-sm">View Client Profile</a>
         </div>
       </div>
     </div>
@@ -461,9 +461,9 @@
           </div>
         </div>
         <div class="pc-actions">
-          <a href="messages.html" class="btn btn-outline btn-sm">💬 Message Client</a>
-          <a href="job-view.html" class="btn btn-ghost btn-sm">View Job Posting</a>
-          <a href="client-profile-public.html" class="btn btn-ghost btn-sm">View Client Profile</a>
+          <a href="/chat" class="btn btn-outline btn-sm">💬 Message Client</a>
+          <a href="/job-view" class="btn btn-ghost btn-sm">View Job Posting</a>
+          <a href="/profile" class="btn btn-ghost btn-sm">View Client Profile</a>
         </div>
       </div>
     </div>
@@ -562,7 +562,7 @@
       <div class="draft-banner">
         <span>💾</span>
         <span style="flex:1;">This proposal is saved as a draft. Complete and submit before the job closes.</span>
-        <a href="bid-submit.html" class="btn btn-primary btn-sm">Continue Editing →</a>
+        <a href="/bid" class="btn btn-primary btn-sm">Continue Editing →</a>
         <button class="btn btn-ghost btn-sm" style="color:var(--rust);" onclick="event.stopPropagation();showToast('Draft deleted.','warn')">Delete Draft</button>
       </div>
     </div>

@@ -161,7 +161,7 @@ $active_form = $active_form ?? 'login';
             </div>
             <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:24px;">
               <input type="checkbox" id="terms" name="terms" style="accent-color:var(--gold);margin-top:3px;" required>
-              <label for="terms" style="font-size:.8125rem;color:var(--ink-mid);">I agree to Nexus's <a href="platform-guide.html#terms" style="color:var(--gold);">Terms of Service</a> and acknowledge the <a href="platform-guide.html#kyc" style="color:var(--gold);">KYC Verification Policy</a>.</label>
+              <label for="terms" style="font-size:.8125rem;color:var(--ink-mid);">I agree to Nexus's <a href="#terms" style="color:var(--gold);">Terms of Service</a> and acknowledge the <a href="#kyc" style="color:var(--gold);">KYC Verification Policy</a>.</label>
             </div>
             <!-- 
               For Specialist role: instead of a normal POST submit, clicking the button
@@ -172,7 +172,7 @@ $active_form = $active_form ?? 'login';
           </form>
         </div>
 
-        <p class="auth-bottom-note">Need help? <a href="platform-guide.html#support">Contact support</a></p>
+        <p class="auth-bottom-note">Need help? <a href="#support">Contact support</a></p>
       </div>
     </div>
 

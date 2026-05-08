@@ -10,6 +10,7 @@ class DashboardController extends Controller
 
     public function __construct()
     {
+        parent::__construct();
         $this->conn = new Data();
     }
 
@@ -35,6 +36,12 @@ class DashboardController extends Controller
         $role = $user['user_role'];
         $is_verified = (bool) $user['is_verified'];
         $user_id = isset($user['id']) ? (int) $user['id'] : 0;
+
+        if ($role === 'Admin') {
+            $this->view('admin/admin-dashboard');
+            return;
+        }
+
         $active_projects_count = $this->conn->getActiveProjectsCount($user_id, $role);
         $active_projects = $this->conn->getActiveProjects($user_id, $role);
 

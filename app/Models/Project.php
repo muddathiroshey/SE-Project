@@ -78,10 +78,9 @@ class Project extends Data
 
         // Bind parameters: i=int, s=string, d=double
         $stmt->bind_param(
-            //"iisssssssjddddsssissis",
-            "iisssssssddddisssisss",
-            $projectObject->user_id,
+            "iisssssssddddisssisis",
             $projectObject->client_id,
+            $projectObject->user_id,
             $projectObject->niche,
             $projectObject->niche_answers_json,
             $projectObject->project_title,
@@ -109,6 +108,7 @@ class Project extends Data
 
         $newId = $conn->insert_id;
         $stmt->close();
+        $conn->close();
 
         return $newId;
     }

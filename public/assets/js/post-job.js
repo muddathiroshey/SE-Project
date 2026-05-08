@@ -1176,7 +1176,7 @@ cancelBtn?.addEventListener('click', function(e) {
 exitStayBtn?.addEventListener('click', closeExitConfirm);
 
 exitConfirmBtn?.addEventListener('click', function() {
-  const targetUrl = cancelBtn?.getAttribute('href') || 'dashboard-client.html';
+  const targetUrl = cancelBtn?.getAttribute('href') || '/dashboard';
   window.location.href = targetUrl;
 });
 

@@ -119,7 +119,7 @@ class Client
              WHERE id = ?"
         );
         $stmt->bind_param(
-            "sssssssssssssssssssiiiis",
+            "sssssssssssssssssssiiiii",
             $data['job_title'],
             $data['country'],
             $data['timezone'],
