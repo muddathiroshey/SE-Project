@@ -133,11 +133,18 @@ class Project extends Data
         $project = $result->fetch_assoc();
 
         $stmt->close();
-        $conn->close();
+       // $conn->close();
 
         if (!$project) {
             return null;
         }
+
+        if (!empty($project['milestones_json'])) {
+        $project['milestones'] = json_decode($project['milestones_json'], true);
+    }
+    if (!empty($project['niche_answers_json'])) {
+        $project['niche_answers'] = json_decode($project['niche_answers_json'], true);
+    }
 
         foreach ($project as $key => $value) {
             if (property_exists($this, $key)) {

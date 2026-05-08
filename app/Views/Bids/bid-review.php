@@ -159,7 +159,8 @@
       <div style="flex:1;min-width:0;">
         <div class="flex items-center gap-16 flex-wrap mb-4">
           <!-- PHP: htmlspecialchars($bid['specialist']['display_name']) -->
-          <h3 style="font-family:var(--font-display);font-size:1.3rem;font-weight:600;">Dr. Rania Khalil</h3>
+          <h3 id="bid-specialist-name" style="font-family:var(--font-display);font-size:1.3rem;font-weight:600;">Dr. Rania Khalil</h3>
+          <span id="detail-status" class="bid-status-pill new">● New</span>
           <span class="badge badge-verified badge-dot" style="font-size:.7rem;">Verified</span>
         </div>
         <div style="font-size:.875rem;color:var(--ink-muted);margin-bottom:8px;">Senior Data Scientist · Cairo, Egypt</div>
@@ -178,7 +179,7 @@
     <div class="bid-section">
       <div class="bid-section-label">A — Cover Letter</div>
       <!-- PHP: nl2br(htmlspecialchars($bid['cover_letter'])) -->
-      <div style="background:var(--ivory-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:22px;font-size:.9375rem;line-height:1.75;color:var(--ink-mid);">
+      <div id="bid-cover-letter" style="background:var(--ivory-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:22px;font-size:.9375rem;line-height:1.75;color:var(--ink-mid);">
         <p style="margin-bottom:12px;">Dear Amira,</p>
         <p style="margin-bottom:12px;">I have reviewed your project brief carefully and note your specific need for GDPR cross-border transfer analysis alongside Egyptian, UAE, and KSA compliance — this intersection is precisely the area I specialise in.</p>
         <p style="margin-bottom:12px;">Over the past six years I have advised four SaaS companies on MENA market entry contracts, including two with DIFC Courts arbitration clauses and one requiring full GDPR Standard Contractual Clause integration. I am admitted to the Cairo Bar, hold an LLM in International Commercial Law from UCL, and am fluent in Arabic, English, and French.</p>
@@ -189,7 +190,7 @@
     <!-- SECTION B: KEY DIFFERENTIATORS -->
     <div class="bid-section">
       <div class="bid-section-label">B — Key Differentiators</div>
-      <div style="background:var(--gold-pale);border:1px solid var(--gold-light);border-radius:var(--radius-md);padding:18px 20px;font-size:.875rem;color:var(--ink-mid);line-height:1.7;">
+      <div id="bid-differentiators" style="background:var(--gold-pale);border:1px solid var(--gold-light);border-radius:var(--radius-md);padding:18px 20px;font-size:.875rem;color:var(--ink-mid);line-height:1.7;">
         <!-- PHP: nl2br(htmlspecialchars($bid['differentiators'])) -->
         Cairo Bar admission (2014) · DIFC Courts practitioner (listed) · LLM International Commercial Law, UCL · 4 prior SaaS market-entry engagements · Native Arabic, fluent English and French · GDPR SCC specialist · ISO 27001-aware legal practice.
       </div>
@@ -198,7 +199,7 @@
     <!-- SECTION C: RELEVANT PAST WORK -->
     <div class="bid-section">
       <div class="bid-section-label">C — Relevant Past Work</div>
-      <div style="background:var(--ivory-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px 20px;font-size:.875rem;color:var(--ink-mid);line-height:1.7;">
+      <div id="bid-past-work" style="background:var(--ivory-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px 20px;font-size:.875rem;color:var(--ink-mid);line-height:1.7;">
         <!-- PHP: nl2br(htmlspecialchars($bid['past_work'])) -->
         Advised a Cairo-based fintech on a UAE market entry in 2023 — delivered a full contract suite (distributor, SaaS subscription, employment) across EGY/UAE jurisdictions. Secondly, assisted a logistics technology firm entering KSA on a Vision 2030 procurement framework engagement — negotiated cross-border data residency clauses with their Saudi counsel. Both engagements completed within milestone budget and on time.
       </div>
@@ -210,16 +211,16 @@
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">
         <!-- PHP: $bid['bid_total'] -->
         <div style="background:var(--ivory-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;text-align:center;">
-          <div style="font-family:var(--font-display);font-size:1.8rem;font-weight:300;">$12,000</div>
+          <div id="bid-total-amount" style="font-family:var(--font-display);font-size:1.8rem;font-weight:300;">$12,000</div>
           <div class="text-xs text-muted mt-4">Proposed Total</div>
           <span class="ms-delta eq" style="margin-top:6px;display:inline-flex;">= Client Budget</span>
         </div>
         <div style="background:var(--ivory-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;text-align:center;">
-          <div style="font-family:var(--font-display);font-size:1.8rem;font-weight:300;">$245</div>
+          <div id="bid-day-rate" style="font-family:var(--font-display);font-size:1.8rem;font-weight:300;">$245</div>
           <div class="text-xs text-muted mt-4">Effective Day Rate</div>
         </div>
         <div style="background:var(--ivory-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;text-align:center;">
-          <div style="font-family:var(--font-display);font-size:1.8rem;font-weight:300;">49d</div>
+          <div id="bid-duration" style="font-family:var(--font-display);font-size:1.8rem;font-weight:300;">49d</div>
           <div class="text-xs text-muted mt-4">Proposed Duration</div>
         </div>
       </div>
@@ -271,7 +272,7 @@
         <div style="padding:14px 16px;background:var(--ivory-card);border:1px solid var(--border);border-radius:var(--radius-sm);">
           <div class="text-xs text-muted mb-4">Proposed Start Date</div>
           <!-- PHP: date('M j, Y', $bid['start_date']) -->
-          <div style="font-weight:700;font-family:var(--font-mono);">Apr 22, 2025</div>
+          <div id="bid-start-date" style="font-weight:700;font-family:var(--font-mono);">Apr 22, 2025</div>
           <div class="text-xs text-muted mt-2">Within 12 days of contract</div>
         </div>
         <div style="padding:14px 16px;background:var(--ivory-card);border:1px solid var(--border);border-radius:var(--radius-sm);">
@@ -718,7 +719,9 @@
 <div class="toast-stack" id="toast-stack"></div>
 
 <script>
-/* ── DROPDOWN TOGGLE ── */
+// PHP: Pass bids data to JS
+const bidsData = <?php echo json_encode($bids); ?>;
+
 function toggleDD() {
   document.getElementById('user-dd').classList.toggle('hidden');
 }
@@ -730,14 +733,44 @@ document.addEventListener('click', e => {
 function selectBid(el, idx) {
   document.querySelectorAll('.bid-card-item').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
-  // PHP: AJAX or page reload to ?bid={id}
-  // For demo: just update status pill
-  const statuses = ['interview','new','new','new','declined'];
-  const labels = ['🎙 Interview Set','● New','● New','● New','Declined'];
-  const statusEl = document.getElementById('detail-status');
-  if(statusEl) {
-    statusEl.className = 'bid-status-pill ' + (statuses[idx] || 'new');
-    statusEl.textContent = labels[idx] || '● New';
+
+  const bid = bidsData[idx];
+  if (bid) {
+    document.getElementById('bid-specialist-name').textContent = bid.specialist_name || 'Specialist';
+    document.getElementById('bid-total-amount').textContent = '$' + (bid.total_bid_amount || 0).toLocaleString();
+
+    const coverLetterEl = document.getElementById('bid-cover-letter');
+    coverLetterEl.innerHTML = bid.proposal_message ? bid.proposal_message.replace(/\n/g, '<br>') : 'No cover letter provided.';
+
+    const differentiatorsEl = document.getElementById('bid-differentiators');
+    differentiatorsEl.innerHTML = bid.key_differentiators ? bid.key_differentiators.replace(/\n/g, '<br>') : 'No key differentiators provided.';
+
+    const pastWorkEl = document.getElementById('bid-past-work');
+    pastWorkEl.innerHTML = bid.relevant_work ? bid.relevant_work.replace(/\n/g, '<br>') : 'No relevant past work provided.';
+
+    const dayRateEl = document.getElementById('bid-day-rate');
+    const duration = bid.total_duration || 0;
+    const dayRate = duration > 0 ? Math.round(bid.total_bid_amount / duration) : 0;
+    dayRateEl.textContent = '$' + dayRate.toLocaleString();
+
+    const durationEl = document.getElementById('bid-duration');
+    durationEl.textContent = duration + 'd';
+
+    const startDateEl = document.getElementById('bid-start-date');
+    startDateEl.textContent = bid.start_date ? new Date(bid.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'TBD';
+
+    // Update status
+    const statusMap = {
+      'pending': 'new',
+      'interview': 'interview',
+      'accepted': 'accepted',
+      'declined': 'declined'
+    };
+    const statusClass = statusMap[bid.status] || 'new';
+    const statusLabel = bid.status === 'interview' ? '🎙 Interview Set' : bid.status === 'declined' ? 'Declined' : '● New';
+    const statusEl = document.getElementById('detail-status');
+    statusEl.className = 'bid-status-pill ' + statusClass;
+    statusEl.textContent = statusLabel;
   }
 }
 
@@ -829,6 +862,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const n = document.getElementById('private-notes');
   const cc = document.getElementById('notes-charcount');
   if(n && cc) cc.textContent = n.value.length + ' chars';
+
+  // Select first bid by default
+  const firstBid = document.querySelector('.bid-card-item');
+  if (firstBid) {
+    selectBid(firstBid, 0);
+  }
 });
 </script>
 </body>

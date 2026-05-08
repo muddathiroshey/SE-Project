@@ -85,9 +85,12 @@ class Bid extends Data
     public $relevant_work;
     public $total_bid_amount;
     public $bid_rationale;
-    public $availability_slots;
     public $start_date;
+    public $free_reviews;
+    public $review_price;
+     public $availability_slots;
 
+// و
     public function save(Bid $bidObject) 
     {
         $conn = $this->getDb(); 
@@ -101,13 +104,15 @@ class Bid extends Data
                     total_bid_amount, 
                     bid_rationale, 
                     start_date,
+                    free_reviews,
+                    review_price,
                     availability_slots 
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         $stmt = $conn->prepare($sql);
 
         // تم إصلاح الفاصلة المفقودة هنا والترتيب
-        $stmt->bind_param("iisssdsss", 
+        $stmt->bind_param("iisssdssiis", 
             $bidObject->job_id,
             $bidObject->user_id,
             $bidObject->proposal_message,
@@ -116,6 +121,8 @@ class Bid extends Data
             $bidObject->total_bid_amount,
             $bidObject->bid_rationale,
             $bidObject->start_date, // تم إضافة فاصلة هنا
+            $bidObject->free_reviews,
+            $bidObject->review_price,
             $bidObject->availability_slots
         );
 

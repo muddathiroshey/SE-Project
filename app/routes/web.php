@@ -43,4 +43,11 @@ $router->post('/bid-review',             [BidController::class, 'store2']);
 $router->get('/post-job', [ProjectController::class, 'postJob']);
 $router->post('/post-job', [ProjectController::class, 'store']);
 
+$router->get('/job-view', [ProjectController::class, 'Jobview']);
+$router->post('/job-view', [ProjectController::class, 'store2']);
+
+$router->get('/project-detail', [ProjectController::class, 'ProjectDetail']);
+
+$router->get('/project-detail(in-dispute)', [ProjectController::class, 'ProjectDetailInDispute']);
+
 ?>

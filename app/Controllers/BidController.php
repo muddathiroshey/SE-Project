@@ -40,6 +40,8 @@ class BidController extends Controller
         $bid->total_bid_amount = isset($_POST['bid_total']) ? floatval($_POST['bid_total']) : 0;
         $bid->bid_rationale = $_POST['bid_rationale'] ?? '';
         $bid->start_date = $_POST['start_date'] ?? null;
+        $bid->free_reviews       = intval($_POST['free_reviews'] ?? 0);
+        $bid->review_price       = floatval($_POST['review_price'] ?? 0.00);
         $slots = $_POST['availability_slots'] ?? '';
         // $bid->availability_slots = is_string($slots) && trim($slots) !== '' ? $slots : '[]';
 
@@ -93,9 +95,16 @@ class BidController extends Controller
             @session_start();
         }
 
-        $jobId = isset($_GET['job_id']) ? intval($_GET['job_id']) : 0;
+        $jobId = isset($_GET['job_id']) ? intval($_GET['job_id']) : 2;
+        if ($jobId > 0) {
+            $_SESSION['last_bid_review_job_id'] = $jobId;
+        } elseif (!empty($_SESSION['last_bid_review_job_id'])) {
+            $jobId = intval($_SESSION['last_bid_review_job_id']);
+        }
+
         if ($jobId <= 0) {
-            die('Project ID is required.');
+            header('Location: /dashboard');
+            exit();
         }
 
         $projectModel = new Project();
@@ -117,10 +126,12 @@ class BidController extends Controller
         $db = new Data();
         $conn = $db->getDb();
 
-        $sql = "SELECT b.*, u.user_name AS specialist_name
+        $sql = "SELECT b.*, u.user_name AS specialist_name, SUM(bm.duration_days) AS total_duration
                 FROM bids b
                 JOIN userData u ON b.user_id = u.id
+                LEFT JOIN bid_milestones bm ON bm.bid_id = b.id
                 WHERE b.job_id = ?
+                GROUP BY b.id
                 ORDER BY b.created_at DESC";
         $stmt = $conn->prepare($sql);
 
@@ -134,6 +145,10 @@ class BidController extends Controller
 
         $bids = [];
         while ($row = $result->fetch_assoc()) {
+
+            $row['milestones'] = json_decode($row['milestones_json'] ?? '[]', true);
+            $row['availability_slots'] = json_decode($row['availability_slots'] ?? '[]', true);
+
             $bids[] = $row;
         }
 

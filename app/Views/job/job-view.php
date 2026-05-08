@@ -80,7 +80,7 @@
 
         <!-- BREADCRUMB -->
         <div style="font-size:.75rem;font-family:var(--font-mono);color:var(--ink-muted);margin-bottom:8px;">
-          <!-- PHP: htmlspecialchars($job['niche']) ?> · <?= htmlspecialchars($job['engagement_type']) -->
+          <!-- PHP: htmlspecialchars($job['niche']) ?> · <?= htmlspecialchars($job['engagement_type']) ?>
           Legal Consulting &nbsp;·&nbsp; Contract Review &amp; Advisory
         </div>
 

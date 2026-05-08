@@ -86,4 +86,20 @@ class  ProjectController extends Controller
         header('Location: /dashboard');
         exit();
     }
+
+    public function Jobview(): void
+    {
+        $this->view('job/job-view');
+    }
+
+     public function ProjectDetail(): void
+    {
+        $this->view('job/project-detail');
+    }
+
+     public function ProjectDetailInDispute(): void
+    {
+        $this->view('job/project-detail(in-dispute)');
+    }
+
 }
