@@ -89,7 +89,30 @@ class  ProjectController extends Controller
 
     public function Jobview(): void
     {
-        $this->view('job/job-view');
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            @session_start();
+        }
+
+        $jobId = isset($_GET['job_id']) ? intval($_GET['job_id']) : 2;
+        if ($jobId <= 0) {
+            header('Location: /dashboard');
+            exit();
+        }
+
+        $projectModel = new Project();
+        $job = $projectModel->gitdata($jobId);
+        
+        if (!$job) {
+            die('Project not found.');
+        }
+
+        // Decode JSON fields
+        $job['milestones'] = json_decode($job['milestones_json'] ?? '[]', true);
+        $job['niche_answers'] = json_decode($job['niche_answers_json'] ?? '[]', true);
+
+        $this->view('job/job-view', [
+            'job' => $job,
+        ]);
     }
 
      public function ProjectDetail(): void

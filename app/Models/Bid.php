@@ -135,5 +135,20 @@ class Bid extends Data
         
         return $newId;
     }
+
+    public function updateStatus(int $bidId, string $status): bool
+    {
+        $conn = $this->getDb();
+
+        $sql = "UPDATE bids SET status = ? WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+
+        $stmt->bind_param("si", $status, $bidId);
+
+        $result = $stmt->execute();
+        $stmt->close();
+
+        return $result;
+    }
 }
 ?>

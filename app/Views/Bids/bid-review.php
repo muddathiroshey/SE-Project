@@ -85,6 +85,16 @@
   </div>
 </div>
 
+<?php
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    @session_start();
+}
+if (isset($_SESSION['message'])) {
+    echo '<div class="alert alert-success" style="margin: 20px 32px;">' . htmlspecialchars($_SESSION['message']) . '</div>';
+    unset($_SESSION['message']);
+}
+?>
+
 <!-- ══════════ 3-COLUMN REVIEW SHELL ══════════ -->
 <div class="review-shell">
 
@@ -299,18 +309,18 @@
       <!-- PHP: if($bid['review_price'] || $bid['free_reviews']): -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
         <!-- PHP: if($bid['review_price']): -->
-        <div style="padding:14px 16px;background:var(--ivory-card);border:1px solid var(--border);border-radius:var(--radius-sm);">
+        <div id="bid-review-price-wrapper" style="padding:14px 16px;background:var(--ivory-card);border:1px solid var(--border);border-radius:var(--radius-sm);">
           <div class="text-xs text-muted mb-4">Per-Review Charge</div>
           <!-- PHP: $bid['review_price'] -->
-          <div style="font-weight:700;font-family:var(--font-mono);font-size:1.3rem;">$450</div>
+          <div id="bid-review-price" style="font-weight:700;font-family:var(--font-mono);font-size:1.3rem;">$450</div>
           <div class="text-xs text-muted mt-2">After included reviews</div>
         </div>
         <!-- PHP: endif; -->
         <!-- PHP: if($bid['free_reviews']): -->
-        <div style="padding:14px 16px;background:var(--ivory-card);border:1px solid var(--border);border-radius:var(--radius-sm);">
+        <div id="bid-free-reviews-wrapper" style="padding:14px 16px;background:var(--ivory-card);border:1px solid var(--border);border-radius:var(--radius-sm);">
           <div class="text-xs text-muted mb-4">Free Reviews Included</div>
           <!-- PHP: $bid['free_reviews'] -->
-          <div style="font-weight:700;font-family:var(--font-mono);font-size:1.3rem;">2</div>
+          <div id="bid-free-reviews" style="font-weight:700;font-family:var(--font-mono);font-size:1.3rem;">2</div>
           <div class="text-xs text-muted mt-2">Complimentary reviews</div>
         </div>
         <!-- PHP: endif; -->
@@ -385,16 +395,16 @@
     <div class="action-section-title">Decision</div>
 
     <!-- PHP: if($canAccept && $bid['status'] !== 'accepted'): -->
-    <button class="decision-btn accept" onclick="document.getElementById('accept-modal').classList.remove('hidden')">
+    <button type="button" class="decision-btn accept" onclick="openAcceptModal()">
       ✦ Accept &amp; Issue Contract
     </button>
-    <button class="decision-btn interview" onclick="document.getElementById('interview-modal').classList.remove('hidden')">
+    <button type="button" class="decision-btn interview" onclick="openInterviewModal()">
       🎙 Schedule Interview
     </button>
-    <button class="decision-btn message" onclick="document.getElementById('message-modal').classList.remove('hidden')">
+    <button type="button" class="decision-btn message" onclick="openMessageModal()">
       💬 Send Message
     </button>
-    <button class="decision-btn decline" onclick="document.getElementById('decline-modal').classList.remove('hidden')">
+    <button type="button" class="decision-btn decline" onclick="openDeclineModal()">
       Decline Proposal
     </button>
 
@@ -448,54 +458,61 @@
 
 <!-- ACCEPT & ISSUE CONTRACT MODAL -->
 <div id="accept-modal" class="modal-backdrop hidden">
-  <div class="modal">
-    <div class="modal-header">
-      <div>
-        <h3>Accept Proposal &amp; Issue Contract</h3>
-        <p class="text-sm text-muted mt-4">This will generate a binding contract, trigger NDA delivery, and lock the first milestone escrow from your payment method.</p>
-      </div>
-      <button class="modal-close" onclick="document.getElementById('accept-modal').classList.add('hidden')">✕</button>
-    </div>
-    <div class="modal-body">
-
-      <!-- CONTRACT SUMMARY -->
-      <div style="background:var(--ivory-deep);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px 20px;margin-bottom:20px;">
-        <div style="font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--ink-muted);margin-bottom:12px;font-family:var(--font-body);">Contract Summary</div>
-        <div style="display:flex;flex-direction:column;gap:6px;font-size:.875rem;">
-          <div class="flex justify-between"><span class="text-muted">Specialist</span><span class="font-bold">Dr. Rania Khalil</span></div>
-          <div class="flex justify-between"><span class="text-muted">Total Value</span><span class="font-mono font-bold">$12,000</span></div>
-          <div class="flex justify-between"><span class="text-muted">First Escrow (Phase 1)</span><span class="font-mono font-bold">$3,000 — charged now</span></div>
-          <div class="flex justify-between"><span class="text-muted">Duration</span><span class="font-mono">49 days</span></div>
-          <div class="flex justify-between"><span class="text-muted">NDA</span><span>Standard Nexus · 2yr · $10K damages</span></div>
-          <div class="flex justify-between"><span class="text-muted">Free Revisions</span><span>2 per milestone</span></div>
+  <form method="POST" action="/bid-review">
+    <input type="hidden" name="action" value="accept">
+    <input type="hidden" name="bid_id" id="accept-bid-id">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h3>Accept Proposal &amp; Issue Contract</h3>
+          <p class="text-sm text-muted mt-4">This will generate a binding contract, trigger NDA delivery, and lock the first milestone escrow from your payment method.</p>
         </div>
+        <button type="button" class="modal-close" onclick="document.getElementById('accept-modal').classList.add('hidden')">✕</button>
       </div>
+      <div class="modal-body">
 
-      <div class="form-group">
-        <label class="form-label">Contract Start Date</label>
-        <input type="date" class="form-control" id="contract-start">
-        <p class="form-hint mt-4">Specialist proposed: Apr 22, 2025. Leave blank to use today's date.</p>
+        <!-- CONTRACT SUMMARY -->
+        <div style="background:var(--ivory-deep);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px 20px;margin-bottom:20px;">
+          <div style="font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--ink-muted);margin-bottom:12px;font-family:var(--font-body);">Contract Summary</div>
+          <div style="display:flex;flex-direction:column;gap:6px;font-size:.875rem;">
+            <div class="flex justify-between"><span class="text-muted">Specialist</span><span class="font-bold" id="accept-specialist">Dr. Rania Khalil</span></div>
+            <div class="flex justify-between"><span class="text-muted">Total Value</span><span class="font-mono font-bold" id="accept-total">$12,000</span></div>
+            <div class="flex justify-between"><span class="text-muted">First Escrow (Phase 1)</span><span class="font-mono font-bold">$3,000 — charged now</span></div>
+            <div class="flex justify-between"><span class="text-muted">Duration</span><span class="font-mono">49 days</span></div>
+            <div class="flex justify-between"><span class="text-muted">NDA</span><span>Standard Nexus · 2yr · $10K damages</span></div>
+            <div class="flex justify-between"><span class="text-muted">Free Revisions</span><span>2 per milestone</span></div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Contract Start Date</label>
+          <input type="date" name="contract_start_date" class="form-control" id="contract-start">
+          <p class="form-hint mt-4">Specialist proposed: <span id="accept-start-date">Apr 22, 2025</span>. Leave blank to use today's date.</p>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Message to Specialist <span class="text-muted font-mono" style="font-size:.7rem;font-weight:400;text-transform:none;letter-spacing:0;">Optional — sent with the contract</span></label>
+          <textarea name="message" class="form-control" rows="3" placeholder="e.g. Dr. Khalil — we're pleased to accept your proposal. Looking forward to working with you on this…"></textarea>
+        </div>
+
+        <div class="verify-band">
+          <span>💳</span>
+          <div style="font-size:.8125rem;"><strong>$3,000</strong> will be immediately locked from your Mastercard ···· 4821. The specialist will be notified and an NDA sent for signature before project access is granted.</div>
+        </div>
+
       </div>
-
-      <div class="form-group">
-        <label class="form-label">Message to Specialist <span class="text-muted font-mono" style="font-size:.7rem;font-weight:400;text-transform:none;letter-spacing:0;">Optional — sent with the contract</span></label>
-        <textarea class="form-control" rows="3" placeholder="e.g. Dr. Khalil — we're pleased to accept your proposal. Looking forward to working with you on this…"></textarea>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="document.getElementById('accept-modal').classList.add('hidden')">Cancel</button>
+        <button type="submit" class="btn btn-primary">✦ Confirm &amp; Issue Contract</button>
       </div>
-
-      <div class="verify-band">
-        <span>💳</span>
-        <div style="font-size:.8125rem;"><strong>$3,000</strong> will be immediately locked from your Mastercard ···· 4821. The specialist will be notified and an NDA sent for signature before project access is granted.</div>
-      </div>
-
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="document.getElementById('accept-modal').classList.add('hidden')">Cancel</button>
-      <button class="btn btn-primary" onclick="acceptBid()">✦ Confirm &amp; Issue Contract</button>
-    </div>
-  </div>
+  </form>
 </div>
 
 <!-- SCHEDULE INTERVIEW MODAL -->
+<form method="POST" action="/bid-review">
+  <input type="hidden" name="action" value="schedule_interview">
+  <input type="hidden" name="bid_id" id="interview-bid-id">
 <div id="interview-modal" class="modal-backdrop hidden">
   <div class="modal">
     <div class="modal-header">
@@ -503,7 +520,7 @@
         <h3>Schedule Technical Interview</h3>
         <p class="text-sm text-muted mt-4">Select a slot from Dr. Rania Khalil's stated availability. A calendar invite will be sent to both parties.</p>
       </div>
-      <button class="modal-close" onclick="document.getElementById('interview-modal').classList.add('hidden')">✕</button>
+      <button type="button" class="modal-close" onclick="document.getElementById('interview-modal').classList.add('hidden')">✕</button>
     </div>
     <div class="modal-body">
 
@@ -522,7 +539,7 @@
 
       <div class="form-group">
         <label class="form-label">Interview Duration</label>
-        <select class="form-control">
+        <select class="form-control" name="duration">
           <option>30 minutes</option>
           <option selected>45 minutes</option>
           <option>60 minutes</option>
@@ -532,7 +549,7 @@
 
       <div class="form-group">
         <label class="form-label">Meeting Platform</label>
-        <select class="form-control">
+        <select class="form-control" name="platform">
           <option>Google Meet (link auto-generated)</option>
           <option>Zoom (link auto-generated)</option>
           <option>Microsoft Teams</option>
@@ -542,7 +559,7 @@
 
       <div class="form-group">
         <label class="form-label">Interview Agenda / Topics <span class="text-muted font-mono" style="font-size:.7rem;font-weight:400;text-transform:none;letter-spacing:0;">Sent to specialist in advance</span></label>
-        <textarea class="form-control" rows="4"
+        <textarea class="form-control" rows="4" name="agenda"
           placeholder="e.g. 1. Verify KSA commercial law depth&#10;2. Discuss Phase 1 gap-analysis methodology&#10;3. Clarify GDPR SCC approach for non-adequacy jurisdictions&#10;4. Review availability and stakeholder Q&A cadence">1. Verify depth of KSA commercial law experience
 2. Walk through Phase 1 methodology for gap analysis
 3. Discuss GDPR SCC approach for Egypt→EU data transfers
@@ -556,13 +573,17 @@
 
     </div>
     <div class="modal-footer">
-      <button class="btn btn-outline" onclick="document.getElementById('interview-modal').classList.add('hidden')">Cancel</button>
-      <button class="btn btn-primary" onclick="scheduleInterview()">Send Interview Invitation</button>
+      <button type="button" class="btn btn-outline" onclick="document.getElementById('interview-modal').classList.add('hidden')">Cancel</button>
+      <button type="submit" class="btn btn-primary">Send Interview Invitation</button>
     </div>
   </div>
 </div>
+</form>
 
 <!-- SEND MESSAGE MODAL -->
+<form method="POST" action="/bid-review">
+  <input type="hidden" name="action" value="send_message">
+  <input type="hidden" name="bid_id" id="message-bid-id">
 <div id="message-modal" class="modal-backdrop hidden">
   <div class="modal">
     <div class="modal-header">
@@ -570,7 +591,7 @@
         <h3>Message Dr. Rania Khalil</h3>
         <p class="text-sm text-muted mt-4">Pre-contract messages are recorded and encrypted. The specialist will be notified immediately.</p>
       </div>
-      <button class="modal-close" onclick="document.getElementById('message-modal').classList.add('hidden')">✕</button>
+      <button type="button" class="modal-close" onclick="document.getElementById('message-modal').classList.add('hidden')">✕</button>
     </div>
     <div class="modal-body">
 
@@ -587,24 +608,28 @@
 
       <div class="form-group">
         <label class="form-label">Message</label>
-        <textarea class="form-control" rows="6" id="message-body"
+        <textarea class="form-control" rows="6" id="message-body" name="message"
           placeholder="Write your message to Dr. Khalil…"></textarea>
       </div>
 
       <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--ivory-deep);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:.8125rem;">
-        <input type="checkbox" id="msg-attach-proposal" style="accent-color:var(--gold);">
+        <input type="checkbox" id="msg-attach-proposal" name="attach_proposal" style="accent-color:var(--gold);">
         <label for="msg-attach-proposal">Attach a link to the proposal summary for reference</label>
       </div>
 
     </div>
     <div class="modal-footer">
-      <button class="btn btn-outline" onclick="document.getElementById('message-modal').classList.add('hidden')">Cancel</button>
-      <button class="btn btn-primary" onclick="sendMessage()">Send Message</button>
+      <button type="button" class="btn btn-outline" onclick="document.getElementById('message-modal').classList.add('hidden')">Cancel</button>
+      <button type="submit" class="btn btn-primary">Send Message</button>
     </div>
   </div>
 </div>
+</form>
 
 <!-- DECLINE MODAL -->
+<form method="POST" action="/bid-review">
+  <input type="hidden" name="action" value="decline">
+  <input type="hidden" name="bid_id" id="decline-bid-id">
 <div id="decline-modal" class="modal-backdrop hidden">
   <div class="modal modal-sm">
     <div class="modal-header">
@@ -612,12 +637,12 @@
         <h3>Decline This Proposal</h3>
         <p class="text-sm text-muted mt-4">The specialist will receive a notification. You can optionally include feedback.</p>
       </div>
-      <button class="modal-close" onclick="document.getElementById('decline-modal').classList.add('hidden')">✕</button>
+      <button type="button" class="modal-close" onclick="document.getElementById('decline-modal').classList.add('hidden')">✕</button>
     </div>
     <div class="modal-body">
       <div class="form-group">
         <label class="form-label">Reason for Decline</label>
-        <select class="form-control" id="decline-reason">
+        <select class="form-control" id="decline-reason" name="decline_reason">
           <option value="">— Select a reason —</option>
           <option>Selected another specialist</option>
           <option>Budget too high</option>
@@ -629,20 +654,21 @@
       </div>
       <div class="form-group">
         <label class="form-label">Optional Feedback <span class="text-muted font-mono" style="font-size:.7rem;font-weight:400;text-transform:none;letter-spacing:0;">Sent to specialist</span></label>
-        <textarea class="form-control" rows="3"
+        <textarea class="form-control" rows="3" name="feedback"
           placeholder="Providing feedback helps specialists improve their proposals. Keep it professional."></textarea>
       </div>
       <div style="display:flex;align-items:center;gap:8px;font-size:.875rem;">
-        <input type="checkbox" id="decline-keep-open" checked style="accent-color:var(--gold);">
+        <input type="checkbox" id="decline-keep-open" name="keep_open" checked style="accent-color:var(--gold);">
         <label for="decline-keep-open">Keep this specialist in mind for future projects</label>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-outline" onclick="document.getElementById('decline-modal').classList.add('hidden')">Cancel</button>
-      <button class="btn btn-danger" onclick="declineBid()">Decline Proposal</button>
+      <button type="button" class="btn btn-outline" onclick="document.getElementById('decline-modal').classList.add('hidden')">Cancel</button>
+      <button type="submit" class="btn btn-danger">Decline Proposal</button>
     </div>
   </div>
 </div>
+</form>
 
 <!-- CONTRACT ISSUED SUCCESS MODAL -->
 <div id="contract-success-modal" class="modal-backdrop hidden">
@@ -722,6 +748,8 @@
 // PHP: Pass bids data to JS
 const bidsData = <?php echo json_encode($bids); ?>;
 
+let selectedBidId = null;
+
 function toggleDD() {
   document.getElementById('user-dd').classList.toggle('hidden');
 }
@@ -736,6 +764,7 @@ function selectBid(el, idx) {
 
   const bid = bidsData[idx];
   if (bid) {
+    selectedBidId = bid.id; // Store selected bid ID
     document.getElementById('bid-specialist-name').textContent = bid.specialist_name || 'Specialist';
     document.getElementById('bid-total-amount').textContent = '$' + (bid.total_bid_amount || 0).toLocaleString();
 
@@ -759,6 +788,24 @@ function selectBid(el, idx) {
     const startDateEl = document.getElementById('bid-start-date');
     startDateEl.textContent = bid.start_date ? new Date(bid.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'TBD';
 
+    const reviewPriceWrapper = document.getElementById('bid-review-price-wrapper');
+    const reviewPriceEl = document.getElementById('bid-review-price');
+    if (reviewPriceEl) {
+      reviewPriceEl.textContent = '$' + (parseFloat(bid.review_price) || 0).toFixed(2);
+    }
+    if (reviewPriceWrapper) {
+      reviewPriceWrapper.style.display = bid.review_price ? 'block' : 'none';
+    }
+
+    const freeReviewsWrapper = document.getElementById('bid-free-reviews-wrapper');
+    const freeReviewsEl = document.getElementById('bid-free-reviews');
+    if (freeReviewsEl) {
+      freeReviewsEl.textContent = (parseInt(bid.free_reviews, 10) || 0).toString();
+    }
+    if (freeReviewsWrapper) {
+      freeReviewsWrapper.style.display = bid.free_reviews ? 'block' : 'none';
+    }
+
     // Update status
     const statusMap = {
       'pending': 'new',
@@ -779,6 +826,38 @@ function setSort(el, key) {
   document.querySelectorAll('.sort-chip').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
   // PHP: reloads page with ?sort={key}
+}
+
+/* ── MODAL OPENERS ── */
+function openAcceptModal() {
+  if (!selectedBidId) { showToast('Please select a bid first.', 'warn'); return; }
+  document.getElementById('accept-bid-id').value = selectedBidId;
+  // Update modal with bid details
+  const bid = bidsData.find(b => b.id == selectedBidId);
+  if (bid) {
+    document.getElementById('accept-specialist').textContent = bid.specialist_name || 'Specialist';
+    document.getElementById('accept-total').textContent = '$' + (bid.total_bid_amount || 0).toLocaleString();
+    document.getElementById('accept-start-date').textContent = bid.start_date ? new Date(bid.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'TBD';
+  }
+  document.getElementById('accept-modal').classList.remove('hidden');
+}
+
+function openInterviewModal() {
+  if (!selectedBidId) { showToast('Please select a bid first.', 'warn'); return; }
+  document.getElementById('interview-bid-id').value = selectedBidId;
+  document.getElementById('interview-modal').classList.remove('hidden');
+}
+
+function openMessageModal() {
+  if (!selectedBidId) { showToast('Please select a bid first.', 'warn'); return; }
+  document.getElementById('message-bid-id').value = selectedBidId;
+  document.getElementById('message-modal').classList.remove('hidden');
+}
+
+function openDeclineModal() {
+  if (!selectedBidId) { showToast('Please select a bid first.', 'warn'); return; }
+  document.getElementById('decline-bid-id').value = selectedBidId;
+  document.getElementById('decline-modal').classList.remove('hidden');
 }
 
 /* ── NAV ── */

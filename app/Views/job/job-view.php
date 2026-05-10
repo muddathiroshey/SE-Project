@@ -23,8 +23,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- PHP: <title><?= htmlspecialchars($job['title']) ?> — Nexus</title> -->
-<title>MENA Expansion — Cross-Border Contract Review · Nexus</title>
+<!-- PHP: <title><?= htmlspecialchars($job['project_title']) ?> — Nexus</title> -->
+<title><?php echo htmlspecialchars($job['project_title'] ?? 'Project'); ?> · Nexus</title>
 <link rel="stylesheet" href="assets/css/style.css">
 <link rel="stylesheet" href="assets/css/job-view.css">
 </head>
@@ -81,13 +81,13 @@
         <!-- BREADCRUMB -->
         <div style="font-size:.75rem;font-family:var(--font-mono);color:var(--ink-muted);margin-bottom:8px;">
           <!-- PHP: htmlspecialchars($job['niche']) ?> · <?= htmlspecialchars($job['engagement_type']) ?>
-          Legal Consulting &nbsp;·&nbsp; Contract Review &amp; Advisory
+          <?php echo htmlspecialchars($job['niche'] ?? 'Project'); ?>
         </div>
 
         <!-- TITLE -->
-        <!-- PHP: <h1 ...><?= htmlspecialchars($job['title']) ?></h1> -->
+        <!-- PHP: <h1 ...><?= htmlspecialchars($job['project_title']) ?></h1> -->
         <h1 style="font-family:var(--font-display);font-size:1.8rem;font-weight:500;margin-bottom:10px;line-height:1.2;">
-          MENA Expansion — Cross-Border Contract Review
+          <?php echo htmlspecialchars($job['project_title'] ?? 'Project Title'); ?>
         </h1>
 
         <!-- META ROW -->
@@ -134,8 +134,8 @@
         <div style="margin-top:10px;">
           <span class="badge badge-verified badge-dot" style="font-size:.625rem;">Verified</span>
         </div>
-        <!-- PHP: date('M j, Y', $job['posted_at']) -->
-        <div class="text-xs text-muted font-mono mt-8">Posted Apr 10, 2025</div>
+        <!-- PHP: date('M j, Y', $job['created_at']) -->
+        <div class="text-xs text-muted font-mono mt-8">Posted <?php echo isset($job['created_at']) ? date('M j, Y', strtotime($job['created_at'])) : 'Recently'; ?></div>
       </div>
 
     </div><!-- end hero-inner -->
@@ -145,12 +145,12 @@
       <!-- PHP: each driven by $job fields -->
       <div class="job-stat">
         <!-- PHP: '$'.number_format($job['total_budget']) -->
-        <div class="val">$12,000</div>
+        <div class="val"><?php echo '$' . number_format($job['total_budget'] ?? 0, 0); ?></div>
         <div class="lbl">Total Budget</div>
       </div>
       <div class="job-stat">
         <!-- PHP: count($job['milestones']).' phases' -->
-        <div class="val">3</div>
+        <div class="val"><?php echo count($job['milestones'] ?? []) . ' '; ?></div>
         <div class="lbl">Milestones</div>
       </div>
       <div class="job-stat">
@@ -193,10 +193,8 @@
 
         <div class="job-section">
           <div class="job-section-title">Project Brief</div>
-          <!-- PHP: nl2br(htmlspecialchars($job['brief'])) -->
-          <p style="margin-bottom:12px;">We are a mid-size Egyptian technology company preparing to expand into UAE and KSA markets. We require a comprehensive review of our standard SaaS agreements, distributor contracts, and employment terms across all three jurisdictions, with specific attention to data residency requirements and GDPR cross-border transfer provisions.</p>
-          <p style="margin-bottom:12px;">The engagement must deliver actionable legal recommendations, a revised contract suite, and a jurisdiction-specific risk register. All deliverables must be production-ready — not advisory memos.</p>
-          <p>We have previously engaged legal consultants for similar work and expect a structured, milestone-driven approach with clear sign-off gates at each phase.</p>
+          <!-- PHP: nl2br(htmlspecialchars($job['project_brief'])) -->
+          <p style="margin-bottom:12px;"><?php echo nl2br(htmlspecialchars($job['project_brief'] ?? '')); ?></p>
         </div>
 
         <div class="job-section">
@@ -230,22 +228,15 @@
 
         <div class="job-section">
           <div class="job-section-title">Full Project Requirements</div>
-          <!-- PHP: nl2br(htmlspecialchars($job['full_requirements'])) -->
-          <p style="margin-bottom:10px;">The successful specialist will be required to:</p>
-          <ul style="padding-left:20px;color:var(--ink-mid);font-size:.9375rem;line-height:2;">
-            <li>Conduct a gap analysis of our current SaaS agreements against Egyptian, UAE, and KSA commercial law requirements</li>
-            <li>Review and redraft distribution and reseller agreements for cross-border use</li>
-            <li>Audit employment contract templates for compliance in each jurisdiction</li>
-            <li>Produce a GDPR cross-border transfer risk register with recommended Standard Contractual Clauses where applicable</li>
-            <li>Deliver all revised contracts in both Arabic and English</li>
-            <li>Attend up to 3 video calls for stakeholder review</li>
-          </ul>
+          <!-- PHP: nl2br(htmlspecialchars($job['project_full_requirements'])) -->
+          <p style="margin-bottom:10px;"><?php echo nl2br(htmlspecialchars($job['project_full_requirements'] ?? '')); ?></p>
         </div>
 
         <div class="job-section">
           <div class="job-section-title">Ideal Specialist Profile</div>
           <!-- PHP: nl2br(htmlspecialchars($job['ideal_candidate'])) -->
-          <p>We are looking for a qualified commercial lawyer with a minimum of 7 years of cross-border practice experience in the MENA region. Prior experience advising technology or SaaS companies on cross-border market entry is strongly preferred. Fluency in Arabic and English is mandatory; French is advantageous.</p>
+          <p style="margin-bottom:10px;"><?php echo nl2br(htmlspecialchars($job['ideal_candidate'] ?? '')); ?></p>
+          <!-- <p>We are looking for a qualified commercial lawyer with a minimum of 7 years of cross-border practice experience in the MENA region. Prior experience advising technology or SaaS companies on cross-border market entry is strongly preferred. Fluency in Arabic and English is mandatory; French is advantageous.</p> -->
         </div>
 
         <div class="job-section">
@@ -253,8 +244,15 @@
           <div style="display:flex;gap:24px;flex-wrap:wrap;">
             <div>
               <div class="text-xs text-muted mb-4">Estimated Duration</div>
-              <!-- PHP: $job['timeline_label'] -->
-              <div style="font-weight:700;">49 days (3 phases)</div>
+              <!-- PHP: calculate from milestones -->
+              <?php
+              $total_duration = 0;
+              $phase_count = count($job['milestones'] ?? []);
+              foreach ($job['milestones'] ?? [] as $m) {
+                  $total_duration += intval($m['duration_days'] ?? 0);
+              }
+              ?>
+              <div style="font-weight:700;"><?php echo $total_duration; ?> days (<?php echo $phase_count; ?> phases)</div>
             </div>
             <div>
               <div class="text-xs text-muted mb-4">Expected Start</div>
@@ -263,12 +261,12 @@
             <div>
               <div class="text-xs text-muted mb-4">Free Revisions / Phase</div>
               <!-- PHP: $job['free_revisions'] -->
-              <div style="font-weight:700;">2 revisions included</div>
+              <div style="font-weight:700;"><?php echo intval($job['free_revisions'] ?? 0); ?> revisions included</div>
             </div>
             <div>
               <div class="text-xs text-muted mb-4">Proposal Visibility</div>
               <!-- PHP: $job['visibility']==='public' ? 'Public' : 'Invitation-Only' -->
-              <div style="font-weight:700;">Public</div>
+              <div style="font-weight:700;"><?php echo (strtolower($job['visibility'] ?? 'public') === 'public') ? 'Public' : 'Invitation-Only'; ?></div>
             </div>
           </div>
         </div>
@@ -281,55 +279,33 @@
         <p class="text-sm text-muted mb-20">Funds are locked in escrow per milestone. You begin each phase only after the client confirms the previous phase escrow and you both sign off. Payments release on bilateral milestone approval.</p>
 
         <!-- PHP: foreach($milestones as $i=>$m): -->
-        <div class="milestone-display-item">
-          <div class="milestone-display-num">1</div>
-          <div class="milestone-display-body">
-            <!-- PHP: htmlspecialchars($m['name']) -->
-            <div class="milestone-display-name">Initial Document Review &amp; Gap Analysis</div>
-            <div class="milestone-display-meta">
-              <!-- PHP: $m['duration'].' days' -->
-              <span>⏱ 14 days</span>
+        <?php if (!empty($job['milestones'])): ?>
+          <?php foreach ($job['milestones'] as $index => $m): ?>
+          <div class="milestone-display-item">
+            <div class="milestone-display-num"><?php echo $index + 1; ?></div>
+            <div class="milestone-display-body">
+              <!-- PHP: htmlspecialchars($m['name']) -->
+              <div class="milestone-display-name"><?php echo htmlspecialchars($m['milestone_name'] ?? $m['name'] ?? 'Phase ' . ($index + 1)); ?></div>
+              <div class="milestone-display-meta">
+                <!-- PHP: $m['duration'].' days' -->
+                <span>⏱ <?php echo intval($m['duration_days'] ?? 0); ?> days</span>
+              </div>
+            </div>
+            <div class="milestone-display-amount">
+              <!-- PHP: '$'.number_format($m['amount']) -->
+              <div style="font-family:var(--font-mono);font-weight:600;font-size:1rem;">$<?php echo number_format($m['amount'] ?? 0, 0); ?></div>
+              <div class="text-xs text-muted">on approval</div>
             </div>
           </div>
-          <div class="milestone-display-amount">
-            <!-- PHP: '$'.number_format($m['amount']) -->
-            <div style="font-family:var(--font-mono);font-weight:600;font-size:1rem;">$3,000</div>
-            <div class="text-xs text-muted">on approval</div>
-          </div>
-        </div>
-
-        <div class="milestone-display-item">
-          <div class="milestone-display-num">2</div>
-          <div class="milestone-display-body">
-            <div class="milestone-display-name">Jurisdiction-Specific Legal Analysis</div>
-            <div class="milestone-display-meta">
-              <span>⏱ 21 days</span>
-            </div>
-          </div>
-          <div class="milestone-display-amount">
-            <div style="font-family:var(--font-mono);font-weight:600;font-size:1rem;">$4,500</div>
-            <div class="text-xs text-muted">on approval</div>
-          </div>
-        </div>
-
-        <div class="milestone-display-item">
-          <div class="milestone-display-num">3</div>
-          <div class="milestone-display-body">
-            <div class="milestone-display-name">Revised Contracts &amp; Final Advisory Report</div>
-            <div class="milestone-display-meta">
-              <span>⏱ 14 days</span>
-            </div>
-          </div>
-          <div class="milestone-display-amount">
-            <div style="font-family:var(--font-mono);font-weight:600;font-size:1rem;">$4,500</div>
-            <div class="text-xs text-muted">on approval</div>
-          </div>
-        </div>
+          <?php endforeach; ?>
+        <?php else: ?>
+          <p class="text-muted">No milestones specified.</p>
+        <?php endif; ?>
 
         <!-- TOTALS -->
         <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;background:var(--ivory-deep);border:1px solid var(--border);border-radius:var(--radius-sm);margin-top:16px;">
           <span style="font-weight:700;">Total Project Value</span>
-          <span style="font-family:var(--font-mono);font-size:1.2rem;font-weight:600;">$12,000</span>
+          <span style="font-family:var(--font-mono);font-size:1.2rem;font-weight:600;">$<?php echo number_format($job['total_budget'] ?? 0, 0); ?></span>
         </div>
 
         <div class="verify-band mt-16">
@@ -359,9 +335,9 @@
           </div>
 
           <!-- PHP: $job['nda_type']==='standard' ? show below : show 'Custom NDA on shortlist' -->
-          <div class="niche-field-row"><div class="niche-field-label">NDA Type</div><div class="niche-field-value">Standard Nexus NDA</div></div>
-          <div class="niche-field-row"><div class="niche-field-label">Duration</div><div class="niche-field-value">2 years from engagement end</div></div>
-          <div class="niche-field-row"><div class="niche-field-label">Liquidated Damages</div><div class="niche-field-value">$10,000 per breach</div></div>
+          <div class="niche-field-row"><div class="niche-field-label">NDA Type</div><div class="niche-field-value"><?php echo htmlspecialchars($job['nda_type'] ?? ''); ?></div></div>
+          <div class="niche-field-row"><div class="niche-field-label">Duration</div><div class="niche-field-value"><?php echo htmlspecialchars($job['nda_duration'] ?? ''); ?></div></div>
+          <div class="niche-field-row"><div class="niche-field-label">Liquidated Damages</div><div class="niche-field-value"><?php echo htmlspecialchars($job['nda_damages'] ?? ''); ?> per breach</div></div>
           <div class="niche-field-row"><div class="niche-field-label">Governing Law (NDA)</div><div class="niche-field-value">Egyptian Civil Law</div></div>
           <div class="niche-field-row"><div class="niche-field-label">Applies To</div><div class="niche-field-value">All project materials, communications, client identity, and deliverables</div></div>
         </div>

@@ -169,8 +169,61 @@ class BidController extends Controller
             @session_start();
         }
 
-        // Construct Bid object and populate from POST
-        $bid = new Bid();
+        $action = $_POST['action'] ?? '';
+        $bidId = intval($_POST['bid_id'] ?? 0);
+
+        if (!$bidId || !$action) {
+            header('Location: /bid-review?error=invalid_request');
+            exit();
+        }
+
+        $bidModel = new Bid();
+
+        switch ($action) {
+            case 'accept':
+                // Update bid status to accepted
+                $bidModel->updateStatus($bidId, 'accepted');
+                // TODO: Issue contract logic here
+                $_SESSION['message'] = 'Contract issued successfully!';
+                break;
+
+            case 'schedule_interview':
+                // Update bid status to shortlisted (assuming shortlisted means interview scheduled)
+                $bidModel->updateStatus($bidId, 'shortlisted');
+                // TODO: Schedule interview logic (save interview details)
+                $duration = $_POST['duration'] ?? '';
+                $platform = $_POST['platform'] ?? '';
+                $agenda = $_POST['agenda'] ?? '';
+                // Save to database or send email
+                $_SESSION['message'] = 'Interview scheduled successfully!';
+                break;
+
+            case 'send_message':
+                // No status change, just send message
+                $message = $_POST['message'] ?? '';
+                $attachProposal = isset($_POST['attach_proposal']);
+                // TODO: Send message logic (email or internal messaging)
+                $_SESSION['message'] = 'Message sent successfully!';
+                break;
+
+            case 'decline':
+                // Update bid status to rejected
+                $bidModel->updateStatus($bidId, 'rejected');
+                $reason = $_POST['decline_reason'] ?? '';
+                $feedback = $_POST['feedback'] ?? '';
+                $keepOpen = isset($_POST['keep_open']);
+                // TODO: Send decline notification with feedback
+                $_SESSION['message'] = 'Proposal declined successfully!';
+                break;
+
+            default:
+                header('Location: /bid-review?error=unknown_action');
+                exit();
+        }
+
+        // Redirect back to bid-review
+        header('Location: /bid-review');
+        exit();
     }
 
 }
