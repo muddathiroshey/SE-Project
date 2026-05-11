@@ -11,7 +11,22 @@
 
 <body>
 
-  <?php require __DIR__ . '/../partials/topnav.php'; ?>
+  <!-- ══════════ TOPNAV ══════════ -->
+  <nav class="topnav" style="background:var(--ink);border-bottom:1px solid rgba(247,244,239,.1);">
+    <div class="container" style="max-width:100%;padding:0 32px;">
+      <a class="topnav-logo" href="admin-dashboard.html" style="color:var(--ivory);">Nexus<span
+          style="color:var(--gold);">.</span></a>
+      <div class="topnav-links"><a href="admin-dashboard.html" style="color:rgba(247,244,239,.6);">Dashboard</a></div>
+      <div class="topnav-actions">
+        <div class="flex items-center gap-8">
+          <div class="avatar avatar-sm"
+            style="background:var(--gold);color:var(--ink);font-size:.75rem;font-weight:700;"><?php echo strtoupper(substr(htmlspecialchars($_SESSION['user_name'] ?? ''), 0, 2)) ?: 'ME'; ?></div>
+          <span style="font-size:.875rem;font-weight:700;color:var(--ivory);"><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Me'); ?></span>
+          <span class="role-badge rb-super" style="font-size:.6rem;"><?php echo htmlspecialchars(($_SESSION['role'] ?? 'Account') . ' Account'); ?></span>
+        </div>
+      </div>
+    </div>
+  </nav>
 
   <div class="admin-shell">
 

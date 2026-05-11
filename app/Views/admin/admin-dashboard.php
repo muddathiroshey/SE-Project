@@ -5,8 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard — Nexus</title>
-  <link rel="stylesheet" href="assets/css/style.css">
-  <link rel="stylesheet" href="assets/css/admin-dashboard.css">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="/assets/css/admin-dashboard.css">
 </head>
 
 <body>
@@ -48,11 +48,7 @@
       <a class="admin-sidebar-link" href="#">⚠️ User Sanctions</a>
 
       <div class="admin-sidebar-section">Support</div>
-<<<<<<< HEAD
-      <a class="admin-sidebar-link" href="admin-support.html">💬 Chat Support</a>
-=======
       <a class="admin-sidebar-link" href="/chat">💬 Chat Support</a>
->>>>>>> 680aaeb8f6d80f640316db0af90faac8b616fe51
     </aside>
 
     <!-- MAIN -->

@@ -17,8 +17,8 @@
     </div>
     <div class="topnav-actions">
       <div class="flex items-center gap-8">
-        <div class="avatar avatar-sm" style="background:var(--gold);color:var(--ink);font-size:.75rem;font-weight:700;">OH</div>
-        <span style="font-size:.875rem;font-weight:700;color:var(--ivory);">Omar H.</span>
+        <div class="avatar avatar-sm" style="background:var(--gold);color:var(--ink);font-size:.75rem;font-weight:700;"><?php echo strtoupper(substr(htmlspecialchars($_SESSION['user_name'] ?? ''), 0, 2)) ?: 'ME'; ?></div>
+        <span style="font-size:.875rem;font-weight:700;color:var(--ivory);"><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Me'); ?></span>
         <span class="role-badge rb-super" style="font-size:.6rem;"><?php echo htmlspecialchars(($_SESSION['role'] ?? 'Account') . ' Account'); ?></span>
       </div>
     </div>
