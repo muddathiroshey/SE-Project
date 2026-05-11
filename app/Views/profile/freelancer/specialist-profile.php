@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dr. Rania Khalil — Expert Profile · Nexus</title>
-<link rel="stylesheet" href="assets/style.css">
-<link rel="stylesheet" href="assets/css/specialist-profile.css">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/css/specialist-profile.css">
 </head>
 <body>
 
@@ -15,11 +15,11 @@
   <div class="container">
     <div class="profile-hero-inner">
       <div class="avatar-badge">
-        <div class="avatar avatar-xl">DR</div>
+        <div class="avatar avatar-xl"><?php echo strtoupper(substr(htmlspecialchars($_SESSION['user_name'] ?? ''), 0, 2)) ?: 'ME'; ?></div>
       </div>
       <div style="flex:1;">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
-          <h1 id="preview-name" style="font-size:2rem;font-weight:600;">Dr. Rania Khalil</h1>
+          <h1 id="preview-name" style="font-size:2rem;font-weight:600;"><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Me'); ?></h1>
           <span class="badge badge-verified badge-dot">Verified</span>
         </div>
         <div id="preview-title" style="font-size:1rem;color:var(--ink-mid);margin-bottom:10px;">Senior Data Scientist · Machine Learning &amp; NLP Research</div>

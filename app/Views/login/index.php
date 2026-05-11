@@ -15,9 +15,9 @@ $active_form = $active_form ?? 'login';
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Nexus — Sign In / Profile Setup</title>
-<link rel="stylesheet" href="assets/style.css">
-<link rel="stylesheet" href="assets/signup.css">
-<link rel="stylesheet" href="assets/login.css">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/signup.css">
+<link rel="stylesheet" href="/assets/login.css">
 
 
 </head>

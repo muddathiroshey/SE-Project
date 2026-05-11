@@ -17,8 +17,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- PHP: <title><?= htmlspecialchars($org['name']) ?> — Client Profile · Nexus</title> -->
 <title>FinCorp Egypt — Client Profile · Nexus</title>
-<link rel="stylesheet" href="assets/style.css">
-<link rel="stylesheet" href="assets/client-profile-public.css">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/client-profile-public.css">
 </head>
 <body>
 

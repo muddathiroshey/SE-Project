@@ -14,6 +14,7 @@ class NotificationController extends Controller
         $this->notif = new Notification();
     }
 
+    
     // ── GET /notifications ────────────────────────────────────
     public function index(): void
     {

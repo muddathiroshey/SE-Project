@@ -23,8 +23,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- PHP: <title>Proposals — <?= htmlspecialchars($job['project_title'] ?? 'Project') ?> · Nexus</title> -->
 <title>Proposals — <?php echo htmlspecialchars($job['project_title'] ?? 'Project'); ?> · Nexus</title>
-<link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/bid-review.css">
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/assets/css/bid-review.css">
 </head>
 <body>
 <?php $activeBidId = (int) ($bids[0]['id'] ?? 0); ?>

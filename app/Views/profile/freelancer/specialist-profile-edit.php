@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>My Profile — Nexus</title>
-<link rel="stylesheet" href="assets/style.css">
-<link rel="stylesheet" href="assets/css/specialist-profile-edit.css">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/css/specialist-profile-edit.css">
 <script src="assets/js/specialist-profile-edit.js"></script>
 </head>
 <body>
@@ -22,8 +22,8 @@
       </a>
       <div class="dropdown">
         <div class="flex items-center gap-8" style="cursor:pointer;" onclick="toggleDD()">
-          <div class="avatar-badge"><div class="avatar avatar-sm">DR</div></div>
-          <span style="font-size:.875rem;font-weight:700;">Dr. Rania K.</span>
+          <div class="avatar-badge"><div class="avatar avatar-sm"><?php echo strtoupper(substr(htmlspecialchars($_SESSION['user_name'] ?? ''), 0, 2)) ?: 'ME'; ?></div></div>
+          <span style="font-size:.875rem;font-weight:700;"><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Me'); ?></span>
           <span style="color:var(--ink-faint);">▾</span>
         </div>
         <div class="dropdown-menu hidden" id="user-dd">
@@ -33,7 +33,7 @@
           <a class="dropdown-item" href="/dashboard">Wallet &amp; Escrow</a>
           <a class="dropdown-item" href="#">Account Settings</a>
           <hr class="dropdown-divider">
-          <a class="dropdown-item" href="/login" style="color:var(--rust);">Sign Out</a>
+          <a class="dropdown-item" href="/logout" style="color:var(--rust);">Sign Out</a>
         </div>
       </div>
     </div>

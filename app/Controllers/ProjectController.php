@@ -144,6 +144,7 @@ class  ProjectController extends Controller
         return json_encode($fallback, JSON_UNESCAPED_UNICODE) ?: '[]';
     }
 
+    
     private function milestonesPayload(array $milestones, string $json): string
     {
         $clean = [];

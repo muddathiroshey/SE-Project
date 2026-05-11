@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Post a Project — Nexus</title>
-<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="/assets/css/style.css">
 <style>
 .wizard-shell { display:grid;grid-template-columns:300px 1fr;gap:0;min-height:100vh; }
 .wizard-left {

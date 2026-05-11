@@ -6,6 +6,7 @@ use App\Models\Client;
 use App\Models\Data;
 use App\Models\Specialist;
 
+
 class ProfileController extends Controller
 {
     private Client $profile;

@@ -93,8 +93,8 @@ $msLabel = ['paid'=>'Released','approved'=>'Released','in_progress'=>'In Progres
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Escrow &amp; Wallet — Nexus</title>
-<link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/client-wallet.css">
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/assets/css/client-wallet.css">
 </head>
 <body>
 

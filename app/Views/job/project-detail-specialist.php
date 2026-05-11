@@ -28,8 +28,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- PHP: <title><?= htmlspecialchars($project['title']) ?> — Nexus</title> -->
   <title>Predictive Churn Model — Nexus</title>
-  <link rel="stylesheet" href="assets/css/style.css">
-  <link rel="stylesheet" href="assets/css/project-detail-specialist.css">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="/assets/css/project-detail-specialist.css">
 </head>
 
 <body>

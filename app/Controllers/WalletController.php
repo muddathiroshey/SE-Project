@@ -49,6 +49,7 @@ class WalletController extends Controller
         $this->view('wallet/transactions', ['transactions' => $txns]);
     }
 
+    
     // ── POST /wallet/fund  (Client funds a milestone) ─────────
     public function fund(): void
     {

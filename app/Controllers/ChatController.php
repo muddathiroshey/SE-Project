@@ -4,6 +4,7 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Models\Data;
 
+
 class ChatController extends Controller
 {
     private \mysqli $db;

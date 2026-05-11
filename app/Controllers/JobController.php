@@ -6,6 +6,7 @@ use App\Models\Client;
 use App\Models\Job;
 use App\Models\Specialist;
 
+
 class JobController extends Controller
 {
     private Job $job;
