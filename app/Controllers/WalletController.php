@@ -98,7 +98,7 @@ class WalletController extends Controller
         $txns     = $this->wallet->getTransactions($user_id);
         $walletRow = $this->wallet->getOrCreate($user_id);
 
-        $this->view('dashboard/client/client-wallet', [
+        $this->view('/dashboard/client/client-wallet', [
             'client'   => $client,
             'summary'  => $summary,
             'escrow'   => $escrow,
