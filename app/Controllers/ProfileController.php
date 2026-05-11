@@ -60,7 +60,7 @@ class ProfileController extends Controller
                 exit();
             }
 
-            $this->view('profile/freelancer/index');
+            $this->view('/profile/freelancer/index');
             return;
         }
 
@@ -73,7 +73,7 @@ class ProfileController extends Controller
             exit();
         }
 
-        $this->view('profile/client/index');
+        $this->view('/profile/client/index');
     }
 
     // ── POST /profile/setup ───────────────────────────

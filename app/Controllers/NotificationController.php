@@ -14,7 +14,7 @@ class NotificationController extends Controller
         $this->notif = new Notification();
     }
 
-    
+
     // ── GET /notifications ────────────────────────────────────
     public function index(): void
     {
@@ -64,7 +64,7 @@ class NotificationController extends Controller
             exit();
         }
 
-        $this->redirect('/notifications');
+        $this->redirect('/notifications/notifications');
     }
 
     // ── POST /notifications/dismiss ───────────────────────────
