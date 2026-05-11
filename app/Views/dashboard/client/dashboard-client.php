@@ -11,7 +11,7 @@
 <!-- TOPNAV -->
 <nav class="topnav">
   <div class="container">
-    <a class="topnav-logo" href="dashboard-client.php">Nexus<span>.</span></a>
+    <a class="topnav-logo" href="/">Nexus<span>.</span></a>
     <div class="topnav-actions" style="margin-left: auto;">
       <a href="#" class="btn btn-ghost btn-icon" style="position:relative;">
         <svg xmlns="http://www.w3.org/2000/svg" height="22px" viewBox="0 -960 960 960" width="22px" fill="currentColor">

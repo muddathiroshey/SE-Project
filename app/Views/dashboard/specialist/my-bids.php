@@ -153,27 +153,26 @@
     </div>
 
     <!-- STATS STRIP -->
-    <!-- PHP: $stats object -->
     <div class="stat-strip">
       <div class="strip-stat static">
-        <div class="strip-stat-val">12</div>
-        <div class="strip-stat-lbl">All Time</div>
+        <div class="strip-stat-val"><?= $stats['total'] ?></div>
+        <div class="strip-stat-lbl">Submitted</div>
       </div>
       <div class="strip-stat static">
-        <div class="strip-stat-val" style="color:var(--gold);">5</div>
+        <div class="strip-stat-val" style="color:var(--gold);"><?= $stats['active'] ?></div>
         <div class="strip-stat-lbl">Active</div>
       </div>
       <div class="strip-stat static">
-        <div class="strip-stat-val" style="color:var(--ink);">11</div>
+        <div class="strip-stat-val" style="color:var(--ink);"><?= $stats['accepted'] ?></div>
         <div class="strip-stat-lbl">Accepted</div>
       </div>
       <div class="strip-stat static">
-        <div class="strip-stat-val" style="color:var(--ink-muted);">1</div>
+        <div class="strip-stat-val" style="color:var(--ink-muted);">0</div>
         <div class="strip-stat-lbl">Withdrawn</div>
       </div>
       <div class="strip-stat static">
-        <div class="strip-stat-val" style="color:var(--rust);">1</div>
-        <div class="strip-stat-lbl">Declined</div>
+        <div class="strip-stat-val" style="color:var(--rust);"><?= $stats['acceptance_rate'] ?>%</div>
+        <div class="strip-stat-lbl">Rate</div>
       </div>
     </div>
 

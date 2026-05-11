@@ -12,12 +12,12 @@
 <!-- ══════════════════ TOPNAV ══════════════════ -->
 <nav class="topnav">
   <div class="container" style="max-width:100%;padding:0 32px;">
-    <a class="topnav-logo" href="index.php">Nexus<span>.</span></a>
+    <a class="topnav-logo" href="/">Nexus<span>.</span></a>
     <div class="topnav-links">
-      <a href="dashboard-freelancer.php">Dashboard</a>
+      <a href="/dashboard">Dashboard</a>
     </div>
     <div class="topnav-actions">
-      <a href="notifications.php" class="btn btn-ghost btn-icon" style="position:relative;">
+      <a href="/notifications" class="btn btn-ghost btn-icon" style="position:relative;">
         🔔<span class="notif-count" style="position:absolute;top:2px;right:2px;">7</span>
       </a>
       <div class="dropdown">
@@ -29,7 +29,7 @@
         <div class="dropdown-menu hidden" id="user-dd">
           <div class="dropdown-item" style="color:var(--ink-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;pointer-events:none;">My Account</div>
           <hr class="dropdown-divider">
-          <a class="dropdown-item" href="profile-edit.php">My Profile</a>
+          <a class="dropdown-item" href="/profile/edit">My Profile</a>
           <a class="dropdown-item" href="/dashboard">Wallet &amp; Escrow</a>
           <a class="dropdown-item" href="#">Account Settings</a>
           <hr class="dropdown-divider">

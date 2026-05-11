@@ -6,6 +6,8 @@ use App\Controllers\DashboardController;
 use App\Controllers\BidController;
 use App\Controllers\PageController;
 use App\Controllers\ProjectController;
+use App\Controllers\ChatController;
+use App\Controllers\NotificationController;
 
 
 /** @var \App\Core\Router $router */
@@ -23,9 +25,18 @@ $router->get('/dashboard/my-bids', [DashboardController::class, 'bids']);
 $router->get('/browse-experts', [PageController::class, 'browseExperts']);
 $router->get('/browse-jobs', [PageController::class, 'browseJobs']);
 $router->get('/incoming-bids', [PageController::class, 'incomingBids']);
-$router->get('/chat', [PageController::class, 'chat']);
+$router->get('/chat', [ChatController::class, 'index']);
+$router->post('/chat/send', [ChatController::class, 'send']);
+$router->get('/chat/messages', [ChatController::class, 'poll']);
 $router->get('/dispute', [PageController::class, 'dispute']);
 $router->get('/admin', [PageController::class, 'adminDashboard']);
+
+// Notifications
+$router->get('/notifications', [NotificationController::class, 'index']);
+$router->post('/notifications/read', [NotificationController::class, 'markRead']);
+$router->post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
+$router->post('/notifications/dismiss', [NotificationController::class, 'dismiss']);
+$router->get('/notifications/count', [NotificationController::class, 'count']);
 
 //Profile 
 $router->get('/profile',          [ProfileController::class, 'index']);
@@ -34,11 +45,9 @@ $router->post('/profile/setup',   [ProfileController::class, 'store']);
 $router->get('/profile/edit',     [ProfileController::class, 'edit']);
 $router->post('/profile/update',  [ProfileController::class, 'update']);
 $router->post('/profile/kyc/delete', [ProfileController::class, 'deleteKycDoc']);
-// Fatal error: Uncaught Error: Class "AuthController" not found in /var/www/html/app/Core/Router.php:31 Stack trace: #0 /var/www/html/app/Core/App.php(11): App\Core\Router->dispatch('/login', 'GET') #1 /var/www/html/public/index.php(8): App\Core\App->run() #2 {main} thrown in /var/www/html/app/Core/Router.php on line 31
 
 // Bid 
 $router->get('/bid',              [BidController::class, 'index']);
-// Accept POST submissions from the bid form
 $router->post('/bid',             [BidController::class, 'store']);
 
 //bid-review
@@ -56,5 +65,6 @@ $router->post('/job-view', [ProjectController::class, 'store2']);
 $router->get('/project-detail', [ProjectController::class, 'ProjectDetail']);
 
 $router->get('/project-detail(in-dispute)', [ProjectController::class, 'ProjectDetailInDispute']);
+
 
 ?>
