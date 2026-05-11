@@ -495,3 +495,4 @@ INSERT IGNORE INTO categories (name, slug, description) VALUES
 ('Legal',                 'legal',                  'Contract review, compliance, IP'),
 ('Engineering',           'engineering',            'Mechanical, civil, electrical engineering');
 SET FOREIGN_KEY_CHECKS = 1;
+ALTER TABLE projects ADD COLUMN title VARCHAR(255) DEFAULT NULL;

@@ -46,12 +46,12 @@ class Wallet extends Data
         $conn = $this->getDb();
         $stmt = $conn->prepare(
             'SELECT wt.*, p.title AS project_title
-             FROM wallet_transactions wt
-             LEFT JOIN projects p ON p.project_id = wt.project_id
-             WHERE wt.user_id = ?
-             ORDER BY wt.created_at DESC
-             LIMIT ?'
-        );
+            FROM wallet_transactions wt
+            LEFT JOIN projects p ON p.project_id = wt.project_id
+            WHERE wt.user_id = ?
+            ORDER BY wt.created_at DESC
+            LIMIT ?'
+);
         $stmt->bind_param('ii', $user_id, $limit);
         $stmt->execute();
         $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
@@ -70,14 +70,14 @@ class Wallet extends Data
             "SELECT e.*, p.title AS project_title,
                     pm.milestone_name, pm.sort_order AS milestone_order,
                     u_sp.user_name AS specialist_name
-             FROM escrow e
-             JOIN projects p ON p.project_id = e.project_id
-             JOIN clientProfile cp ON cp.id = e.client_id
-             LEFT JOIN project_milestones pm ON pm.id = e.milestone_id
-             JOIN specialistProfiles sp ON sp.id = e.specialist_id
-             JOIN userData u_sp ON u_sp.id = sp.user_id
-             WHERE cp.user_id = ? AND e.status IN ('held','disputed')
-             ORDER BY e.created_at DESC"
+            FROM escrow e
+            JOIN projects p ON p.project_id = e.project_id
+            JOIN clientProfile cp ON cp.id = e.client_id
+            LEFT JOIN project_milestones pm ON pm.id = e.milestone_id
+            JOIN specialistProfiles sp ON sp.id = e.specialist_id
+            JOIN userData u_sp ON u_sp.id = sp.user_id
+            WHERE cp.user_id = ? AND e.status IN ('held','disputed')
+            ORDER BY e.created_at DESC"
         );
         $stmt->bind_param('i', $user_id);
         $stmt->execute();

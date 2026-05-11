@@ -63,7 +63,7 @@ class  ProjectController extends Controller
         $project->nda_custom_amount = isset($_POST['nda_custom_amount']) ? (int) $_POST['nda_custom_amount'] : 0;
         $project->nda_file_path = null;
         $project->profile_masking = isset($_POST['profile_masking']) ? intval($_POST['profile_masking']) : 0;
-        $project->visibility = $_POST['nda_visibility'] ?? 'public';
+        $project->visibility = $_POST['visibility'] ?? 'public';
 
         if ($project->nda_type === 'custom' && !empty($_FILES['nda_file'])) {
             $uploadBase = __DIR__ . '/../../public/uploads/ndas/';
