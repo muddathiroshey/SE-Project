@@ -688,33 +688,7 @@
           <label style="display:flex;gap:8px;font-size:.875rem;cursor:pointer;"><input type="checkbox" style="accent-color:var(--gold);"> Declined</label>
         </div>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Min Match Score</label>
-          <input type="number" class="form-control" value="70" min="0" max="100">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Min Reputation</label>
-          <input type="number" class="form-control" value="4.5" min="0" max="5" step="0.1">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Max Budget ($)</label>
-          <input type="number" class="form-control" placeholder="e.g. 15000">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Max Duration (days)</label>
-          <input type="number" class="form-control" placeholder="e.g. 60">
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="document.getElementById('filters-modal').classList.add('hidden')">Reset</button>
-      <button class="btn btn-primary" onclick="document.getElementById('filters-modal').classList.add('hidden')">Apply Filters</button>
-    </div>
-  </div>
-</div>
+      <?php require __DIR__ . '/../partials/topnav.php'; ?>
 
 <!-- TOAST -->
 <div class="toast-stack" id="toast-stack"></div>

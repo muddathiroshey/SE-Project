@@ -42,35 +42,7 @@ $stars = function(float $r): string {
 <body>
 
 <nav class="topnav">
-  <div class="container">
-    <a class="topnav-logo" href="/">Nexus<span>.</span></a>
-    <div class="topnav-links"><a href="/dashboard">Dashboard</a></div>
-    <div class="topnav-actions">
-      <a href="/notifications" class="btn btn-ghost btn-icon" style="position:relative;">🔔
-        <?php if ($unread): ?><span class="notif-count" style="position:absolute;top:2px;right:2px;"><?= $unread ?></span><?php endif; ?>
-      </a>
-      <div class="dropdown">
-        <div class="flex items-center gap-8" style="cursor:pointer;" onclick="toggleDD()">
-          <div class="avatar-badge"><div class="avatar avatar-sm"><?= $initials ?></div></div>
-          <span style="font-size:.875rem;font-weight:700;"><?= $userName ?></span>
-          <span style="color:var(--ink-faint);">▾</span>
-        </div>
-        <div class="dropdown-menu hidden" id="user-dd">
-          <div class="dropdown-item" style="color:var(--ink-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;pointer-events:none;">Client Account</div>
-          <hr class="dropdown-divider">
-          <a class="dropdown-item" href="/profile">My Profile</a>
-          <a class="dropdown-item" href="/wallet">Wallet &amp; Escrow</a>
-          <a class="dropdown-item" href="/profile/edit">Account Settings</a>
-          <hr class="dropdown-divider">
-          <form method="POST" action="/logout" style="margin:0;">
-            <button class="dropdown-item" style="color:var(--rust);background:none;border:none;width:100%;text-align:left;cursor:pointer;">Sign Out</button>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
-</nav>
-
+  <?php require __DIR__ . '/../../partials/topnav.php'; ?>
 <div style="padding:40px 0;" class="container">
 
   <!-- SEARCH HERO -->

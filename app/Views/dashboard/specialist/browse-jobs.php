@@ -150,35 +150,7 @@ $timeSince = function(string $dt): string {
   </aside>
 
   <!-- JOB FEED -->
-  <div class="job-feed">
-
-    <!-- RESULTS BAR -->
-    <div class="results-bar">
-      <div class="results-count">
-        <strong><?= number_format((int)$total) ?></strong> job<?= $total != 1 ? 's' : '' ?> matching your profile and filters
-      </div>
-      <div style="display:flex;gap:8px;margin-left:auto;align-items:center;">
-        <span style="font-size:.8rem;color:var(--ink-muted);">Sort:</span>
-        <select class="form-control" style="width:160px;padding:5px 10px;font-size:.8125rem;">
-          <option>Newest First</option>
-          <option>Budget — High to Low</option>
-          <option>Budget — Low to High</option>
-          <option>Fewest Bids</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- JOB CARDS LOOP -->
-    <?php if (empty($jobs)): ?>
-    <div style="text-align:center;padding:60px 0;color:var(--ink-muted);">
-      <div style="font-size:2.5rem;margin-bottom:16px;">🔍</div>
-      <div style="font-weight:600;margin-bottom:8px;">No jobs found</div>
-      <div class="text-sm">Try adjusting your filters or <a href="/browse-jobs">clearing them</a>.</div>
-    </div>
-    <?php else: foreach ($jobs as $j):
-      $ni        = $getNicheIcon($j['niche']);
-      $orgInit   = strtoupper(substr($j['client_display_name'] ?? 'CL', 0, 2));
-      $postedAgo = $timeSince($j['created_at']);
+  <?php require __DIR__ . '/../../partials/topnav.php'; ?>
       $milestones = is_array($j['milestones'] ?? null) ? count($j['milestones']) : 0;
       $firstEscrow = $milestones > 0 && is_array($j['milestones'])
           ? (float)($j['milestones'][0]['amount'] ?? 0)

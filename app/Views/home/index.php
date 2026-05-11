@@ -127,21 +127,7 @@ if (isset($_SESSION['user_id'])) {
 <body>
 
 <!-- TOPNAV -->
-<nav class="topnav">
-    <div class="container">
-        <a class="topnav-logo" href="/">Nexus<span>.</span></a>
-        <div class="topnav-links">
-            <a href="/browse-experts">Find Experts</a>
-            <a href="/post-job">Post a Project</a>
-            <a href="/platform-guide#how-it-works">How It Works</a>
-            <a href="/platform-guide#niches">Niches</a>
-        </div>
-        <div class="topnav-actions">
-            <a href="/login" class="btn btn-outline btn-sm">Sign In</a>
-            <a href="/login" class="btn btn-primary btn-sm">Join as Client</a>
-        </div>
-    </div>
-</nav>
+<?php require __DIR__ . '/../partials/topnav.php'; ?>
 
 <!-- HERO -->
 <section class="hero-section">

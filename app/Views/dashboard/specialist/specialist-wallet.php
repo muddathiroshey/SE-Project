@@ -69,33 +69,7 @@
     <!-- PHP: $specialist['display_name'].' · Earnings Overview' -->
     <div style="font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:rgba(247,244,239,.35);font-family:var(--font-body);margin-bottom:20px;position:relative;z-index:1;">Dr. Rania Khalil · Earnings Overview · Silver Tier</div>
     <div class="earnings-hero-grid">
-      <div class="hero-stat">
-        <div class="hero-stat-val">$<?= number_format($summary['cleared'], 2) ?></div>
-        <div class="hero-stat-lbl">Cleared Balance</div>
-        <div class="hero-stat-sub" style="color:var(--sage);">Available to withdraw</div>
-      </div>
-      <div class="hero-divider"></div>
-      <div class="hero-stat">
-        <div class="hero-stat-val" style="color:var(--gold);">$<?= number_format($summary['pending'], 2) ?></div>
-        <div class="hero-stat-lbl">Pending Release</div>
-        <div class="hero-stat-sub" style="color:rgba(201,168,76,.7);">In cooling period</div>
-      </div>
-      <div class="hero-divider"></div>
-      <div class="hero-stat">
-        <div class="hero-stat-val">$<?= number_format($summary['ytd'], 2) ?></div>
-        <div class="hero-stat-lbl">Earned YTD</div>
-        <div class="hero-stat-sub" style="color:rgba(247,244,239,.4);">↑ 22% vs last year</div>
-      </div>
-      <div class="hero-divider"></div>
-      <div class="hero-stat">
-        <div class="hero-stat-val">$<?= number_format($summary['lifetime'], 2) ?></div>
-        <div class="hero-stat-lbl">Lifetime Earned</div>
-        <div class="hero-stat-sub" style="color:rgba(247,244,239,.4);">Since Jan 2021</div>
-      </div>
-    </div>
-
-    <!-- WITHDRAW BUTTON -->
-    <div style="text-align:center;margin-top:28px;position:relative;z-index:1;">
+      <?php require __DIR__ . '/../../partials/topnav.php'; ?>
       <button class="btn btn-gold btn-lg" onclick="document.getElementById('withdraw-modal').classList.remove('hidden')">
         ↑ Withdraw Cleared Balance ($28,400)
       </button>

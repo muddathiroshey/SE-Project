@@ -34,38 +34,7 @@
      PHP: include 'partials/topnav.php';
      Pass: ['role'=>'specialist','user'=>$specialist]
 -->
-<nav class="topnav">
-  <div class="container">
-    <a class="topnav-logo" href="/">Nexus<span>.</span></a>
-    <div class="topnav-links">
-      <!-- PHP: back href determined by HTTP_REFERER or default -->
-      <a href="/browse-experts">← Back to Jobs</a>
-      <a href="/dashboard">Dashboard</a>
-    </div>
-    <div class="topnav-actions">
-      <a href="#" class="btn btn-ghost btn-icon" style="position:relative;">
-        🔔<span class="notif-count" style="position:absolute;top:2px;right:2px;">7</span>
-      </a>
-      <div class="dropdown">
-        <div class="flex items-center gap-8" style="cursor:pointer;" onclick="toggleDD()">
-          <div class="avatar-badge"><div class="avatar avatar-sm">DR</div></div>
-          <!-- PHP: <?= htmlspecialchars($specialist['display_name']) ?> -->
-          <span style="font-size:.875rem;font-weight:700;">Dr. Rania K.</span>
-          <span style="color:var(--ink-faint);">▾</span>
-        </div>
-        <div class="dropdown-menu hidden" id="user-dd">
-          <div class="dropdown-item" style="color:var(--ink-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;pointer-events:none;">Client Account</div>
-          <hr class="dropdown-divider">
-          <a class="dropdown-item" href="#">My Profile</a>
-          <a class="dropdown-item" href="/dashboard">Wallet &amp; Escrow</a>
-          <a class="dropdown-item" href="#">Account Settings</a>
-          <hr class="dropdown-divider">
-          <a class="dropdown-item" href="/login" style="color:var(--rust);">Sign Out</a>
-        </div>
-      </div>
-    </div>
-  </div>
-</nav>
+<?php require __DIR__ . '/../partials/topnav.php'; ?>
 
 <!-- ══════════════════ JOB HERO ══════════════════ -->
 <div class="job-hero">

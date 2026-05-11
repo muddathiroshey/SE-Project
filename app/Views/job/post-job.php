@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Post a Project — Nexus</title>
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/css/style.css">
 <style>
 .wizard-shell { display:grid;grid-template-columns:300px 1fr;gap:0;min-height:100vh; }
 .wizard-left {
@@ -264,13 +264,7 @@
 </head>
 <body>
 
-<nav class="topnav">
-  <div class="container">
-    <div class="topnav-actions" style="margin-left:auto;">
-      <a href="/dashboard" id="cancel-btn" class="btn btn-ghost btn-sm">✕ Cancel</a>
-    </div>
-  </div>
-</nav>
+<?php require __DIR__ . '/../partials/topnav.php'; ?>
 
 <div class="wizard-shell">
 

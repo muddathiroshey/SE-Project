@@ -41,42 +41,7 @@
      <!-- أزلنا الـ onsubmit لنلغي تدخل الجافا سكريبت مؤقتاً -->
 
 
-  <nav class="topnav">
-    <div class="container">
-      <a class="topnav-logo" href="/">Nexus<span>.</span></a>
-      <div class="topnav-links">
-        <!-- PHP: <a href="/jobs/<?= $job['slug'] ?>">← Back to Job</a> -->
-        <a href="/job-view">← Back to Job</a>
-        <a href="/dashboard">Dashboard</a>
-      </div>
-      <div class="topnav-actions">
-        <a href="#" class="btn btn-ghost btn-icon" style="position:relative;">
-          🔔 <span class="notif-count" style="position:absolute;top:2px;right:2px;">7</span>
-        </a>
-        <div class="dropdown">
-          <div class="flex items-center gap-8" style="cursor:pointer;" onclick="toggleDD()">
-            <div class="avatar-badge">
-              <div class="avatar avatar-sm">DR</div>
-            </div>
-            <!-- PHP: htmlspecialchars($specialist['display_name']) -->
-            <span style="font-size:.875rem;font-weight:700;">Dr. Rania K.</span>
-            <span style="color:var(--ink-faint);">▾</span>
-          </div>
-          <div class="dropdown-menu hidden" id="user-dd">
-            <div class="dropdown-item"
-              style="color:var(--ink-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;pointer-events:none;">
-              Client Account</div>
-            <hr class="dropdown-divider">
-            <a class="dropdown-item" href="#">My Profile</a>
-            <a class="dropdown-item" href="/dashboard">Wallet &amp; Escrow</a>
-            <a class="dropdown-item" href="#">Account Settings</a>
-            <hr class="dropdown-divider">
-            <form method="post" action="/logout" style="margin:0;"><button class="dropdown-item" type="submit" style="color:var(--rust);width:100%;text-align:left;background:none;border:0;">Sign Out</button></form>
-          </div>
-        </div>
-      </div>
-    </div>
-  </nav>
+  <?php require __DIR__ . '/../partials/topnav.php'; ?>
 
   <!-- PAGE HEADER -->
   <div style="background:var(--ivory-card);border-bottom:1px solid var(--border);padding:28px 0;">

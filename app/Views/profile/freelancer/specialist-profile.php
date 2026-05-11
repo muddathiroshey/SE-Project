@@ -9,33 +9,7 @@
 <body>
 
 <nav class="topnav">
-  <div class="container">
-    <a class="topnav-logo" href="/">Nexus<span>.</span></a>
-    <div class="topnav-links">
-      <a href="#" onclick="history.back(); return false;">← Back</a>
-    </div>
-    <div class="topnav-actions">
-      <a href="/notifications" class="btn btn-ghost btn-icon">🔔</a>
-      <div class="dropdown">
-        <div class="flex items-center gap-8" style="cursor:pointer;" onclick="toggleDD()">
-          <div class="avatar-badge"><div class="avatar avatar-sm">AT</div></div>
-          <span style="font-size:.875rem;font-weight:700;">Dr. Rania K.</span>
-          <span style="color:var(--ink-faint);">▾</span>
-        </div>
-        <div class="dropdown-menu hidden" id="user-dd">
-          <div class="dropdown-item" style="color:var(--ink-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;pointer-events:none;">My Account</div>
-          <hr class="dropdown-divider">
-          <a class="dropdown-item" href="/profile/edit">My Profile</a>
-          <a class="dropdown-item" href="/dashboard">Wallet &amp; Escrow</a>
-          <a class="dropdown-item" href="#">Account Settings</a>
-          <hr class="dropdown-divider">
-          <a class="dropdown-item" href="/login" style="color:var(--rust);">Sign Out</a>
-        </div>
-      </div>
-    </div>
-  </div>
-</nav>
-
+<?php require __DIR__ . '/../../partials/topnav.php'; ?>
 <!-- PROFILE HERO -->
 <div class="profile-hero">
   <div class="container">

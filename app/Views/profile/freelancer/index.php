@@ -9,33 +9,7 @@
 <body>
 
 <nav class="topnav">
-  <div class="container">
-    <a class="topnav-logo" href="/">Nexus<span>.</span></a>
-    <div class="topnav-actions">
-      <span class="text-sm text-muted">Profile Setup</span>
-    </div>
-  </div>
-</nav>
-
-<div class="wizard-shell">
-
-  <!-- WIZARD LEFT NAV -->
-  <div class="wizard-left">
-    <div class="wizard-left-logo">Nexus<span>.</span></div>
-    <div style="font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(247,244,239,.3);margin-bottom:16px;font-weight:700;">Specialist Setup</div>
-
-    <div class="wizard-left-step" onclick="goToStep(1)">
-      <div class="wzl-dot active" id="dot1">1</div>
-      <div><div class="wzl-title active" id="t1">Professional Profile</div><div class="wzl-sub">Personal & skills info</div></div>
-    </div>
-    <div class="wizard-left-step" onclick="goToStep(2)">
-      <div class="wzl-dot" id="dot2">2</div>
-      <div><div class="wzl-title" id="t2">Verification</div><div class="wzl-sub">KYC & credentials</div></div>
-    </div>
-    <div class="wizard-left-step" onclick="goToStep(3)">
-      <div class="wzl-dot" id="dot3">3</div>
-      <div><div class="wzl-title" id="t3">Review</div><div class="wzl-sub">Confirm & submit</div></div>
-    </div>
+  <?php require __DIR__ . '/../../partials/topnav.php'; ?>
 
     <div style="margin-top:40px;padding-top:24px;border-top:1px solid rgba(255,255,255,.08);">
       <div style="font-size:.75rem;color:rgba(247,244,239,.3);line-height:1.8;">

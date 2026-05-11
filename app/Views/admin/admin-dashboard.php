@@ -92,23 +92,7 @@
         <div class="health-metric">
           <div class="stat-value" style="font-size:1.8rem;">$2.4M</div>
           <div class="stat-label">Total Escrowed Value</div>
-          <div class="stat-delta up mt-4">↑ $84K since yesterday</div>
-          <div class="sparkline">
-            <div class="spark-bar" style="height:50%;"></div>
-            <div class="spark-bar" style="height:60%;"></div>
-            <div class="spark-bar" style="height:55%;"></div>
-            <div class="spark-bar" style="height:72%;"></div>
-            <div class="spark-bar" style="height:80%;"></div>
-            <div class="spark-bar" style="height:85%;"></div>
-            <div class="spark-bar highlight" style="height:95%;"></div>
-          </div>
-        </div>
-        <div class="health-metric red">
-          <div class="stat-value" style="font-size:1.8rem;">4</div>
-          <div class="stat-label">Active Disputes</div>
-          <div class="stat-delta down mt-4">↑ +1 today · 2.1% of active</div>
-          <div class="sparkline">
-            <div class="spark-bar" style="height:30%;background:var(--rust);opacity:.5;"></div>
+            <?php require __DIR__ . '/../partials/topnav.php'; ?>
             <div class="spark-bar" style="height:20%;background:var(--rust);opacity:.5;"></div>
             <div class="spark-bar" style="height:40%;background:var(--rust);opacity:.5;"></div>
             <div class="spark-bar" style="height:25%;background:var(--rust);opacity:.5;"></div>

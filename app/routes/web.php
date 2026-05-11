@@ -8,6 +8,7 @@ use App\Controllers\PageController;
 use App\Controllers\ProjectController;
 use App\Controllers\ChatController;
 use App\Controllers\NotificationController;
+use App\Controllers\WalletController;
 
 
 /** @var \App\Core\Router $router */
@@ -30,6 +31,11 @@ $router->post('/chat/send', [ChatController::class, 'send']);
 $router->get('/chat/messages', [ChatController::class, 'poll']);
 $router->get('/dispute', [PageController::class, 'dispute']);
 $router->get('/admin', [PageController::class, 'adminDashboard']);
+
+// Wallet
+$router->get('/wallet', [WalletController::class, 'index']);
+$router->get('/wallet/transactions', [WalletController::class, 'transactions']);
+$router->post('/wallet/fund', [WalletController::class, 'fund']);
 
 // Notifications
 $router->get('/notifications', [NotificationController::class, 'index']);

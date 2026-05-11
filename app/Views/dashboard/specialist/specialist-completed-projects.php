@@ -47,33 +47,7 @@
 
 <!-- TOPNAV -->
 <nav class="topnav">
-  <div class="container">
-    <a class="topnav-logo" href="/">Nexus<span>.</span></a>
-    <div class="topnav-links">
-    </div>
-    <div class="topnav-actions">
-      <a href="#" class="btn btn-ghost btn-icon" style="position:relative;">
-        🔔 <span style="position:absolute;top:0;right:0;width:8px;height:8px;background:var(--rust);border-radius:50%;"></span>
-      </a>
-      <div class="dropdown">
-        <div class="flex items-center gap-8" style="cursor:pointer;" onclick="toggleDD()">
-          <div class="avatar-badge"><div class="avatar avatar-sm">AT</div></div>
-          <span style="font-size:.875rem;font-weight:700;">Amira T.</span>
-          <span style="color:var(--ink-faint);">▾</span>
-        </div>
-        <div class="dropdown-menu hidden" id="user-dd">
-          <div class="dropdown-item" style="color:var(--ink-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;pointer-events:none;">Specialist Account</div>
-          <hr class="dropdown-divider">
-          <a class="dropdown-item" href="#">My Profile</a>
-          <a class="dropdown-item" href="/dashboard">Wallet &amp; Escrow</a>
-          <a class="dropdown-item" href="#">Account Settings</a>
-          <hr class="dropdown-divider">
-          <a class="dropdown-item" href="/login" style="color:var(--rust);">Sign Out</a>
-        </div>
-      </div>
-    </div>
-  </div>
-</nav>
+  <?php require __DIR__ . '/../../partials/topnav.php'; ?>
 
 <div class="main-layout">
 

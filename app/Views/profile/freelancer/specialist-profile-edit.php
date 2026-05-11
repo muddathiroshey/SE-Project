@@ -143,34 +143,7 @@
         </div>
       </div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Country</label>
-          <select id="country-select" class="form-control" onchange="syncTimezoneForCountry(true)">
-            <option selected>Egypt</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Timezone</label>
-          <select id="timezone-select" class="form-control" onchange="handleTimezoneChange()" disabled>
-            <option selected>Africa/Cairo</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Years of Experience</label>
-          <input id="experience-years-field" type="number" class="form-control" value="9" min="0" max="50" oninput="markUnsaved()">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Primary Niche</label>
-          <select id="primary-niche-field" class="form-control" onchange="markUnsaved()">
-            <option selected>Data Science &amp; Machine Learning</option>
-            <option>Legal Consulting</option>
-            <option>Technical Translation</option>
-            <option>Financial Modelling</option>
-            <option>Cybersecurity Audit</option>
+      <?php require __DIR__ . '/../../partials/topnav.php'; ?>
             <option>Biomedical Research</option>
           </select>
         </div>

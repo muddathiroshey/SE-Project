@@ -34,41 +34,7 @@
 
 <body>
 
-  <!-- ══════════ TOPNAV ══════════ -->
-  <nav class="topnav">
-    <div class="container" style="max-width:100%;padding:0 32px;">
-      <a class="topnav-logo" href="index.html">Nexus<span>.</span></a>
-      <div class="topnav-links">
-        <a href="active-projects.html">← My Projects</a>
-        <a href="dashboard.html">Dashboard</a>
-      </div>
-      <div class="topnav-actions">
-        <a href="notifications.html" class="btn btn-ghost btn-icon" style="position:relative;">
-          🔔 <span class="notif-dot" style="position:absolute;top:2px;right:2px;"></span>
-        </a>
-        <div class="dropdown">
-          <div class="flex items-center gap-8" style="cursor:pointer;" onclick="toggleDD()">
-            <div class="avatar-badge">
-              <div class="avatar avatar-sm">DR</div>
-            </div>
-            <span style="font-size:.875rem;font-weight:700;">Dr. Rania K.</span>
-            <span style="color:var(--ink-faint);">▾</span>
-          </div>
-          <div class="dropdown-menu hidden" id="user-dd">
-            <div class="dropdown-item"
-              style="color:var(--ink-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;pointer-events:none;">
-              Freelancer Account</div>
-            <hr class="dropdown-divider">
-            <a class="dropdown-item" href="expert-profile.html">My Profile</a>
-            <a class="dropdown-item" href="escrow-wallet.html">Earnings &amp; Wallet</a>
-            <a class="dropdown-item" href="#">Account Settings</a>
-            <hr class="dropdown-divider">
-            <a class="dropdown-item" href="login.html" style="color:var(--rust);">Sign Out</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </nav>
+  <?php require __DIR__ . '/../partials/topnav.php'; ?>
 
   <!-- ══════════ PROJECT HEADER BAND ══════════ -->
   <div class="proj-header-band">
