@@ -32,7 +32,35 @@ $steps = [
 </head>
 <body>
 
-<?php require __DIR__ . '/../partials/topnav.php'; ?>
+<nav class="topnav">
+  <div class="container">
+    <a class="topnav-logo" href="/">Nexus<span>.</span></a>
+    <div class="topnav-links">
+      <a href="/dashboard">Dashboard</a>
+    </div>
+    <div class="topnav-actions">
+      <a href="/notifications" class="btn btn-ghost btn-icon">🔔</a>
+      <div class="dropdown">
+        <button type="button" class="btn btn-ghost btn-icon" style="display:flex;align-items:center;gap:10px;" onclick="toggleProfileDD()">
+          <div class="avatar avatar-sm"><?= $initials ?></div>
+          <span style="font-size:.875rem;font-weight:700;"><?= $userName ?></span>
+          <span style="color:var(--ink-faint);">▾</span>
+        </button>
+        <div class="dropdown-menu hidden" id="profile-dd">
+          <div class="dropdown-item" style="color:var(--ink-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;pointer-events:none;"><?= htmlspecialchars($role) ?> Account</div>
+          <hr class="dropdown-divider">
+          <a class="dropdown-item" href="/profile">My Profile</a>
+          <a class="dropdown-item" href="/wallet">Wallet</a>
+          <a class="dropdown-item" href="/profile/edit">Account Settings</a>
+          <hr class="dropdown-divider">
+          <form method="POST" action="/logout" style="margin:0;">
+            <button class="dropdown-item" style="color:var(--rust);background:none;border:none;width:100%;text-align:left;cursor:pointer;">Sign Out</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
 
 <?php if (!empty($dispute)): /* ══ DETAIL VIEW ══ */
   $d        = $dispute;

@@ -43,7 +43,7 @@
 <!-- TOPNAV -->
 <nav class="topnav">
   <div class="container">
-    <a class="topnav-logo" href="/">Nexus<span>.</span></a>
+    <a class="topnav-logo" href="dashboard-client.php">Nexus<span>.</span></a>
     <div class="topnav-actions" style="margin-left: auto;">
       <a href="#" class="btn btn-ghost btn-icon" style="position:relative;">
         <svg xmlns="http://www.w3.org/2000/svg" height="22px" viewBox="0 -960 960 960" width="22px" fill="currentColor">
@@ -87,12 +87,12 @@
         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2z"/></svg>
         Post New Project
       </a>
-      <a class="sidebar-link" href="/my-projects/active">
+      <a class="sidebar-link" href="client-active-projects.php">
         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h12v12H2V2zm1 1v10h10V3H3z"/></svg>
         Active Projects
         <span class="notif-count" style="margin-left:auto;">3</span>
       </a>
-      <a class="sidebar-link" href="/my-projects/completed">
+      <a class="sidebar-link" href="client-completed-projects.php">
         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 1h8a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zm1 2v1h6V3H5zm0 3v1h6V6H5zm0 3v1h4V9H5z"/></svg>
         Completed
       </a>
