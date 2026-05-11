@@ -1,69 +1,98 @@
 <!DOCTYPE html>
 <!--
     ============================================================
-    NEXUS PLATFORM — Views/specialist/bid-submit.php
+    NEXUS PLATFORM — Views/Bids/bid-submit.php
     Template: Bid Submission & Management
     Role:     specialist (authenticated)
     Route:    /jobs/{job_id}/bid          POST  → submit new bid
               /jobs/{job_id}/bid/{bid_id} GET   → view/edit existing bid
-              /jobs/{job_id}/bid/{bid_id} PATCH → update before window closes
-              /jobs/{job_id}/bid/{bid_id} DELETE → withdraw bid
     ============================================================
-    PHP Data contract (from BidController):
+    PHP Data contract (from BidController::index / store):
       $job            — full job record
       $client         — client + org
       $milestones     — client's proposed milestones
       $bid            — null (new) | existing BidRecord
-      $canWithdraw    — bool: within 48-hour withdrawal window
-      $withdrawDeadline — Carbon timestamp (bid_submitted_at + 48h)
-      $hoursRemaining — int: hours left in withdrawal window
+      $canWithdraw    — bool
+      $withdrawDeadline — Carbon / DateTime (bid_submitted_at + 48h)
+      $hoursRemaining — int
       $specialist     — authenticated specialist
       $matchScore     — int 0-100
-      $errors         — validation errors array (on re-render after fail)
+      $errors         — validation errors array
+      $old            — old POST values on re-render
     ============================================================
 -->
-<html lang="en">
+<?php
+// ── Derived helpers ────────────────────────────────────────────
+$isEdit         = !empty($bid);
+$jobTitle       = htmlspecialchars($job['title'] ?? $job['project_title'] ?? 'Project');
+$jobBudget      = (float) ($job['total_budget'] ?? $job['budget'] ?? 0);
+$jobId          = (int) ($job['id'] ?? 0);
+$bidId          = (int) ($bid['id'] ?? 0);
+$jobRef         = htmlspecialchars($job['ref'] ?? ('NX-' . str_pad($jobId, 4, '0', STR_PAD_LEFT)));
+$jobCategory    = htmlspecialchars($job['category'] ?? 'Consulting');
+$jobMilestones  = $milestones ?? [];
+$bidCount       = (int) ($job['bid_count'] ?? $job['proposal_count'] ?? 0);
+$clientName     = htmlspecialchars(($client['org_name'] ?? '') ?: ($client['user_name'] ?? 'Client'));
+$clientVerified = !empty($client['verified']);
+$feeRate        = (float) ($specialist['fee_rate'] ?? 0.065);
+$feePct         = round($feeRate * 100, 1);
+$canWithdraw    = $canWithdraw ?? false;
+$hoursRemaining = $hoursRemaining ?? 0;
 
+// Old POST values (on validation failure re-render)
+$old = $old ?? [];
+function old(string $key, $fallback = '') {
+    global $old, $bid;
+    return htmlspecialchars($old[$key] ?? $bid[$key] ?? $fallback);
+}
+
+// Pre-fill from existing bid if editing
+$preFillCover = old('cover_letter', $bid['proposal_message'] ?? '');
+$preFillDiff  = old('differentiators', $bid['key_differentiators'] ?? '');
+$preFillPast  = old('past_work', $bid['relevant_work'] ?? '');
+$preFillTotal = old('bid_total', $bid['total_bid_amount'] ?? $jobBudget);
+$preFillStart = old('start_date', $bid['start_date'] ?? '');
+$preFillFreeR = (int) old('free_reviews', $bid['free_reviews'] ?? 2);
+$preFillRevP  = old('review_price', $bid['review_price'] ?? '');
+$preFillSlots = is_array($bid['availability_slots'] ?? null)
+    ? implode(',', $bid['availability_slots'])
+    : ($bid['availability_slots'] ?? '');
+?>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- PHP: <title>Bid on: <?= htmlspecialchars($job['title']) ?> · Nexus</title> -->
-  <title>Bid on: MENA Expansion — Cross-Border Contract Review · Nexus</title>
+  <title><?= $isEdit ? 'Edit Proposal' : 'Bid on' ?>: <?= $jobTitle ?> · Nexus</title>
   <link rel="stylesheet" href="/assets/css/style.css">
   <link rel="stylesheet" href="/assets/css/bid-submit.css">
 </head>
-
 <body>
 
-
-
-
+  <!-- TOPNAV -->
   <nav class="topnav">
     <div class="container">
       <a class="topnav-logo" href="/">Nexus<span>.</span></a>
       <div class="topnav-links">
-        <!-- PHP: <a href="/jobs/<?= $job['slug'] ?>">← Back to Job</a> -->
-        <a href="/job-view">← Back to Job</a>
+        <a href="/jobs/<?= $jobId ?>">← Back to Job</a>
         <a href="/dashboard">Dashboard</a>
       </div>
       <div class="topnav-actions">
         <a href="#" class="btn btn-ghost btn-icon" style="position:relative;">
           <svg xmlns="http://www.w3.org/2000/svg" height="22px" viewBox="0 -960 960 960" width="22px" fill="currentColor">
-          <path d="M160-200v-80h80v-280q0-83 50-147.5T420-792v-28q0-25 17.5-42.5T480-880q25 0 42.5 17.5T540-820v28q80 20 130 84.5T720-560v280h80v80H160Zm320-300Zm0 420q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80Z"/>
-        </svg> <span class="notif-count" style="position:absolute;top:2px;right:2px;">7</span>
+            <path d="M160-200v-80h80v-280q0-83 50-147.5T420-792v-28q0-25 17.5-42.5T480-880q25 0 42.5 17.5T540-820v28q80 20 130 84.5T720-560v280h80v80H160Zm320-300Zm0 420q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80Z"/>
+          </svg>
+          <span class="notif-count" style="position:absolute;top:2px;right:2px;">7</span>
         </a>
         <div class="dropdown">
-        <div class="flex items-center gap-8" style="cursor:pointer;" onclick="toggleDD()">
-          <div class="avatar-badge">
-            <div class="avatar avatar-sm"><?php echo strtoupper(substr(htmlspecialchars($_SESSION['user_name'] ?? ''), 0, 2)) ?: 'ME'; ?></div>
+          <div class="flex items-center gap-8" style="cursor:pointer;" onclick="toggleDD()">
+            <div class="avatar-badge">
+              <div class="avatar avatar-sm"><?= strtoupper(substr(htmlspecialchars($_SESSION['user_name'] ?? ''), 0, 2)) ?: 'ME' ?></div>
+            </div>
+            <span style="font-size:.875rem;font-weight:700;"><?= htmlspecialchars($_SESSION['user_name'] ?? 'Me') ?></span>
+            <span style="color:var(--ink-faint);">▾</span>
           </div>
-          <span style="font-size:.875rem;font-weight:700;"><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Me'); ?></span>
-          <span style="color:var(--ink-faint);">▾</span>
-        </div>
           <div class="dropdown-menu hidden" id="user-dd">
-            <div class="dropdown-item"
-              style="color:var(--ink-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;pointer-events:none;">
-              Client Account</div>
+            <div class="dropdown-item" style="color:var(--ink-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;pointer-events:none;">Specialist Account</div>
             <hr class="dropdown-divider">
             <a class="dropdown-item" href="#">My Profile</a>
             <a class="dropdown-item" href="/dashboard">Wallet &amp; Escrow</a>
@@ -79,78 +108,112 @@
   <!-- PAGE HEADER -->
   <div style="background:var(--ivory-card);border-bottom:1px solid var(--border);padding:28px 0;">
     <div class="container" style="max-width:1200px;">
-      <!-- PHP: $bid ? 'Edit Your Proposal' : 'Submit a Proposal' -->
-      <div class="breadcrumb"
-        style="font-family:var(--font-mono);font-size:.75rem;color:var(--ink-muted);margin-bottom:8px;">
+      <div class="breadcrumb" style="font-family:var(--font-mono);font-size:.75rem;color:var(--ink-muted);margin-bottom:8px;">
         Jobs <span style="margin:0 6px;color:var(--ink-faint);">›</span>
-        <!-- PHP: htmlspecialchars(Str::limit($job['title'],40)) -->
-        MENA Expansion — Contract Review
+        <?= $jobTitle ?>
         <span style="margin:0 6px;color:var(--ink-faint);">›</span>
-        Submit Proposal
+        <?= $isEdit ? 'Edit Proposal' : 'Submit Proposal' ?>
       </div>
       <div class="flex justify-between items-center">
         <div>
-          <h2 style="font-family:var(--font-display);font-size:1.6rem;font-weight:500;margin-bottom:4px;">Submit Your
-            Proposal</h2>
-          <p style="font-size:.875rem;color:var(--ink-muted);">Customise your bid, set your own milestone schedule, and
-            write your cover letter. You have <strong>48 hours</strong> to withdraw after submission.</p>
+          <h2 style="font-family:var(--font-display);font-size:1.6rem;font-weight:500;margin-bottom:4px;">
+            <?= $isEdit ? 'Edit Your Proposal' : 'Submit Your Proposal' ?>
+          </h2>
+          <p style="font-size:.875rem;color:var(--ink-muted);">
+            Customise your bid, set your own milestone schedule, and write your cover letter.
+            You have <strong>48 hours</strong> to withdraw after submission.
+          </p>
         </div>
         <div class="flex items-center gap-10">
-          <!-- PHP: <span class="badge badge-gold" style="font-size:.75rem;">Ref: <?= $job['ref'] ?></span> -->
-          <span class="badge badge-default font-mono" style="font-size:.75rem;">NX-2025-4821</span>
+          <span class="badge badge-default font-mono" style="font-size:.75rem;"><?= $jobRef ?></span>
         </div>
       </div>
     </div>
   </div>
 
   <div style="max-width:1200px;margin:0 auto;padding:36px 32px 80px;">
+
+    <!-- VALIDATION ERRORS -->
     <?php if (!empty($errors)): ?>
-      <div class="field-error show" style="display:block;margin-bottom:18px;padding:14px 16px;border:1px solid var(--rust);border-radius:var(--radius-sm);background:rgba(197,79,46,.08);">
-        <?php foreach ($errors as $error): ?>
-          <div><?php echo htmlspecialchars($error); ?></div>
-        <?php endforeach; ?>
-      </div>
+    <div class="field-error show" style="display:block;margin-bottom:18px;padding:14px 16px;border:1px solid var(--rust);border-radius:var(--radius-sm);background:rgba(197,79,46,.08);">
+      <?php foreach ($errors as $err): ?>
+      <div>⚠ <?= htmlspecialchars($err) ?></div>
+      <?php endforeach; ?>
+    </div>
     <?php endif; ?>
 
-    <!-- PHP: if($bid && $bid['status'] !== 'draft'): show status bar -->
-    <!-- EXAMPLE: submitted state — uncomment whichever state applies
-  <div class="bid-status-bar submitted">
-    <span style="font-size:1.2rem;">✓</span>
-    <div><strong>Proposal Submitted</strong> — Apr 12, 2025 · 14:22 GMT+2. FinCorp Egypt will be notified.</div>
-  </div>
-  -->
+    <!-- BID STATUS BAR (editing an existing bid) -->
+    <?php if ($isEdit && !empty($bid['status'])): ?>
+    <div class="bid-status-bar <?= htmlspecialchars($bid['status']) ?>" style="margin-bottom:24px;">
+      <?php if ($bid['status'] === 'pending'): ?>
+      <span style="font-size:1.2rem;">✓</span>
+      <div>
+        <strong>Proposal Submitted</strong>
+        <?php if (!empty($bid['submitted_at'])): ?>
+        — <?= date('M j, Y · H:i', strtotime($bid['submitted_at'])) ?> GMT+2
+        <?php endif; ?>
+      </div>
+      <?php elseif ($bid['status'] === 'accepted'): ?>
+      <span style="font-size:1.2rem;">🎉</span>
+      <div><strong>Proposal Accepted</strong> — Contract issued.</div>
+      <?php elseif (in_array($bid['status'], ['declined', 'rejected'])): ?>
+      <span style="font-size:1.2rem;">✕</span>
+      <div><strong>Proposal Declined</strong></div>
+      <?php endif; ?>
+    </div>
+    <?php endif; ?>
 
     <!-- JOB CONTEXT BANNER -->
     <div class="job-context-banner">
-      <div class="job-context-niche">⚖️</div>
+      <div class="job-context-niche">
+        <?php
+        $icons = ['Legal' => '⚖️', 'Finance' => '💼', 'Tech' => '💻', 'Design' => '🎨', 'Marketing' => '📣'];
+        echo $icons[$job['category'] ?? ''] ?? '📋';
+        ?>
+      </div>
       <div style="flex:1;min-width:0;">
-        <!-- PHP: htmlspecialchars($job['title']) -->
-        <div class="job-context-title">MENA Expansion — Cross-Border Contract Review</div>
+        <div class="job-context-title"><?= $jobTitle ?></div>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:4px;">
-          <span class="badge badge-verified" style="font-size:.625rem;">Legal Consulting</span>
-          <span class="text-xs text-muted font-mono">$12,000 · 3 milestones · 49 days</span>
+          <span class="badge badge-verified" style="font-size:.625rem;"><?= $jobCategory ?></span>
+          <span class="text-xs text-muted font-mono">
+            $<?= number_format($jobBudget) ?>
+            <?php if (!empty($jobMilestones)): ?>
+            · <?= count($jobMilestones) ?> milestones
+            <?php endif; ?>
+            <?php if (!empty($job['duration_days'])): ?>
+            · <?= (int) $job['duration_days'] ?> days
+            <?php endif; ?>
+          </span>
+          <?php if ($bidCount > 0): ?>
           <span class="text-xs text-muted">·</span>
-          <!-- PHP: $bidCount.' proposals received' -->
-          <span class="text-xs text-muted">7 proposals received</span>
-          <span class="text-xs text-muted">·</span>
+          <span class="text-xs text-muted"><?= $bidCount ?> proposal<?= $bidCount !== 1 ? 's' : '' ?> received</span>
+          <?php endif; ?>
         </div>
       </div>
       <div style="display:flex;gap:8px;flex-shrink:0;">
-        <!-- PHP: client org -->
         <div style="text-align:right;">
-          <div style="font-weight:700;font-size:.875rem;">FinCorp Egypt</div>
+          <div style="font-weight:700;font-size:.875rem;"><?= $clientName ?></div>
           <div style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;">
+            <?php if ($clientVerified): ?>
             <span class="badge badge-verified badge-dot" style="font-size:.6rem;">Verified</span>
+            <?php endif; ?>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- FORM + SIDEBAR -->
-    <!-- PHP: <form method="POST" action="/jobs/<?= $job['id'] ?>/bid" enctype="multipart/form-data" id="bid-form"> -->
-    <form id="bid-form" action="/bid" method="POST" enctype="multipart/form-data" onsubmit="return handleSubmit(event)">
-      <!-- PHP: csrf_field() -->
-      <!-- PHP: <input type="hidden" name="_method" value="<?= $bid ? 'PATCH' : 'POST' ?>"> -->
+    <!-- MAIN FORM -->
+    <form id="bid-form"
+      action="/jobs/<?= $jobId ?>/bid<?= $isEdit ? '/' . $bidId : '' ?>"
+      method="POST"
+      enctype="multipart/form-data"
+      onsubmit="return handleSubmit(event)">
+
+      <?php if (function_exists('csrf_field')): echo csrf_field(); endif; ?>
+      <?php if ($isEdit): ?>
+      <input type="hidden" name="_method" value="PATCH">
+      <?php endif; ?>
+      <input type="hidden" name="job_id" value="<?= $jobId ?>">
 
       <div class="bid-shell" style="padding:0;gap:36px;">
 
@@ -160,22 +223,16 @@
           <!-- ════ SECTION A: COVER LETTER ════ -->
           <div class="form-section">
             <div class="form-section-label">A — Cover Letter</div>
-            <p class="form-section-desc">Write directly to the client. Address the project's specific challenges — this
-              is the first thing they read. Specialists who reference the brief directly are 3× more likely to be
-              shortlisted.</p>
+            <p class="form-section-desc">Write directly to the client. Address the project's specific challenges. Specialists who reference the brief directly are 3× more likely to be shortlisted.</p>
 
             <div class="form-group">
               <label class="form-label">
                 Proposal Message
-                <span class="text-muted font-mono"
-                  style="font-size:.7rem;text-transform:none;letter-spacing:0;font-weight:400;margin-left:8px;">Sent to
-                  client immediately on submission</span>
+                <span class="text-muted font-mono" style="font-size:.7rem;text-transform:none;letter-spacing:0;font-weight:400;margin-left:8px;">Sent to client immediately on submission</span>
               </label>
-              <textarea class="form-control" rows="8" id="cover-letter" name="cover_letter" placeholder="Dear Amira,
-
-I am a qualified commercial lawyer with 9 years of cross-border MENA practice, and I have reviewed your project brief carefully. I note your specific need for GDPR cross-border transfer analysis alongside Egyptian, UAE, and KSA compliance — this intersection is precisely the area I specialise in.
-
-My proposed approach for Phase 1 would be..." oninput="countChars(this,1500,'clc');syncSummary()"></textarea>
+              <textarea class="form-control" rows="8" id="cover-letter" name="cover_letter"
+                placeholder="Dear <?= htmlspecialchars(($client['first_name'] ?? '') ?: $clientName) ?>,&#10;&#10;I have reviewed your project brief carefully and note your specific need for…"
+                oninput="countChars(this,1500,'clc');syncSummary()"><?= $preFillCover ?></textarea>
               <div class="flex justify-between mt-4">
                 <span class="field-error" id="err-cover">Please write a proposal of at least 100 characters.</span>
                 <span class="char-counter" id="clc" style="margin-left:auto;">0 / 1500</span>
@@ -185,13 +242,11 @@ My proposed approach for Phase 1 would be..." oninput="countChars(this,1500,'clc
             <div class="form-group">
               <label class="form-label">
                 Key Differentiators
-                <span class="text-muted font-mono"
-                  style="font-size:.7rem;text-transform:none;letter-spacing:0;font-weight:400;margin-left:8px;">Why you
-                  over the other bidders</span>
+                <span class="text-muted font-mono" style="font-size:.7rem;text-transform:none;letter-spacing:0;font-weight:400;margin-left:8px;">Why you over the other bidders</span>
               </label>
               <textarea class="form-control" rows="3" id="differentiators" name="differentiators"
-                placeholder="e.g. I have advised 4 SaaS companies on Egyptian-UAE market entry, am admitted to the Cairo Bar and have direct DIFC Courts experience. I am fluent in Arabic, English, and French."
-                oninput="countChars(this,400,'dc')"></textarea>
+                placeholder="e.g. I have advised 4 SaaS companies on market entry, am admitted to the Cairo Bar and have direct DIFC Courts experience."
+                oninput="countChars(this,400,'dc')"><?= $preFillDiff ?></textarea>
               <div class="flex justify-between mt-4">
                 <p class="form-hint">Optional but strongly recommended for this client.</p>
                 <span class="char-counter" id="dc" style="margin-left:auto;">0 / 400</span>
@@ -201,8 +256,8 @@ My proposed approach for Phase 1 would be..." oninput="countChars(this,1500,'clc
             <div class="form-group">
               <label class="form-label">Relevant Past Work</label>
               <textarea class="form-control" rows="3" id="past-work" name="past_work"
-                placeholder="Describe 1–2 comparable projects you have completed. Be specific about jurisdiction, contract type, and outcome. Do not disclose confidential client names."
-                oninput="countChars(this,500,'pwc')"></textarea>
+                placeholder="Describe 1–2 comparable projects. Be specific about jurisdiction, contract type, and outcome. Do not disclose confidential client names."
+                oninput="countChars(this,500,'pwc')"><?= $preFillPast ?></textarea>
               <span class="char-counter" id="pwc" style="text-align:right;display:block;margin-top:4px;">0 / 500</span>
             </div>
           </div>
@@ -210,297 +265,220 @@ My proposed approach for Phase 1 would be..." oninput="countChars(this,1500,'clc
           <!-- ════ SECTION B: BUDGET ════ -->
           <div class="form-section">
             <div class="form-section-label">B — Budget</div>
-            <p class="form-section-desc">You may accept the client's budget or propose a different total. A clear
-              rationale is required if your bid differs by more than 15%.</p>
+            <p class="form-section-desc">You may accept the client's budget or propose a different total. A clear rationale is required if your bid differs by more than 15%.</p>
 
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label">Your Total Bid</label>
                 <div class="input-affix-wrap">
                   <span class="input-prefix">$</span>
-                  <input type="number" class="form-control has-prefix" id="bid-total" name="bid_total" value="12000"
-                    min="500" step="100" oninput="syncSummary();updateDelta()">
+                  <input type="number" class="form-control has-prefix" id="bid-total" name="bid_total"
+                    value="<?= (float) $preFillTotal ?>" min="500" step="100"
+                    oninput="syncSummary();updateDelta()">
                 </div>
-                <!-- PHP: $job['total_budget'] -->
-                <p class="form-hint mt-4">Client budget: <strong class="font-mono">$12,000</strong></p>
+                <p class="form-hint mt-4">Client budget: <strong class="font-mono">$<?= number_format($jobBudget) ?></strong></p>
                 <span class="field-error" id="err-total">Please enter a valid bid amount (min $500).</span>
               </div>
               <div class="form-group">
                 <label class="form-label">Your Effective Rate</label>
                 <div class="input-affix-wrap">
                   <input type="text" class="form-control has-suffix" id="effective-rate" readonly
-                    style="background:var(--ivory-deep);color:var(--ink-mid);" value="$245 / day">
+                    style="background:var(--ivory-deep);color:var(--ink-mid);" value="">
                   <span class="input-suffix">est.</span>
                 </div>
                 <p class="form-hint mt-4">Based on your total bid ÷ estimated days.</p>
               </div>
             </div>
 
-            <!-- DELTA INDICATOR -->
             <div id="budget-delta" style="display:none;" class="flex items-center gap-10 mb-16">
               <span id="delta-badge" class="ms-delta-badge neutral">± $0 vs client budget</span>
               <span id="delta-pct" class="text-xs text-muted font-mono"></span>
             </div>
 
             <div class="form-group" id="rationale-group" style="display:none;">
-              <label class="form-label">Budget Rationale <span style="color:var(--rust);font-size:.75rem;">Required —
-                  your bid differs by more than 15%</span></label>
+              <label class="form-label">Budget Rationale <span style="color:var(--rust);font-size:.75rem;">Required — your bid differs by more than 15%</span></label>
               <textarea class="form-control" rows="3" id="bid-rationale" name="bid_rationale"
-                placeholder="Explain why your bid is higher or lower than the client's stated budget…"></textarea>
+                placeholder="Explain why your bid is higher or lower than the client's stated budget…"><?= old('bid_rationale') ?></textarea>
               <span class="field-error" id="err-rationale">Please explain your budget difference.</span>
             </div>
 
-            <!-- COMPETITION CONTEXT (anonymous) -->
-            <div
-              style="background:var(--ivory-deep);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px 20px;">
-              <div
-                style="font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--ink-muted);margin-bottom:12px;font-family:var(--font-body);">
-                Anonymous Competition Context</div>
-              <!-- PHP: from $bidContext (aggregated, never individual bids) -->
+            <!-- COMPETITION CONTEXT (anonymous aggregates only, from $job or $bidContext) -->
+            <?php
+            $ctxLow    = (float) ($job['bid_low'] ?? $job['ctx_low'] ?? 0);
+            $ctxMedian = (float) ($job['bid_median'] ?? $job['ctx_median'] ?? 0);
+            $ctxHigh   = (float) ($job['bid_high'] ?? $job['ctx_high'] ?? 0);
+            if ($ctxLow > 0 && $ctxHigh > 0):
+            ?>
+            <div style="background:var(--ivory-deep);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px 20px;">
+              <div style="font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--ink-muted);margin-bottom:12px;">Anonymous Competition Context</div>
               <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;text-align:center;">
                 <div>
-                  <div style="font-family:var(--font-mono);font-size:1rem;font-weight:600;color:var(--sage);">$9,800
-                  </div>
+                  <div style="font-family:var(--font-mono);font-size:1rem;font-weight:600;color:var(--sage);">$<?= number_format($ctxLow) ?></div>
                   <div class="text-xs text-muted">Lowest Bid</div>
                 </div>
+                <?php if ($ctxMedian > 0): ?>
                 <div>
-                  <div style="font-family:var(--font-mono);font-size:1rem;font-weight:600;">$11,500</div>
+                  <div style="font-family:var(--font-mono);font-size:1rem;font-weight:600;">$<?= number_format($ctxMedian) ?></div>
                   <div class="text-xs text-muted">Median Bid</div>
                 </div>
+                <?php endif; ?>
                 <div>
-                  <div style="font-family:var(--font-mono);font-size:1rem;font-weight:600;color:var(--rust);">$16,200
-                  </div>
+                  <div style="font-family:var(--font-mono);font-size:1rem;font-weight:600;color:var(--rust);">$<?= number_format($ctxHigh) ?></div>
                   <div class="text-xs text-muted">Highest Bid</div>
                 </div>
               </div>
               <div style="position:relative;margin-top:14px;height:10px;background:var(--border);border-radius:5px;">
-                <div
-                  style="position:absolute;left:0;top:0;height:100%;width:calc((9800/18000)*100%);background:var(--border);border-radius:5px;">
-                </div>
-                <div style="position:absolute;top:-3px;height:16px;width:3px;background:var(--sage);border-radius:2px;"
-                  id="low-marker" style="left:calc((9800/18000)*100%);"></div>
-                <div style="position:absolute;top:-3px;height:16px;width:3px;background:var(--ink);border-radius:2px;"
-                  id="med-marker" style="left:calc((11500/18000)*100%);"></div>
-                <div style="position:absolute;top:-3px;height:16px;width:3px;background:var(--rust);border-radius:2px;"
-                  id="high-marker" style="left:calc((16200/18000)*100%);"></div>
-                <div
-                  style="position:absolute;top:-5px;height:20px;width:4px;background:var(--gold);border-radius:2px;transition:left .3s;"
-                  id="your-marker"></div>
+                <div style="position:absolute;top:-5px;height:20px;width:4px;background:var(--gold);border-radius:2px;transition:left .3s;" id="your-marker"></div>
               </div>
-              <div class="text-xs text-muted font-mono mt-6 text-center">Your bid position — <span id="bid-pos-label"
-                  style="color:var(--gold);font-weight:700;">At client budget</span></div>
+              <div class="text-xs text-muted font-mono mt-6 text-center">
+                Your bid position — <span id="bid-pos-label" style="color:var(--gold);font-weight:700;">–</span>
+              </div>
             </div>
+            <?php endif; ?>
           </div>
 
           <!-- ════ SECTION C: MILESTONES ════ -->
           <div class="form-section">
             <div class="form-section-label">C — Milestone Schedule</div>
-            <p class="form-section-desc">Edit each milestone name, duration, and payment amount to match your proposed
-              delivery plan. Changes are highlighted and shown to the client clearly. The client must approve any
-              deviations before a contract is issued.</p>
+            <p class="form-section-desc">
+              <?php if (!empty($jobMilestones)): ?>
+              Edit each milestone to match your proposed delivery plan. Changes are highlighted and shown to the client clearly.
+              <?php else: ?>
+              Define the milestones for this project — name, duration, and payment amount.
+              <?php endif; ?>
+            </p>
 
-            <!-- MILESTONE MODE TOGGLE -->
+            <!-- MODE TOGGLE (only show if there are client milestones to accept/customise) -->
+            <?php if (!empty($jobMilestones)): ?>
             <div style="display:flex;gap:10px;margin-bottom:20px;align-items:center;">
-              <div
-                style="display:flex;gap:0;border:1.5px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;">
+              <div style="display:flex;gap:0;border:1.5px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;">
                 <button type="button" class="btn" id="btn-accept"
                   style="border-radius:0;border:none;background:var(--gold-pale);color:var(--ink);padding:8px 16px;font-size:.8rem;"
-                  onclick="setMsMode('accept')">
-                  ✓ Accept Client Milestones
-                </button>
+                  onclick="setMsMode('accept')">✓ Accept Client Milestones</button>
                 <button type="button" class="btn" id="btn-custom"
                   style="border-radius:0;border:none;background:transparent;color:var(--ink-muted);padding:8px 16px;font-size:.8rem;"
-                  onclick="setMsMode('custom')">
-                  ✎ Propose Custom Schedule
-                </button>
+                  onclick="setMsMode('custom')">✎ Propose Custom Schedule</button>
               </div>
               <span id="ms-edit-count" class="text-xs text-muted font-mono" style="display:none;"></span>
             </div>
+            <?php endif; ?>
 
-            <!-- MILESTONES: EDITABLE -->
-            <!-- PHP: foreach($milestones as $i=>$m): -->
+            <!-- MILESTONE LIST (rendered from $jobMilestones or $bid['milestones']) -->
             <div id="ms-list">
-
-              <div class="ms-edit-item" id="ms-item-0" data-original-name="Initial Document Review &amp; Gap Analysis"
-                data-original-duration="14" data-original-amount="3000">
-                <div class="ms-edit-header">
-                  <div class="ms-num">1</div>
-                  <div style="flex:1;">
-                    <div style="font-weight:700;font-size:.875rem;" id="ms-display-0">Initial Document Review &amp; Gap
-                      Analysis</div>
-                    <div class="text-xs text-muted font-mono mt-2">Client proposed: 14 days · $3,000</div>
+            <?php
+            // Use bid's own milestones if editing, otherwise use the job's proposed milestones
+            $renderMs = !empty($bid['milestones']) ? $bid['milestones'] : $jobMilestones;
+            foreach ($renderMs as $i => $ms):
+              $msName  = $ms['milestone_name'] ?? $ms['name'] ?? 'Milestone ' . ($i + 1);
+              $msDur   = (int) ($ms['duration_days'] ?? $ms['duration'] ?? 0);
+              $msAmt   = (float) ($ms['amount'] ?? 0);
+              $msDels  = $ms['deliverables'] ?? '';
+              // Original values for change-tracking
+              $origName = htmlspecialchars($msName, ENT_QUOTES);
+              $origDur  = $msDur;
+              $origAmt  = $msAmt;
+            ?>
+            <div class="ms-edit-item" id="ms-item-<?= $i ?>"
+              data-original-name="<?= $origName ?>"
+              data-original-duration="<?= $origDur ?>"
+              data-original-amount="<?= $origAmt ?>">
+              <div class="ms-edit-header">
+                <div class="ms-num"><?= $i + 1 ?></div>
+                <div style="flex:1;">
+                  <div style="font-weight:700;font-size:.875rem;" id="ms-display-<?= $i ?>"><?= htmlspecialchars($msName) ?></div>
+                  <div class="text-xs text-muted font-mono mt-2">
+                    <?php if (!empty($jobMilestones[$i])): ?>
+                    Client proposed: <?= $origDur ?>d · $<?= number_format($origAmt) ?>
+                    <?php else: ?>
+                    <?= $msDur ?>d · $<?= number_format($msAmt) ?>
+                    <?php endif; ?>
                   </div>
-                  <span class="ms-original-badge" id="ms-badge-0">Unchanged</span>
-                  <button type="button" class="btn btn-ghost btn-sm" onclick="toggleMs(0)">Edit</button>
                 </div>
-                <div class="ms-edit-body" id="ms-body-0" style="display:none;">
-                  <div class="ms-field-grid">
-                    <div class="form-group" style="margin:0;">
-                      <label class="form-label">Milestone Name</label>
-                      <input type="text" class="form-control" id="ms-name-0" name="milestones[0][name]"
-                        value="Initial Document Review &amp; Gap Analysis" oninput="syncMs(0)">
-                    </div>
-                    <div class="form-group" style="margin:0;">
-                      <label class="form-label">Duration</label>
-                      <div class="input-affix-wrap">
-                        <input type="number" class="form-control has-suffix" id="ms-dur-0"
-                          name="milestones[0][duration]" value="14" min="1" max="180" oninput="syncMs(0);syncSummary()">
-                        <span class="input-suffix">days</span>
-                      </div>
-                    </div>
-                    <div class="form-group" style="margin:0;">
-                      <label class="form-label">Amount</label>
-                      <div class="input-affix-wrap">
-                        <span class="input-prefix">$</span>
-                        <input type="number" class="form-control has-prefix" id="ms-amt-0" name="milestones[0][amount]"
-                          value="3000" min="100" step="50" oninput="syncMs(0);recalcTotal();syncSummary()">
-                      </div>
-                    </div>
-                  </div>
-                  <div class="form-group mt-12" style="margin-bottom:0;">
-                    <label class="form-label">Deliverables for This Phase</label>
-                    <textarea class="form-control" rows="2" id="ms-del-0" name="milestones[0][deliverables]"
-                      placeholder="List what you will deliver at the end of this milestone…">Gap analysis report (PDF), document inventory log, jurisdiction risk register draft</textarea>
-                  </div>
-                  <div id="ms-delta-row-0" class="mt-8" style="display:none;"></div>
-                </div>
+                <span class="ms-original-badge" id="ms-badge-<?= $i ?>">Unchanged</span>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="toggleMs(<?= $i ?>)">Edit</button>
               </div>
-
-              <div class="ms-edit-item" id="ms-item-1" data-original-name="Jurisdiction-Specific Legal Analysis"
-                data-original-duration="21" data-original-amount="4500">
-                <div class="ms-edit-header">
-                  <div class="ms-num">2</div>
-                  <div style="flex:1;">
-                    <div style="font-weight:700;font-size:.875rem;" id="ms-display-1">Jurisdiction-Specific Legal
-                      Analysis</div>
-                    <div class="text-xs text-muted font-mono mt-2">Client proposed: 21 days · $4,500</div>
+              <div class="ms-edit-body" id="ms-body-<?= $i ?>" style="display:none;">
+                <div class="ms-field-grid">
+                  <div class="form-group" style="margin:0;">
+                    <label class="form-label">Milestone Name</label>
+                    <input type="text" class="form-control" id="ms-name-<?= $i ?>"
+                      name="milestones[<?= $i ?>][name]"
+                      value="<?= htmlspecialchars($msName) ?>"
+                      oninput="syncMs(<?= $i ?>)">
                   </div>
-                  <span class="ms-original-badge" id="ms-badge-1">Unchanged</span>
-                  <button type="button" class="btn btn-ghost btn-sm" onclick="toggleMs(1)">Edit</button>
+                  <div class="form-group" style="margin:0;">
+                    <label class="form-label">Duration</label>
+                    <div class="input-affix-wrap">
+                      <input type="number" class="form-control has-suffix" id="ms-dur-<?= $i ?>"
+                        name="milestones[<?= $i ?>][duration]"
+                        value="<?= $msDur ?>" min="1" max="180"
+                        oninput="syncMs(<?= $i ?>);syncSummary()">
+                      <span class="input-suffix">days</span>
+                    </div>
+                  </div>
+                  <div class="form-group" style="margin:0;">
+                    <label class="form-label">Amount</label>
+                    <div class="input-affix-wrap">
+                      <span class="input-prefix">$</span>
+                      <input type="number" class="form-control has-prefix" id="ms-amt-<?= $i ?>"
+                        name="milestones[<?= $i ?>][amount]"
+                        value="<?= $msAmt ?>" min="100" step="50"
+                        oninput="syncMs(<?= $i ?>);recalcTotal();syncSummary()">
+                    </div>
+                  </div>
                 </div>
-                <div class="ms-edit-body" id="ms-body-1" style="display:none;">
-                  <div class="ms-field-grid">
-                    <div class="form-group" style="margin:0;">
-                      <label class="form-label">Milestone Name</label>
-                      <input type="text" class="form-control" id="ms-name-1" name="milestones[1][name]"
-                        value="Jurisdiction-Specific Legal Analysis" oninput="syncMs(1)">
-                    </div>
-                    <div class="form-group" style="margin:0;">
-                      <label class="form-label">Duration</label>
-                      <div class="input-affix-wrap">
-                        <input type="number" class="form-control has-suffix" id="ms-dur-1"
-                          name="milestones[1][duration]" value="21" min="1" max="180" oninput="syncMs(1);syncSummary()">
-                        <span class="input-suffix">days</span>
-                      </div>
-                    </div>
-                    <div class="form-group" style="margin:0;">
-                      <label class="form-label">Amount</label>
-                      <div class="input-affix-wrap">
-                        <span class="input-prefix">$</span>
-                        <input type="number" class="form-control has-prefix" id="ms-amt-1" name="milestones[1][amount]"
-                          value="4500" min="100" step="50" oninput="syncMs(1);recalcTotal();syncSummary()">
-                      </div>
-                    </div>
-                  </div>
-                  <div class="form-group mt-12" style="margin-bottom:0;">
-                    <label class="form-label">Deliverables for This Phase</label>
-                    <textarea class="form-control" rows="2" id="ms-del-1" name="milestones[1][deliverables]"
-                      placeholder="List what you will deliver at the end of this milestone…">Full legal analysis per jurisdiction (EGY/UAE/KSA/GDPR), risk matrix, recommended contract framework</textarea>
-                  </div>
-                  <div id="ms-delta-row-1" class="mt-8" style="display:none;"></div>
+                <?php if ($msDels): ?>
+                <div class="form-group mt-12" style="margin-bottom:0;">
+                  <label class="form-label">Deliverables for This Phase</label>
+                  <textarea class="form-control" rows="2" id="ms-del-<?= $i ?>"
+                    name="milestones[<?= $i ?>][deliverables]"
+                    placeholder="List what you will deliver at the end of this milestone…"><?= htmlspecialchars($msDels) ?></textarea>
                 </div>
+                <?php endif; ?>
+                <div id="ms-delta-row-<?= $i ?>" class="mt-8" style="display:none;"></div>
               </div>
-
-              <div class="ms-edit-item" id="ms-item-2"
-                data-original-name="Revised Contracts &amp; Final Advisory Report" data-original-duration="14"
-                data-original-amount="4500">
-                <div class="ms-edit-header">
-                  <div class="ms-num">3</div>
-                  <div style="flex:1;">
-                    <div style="font-weight:700;font-size:.875rem;" id="ms-display-2">Revised Contracts &amp; Final
-                      Advisory Report</div>
-                    <div class="text-xs text-muted font-mono mt-2">Client proposed: 14 days · $4,500</div>
-                  </div>
-                  <span class="ms-original-badge" id="ms-badge-2">Unchanged</span>
-                  <button type="button" class="btn btn-ghost btn-sm" onclick="toggleMs(2)">Edit</button>
-                </div>
-                <div class="ms-edit-body" id="ms-body-2" style="display:none;">
-                  <div class="ms-field-grid">
-                    <div class="form-group" style="margin:0;">
-                      <label class="form-label">Milestone Name</label>
-                      <input type="text" class="form-control" id="ms-name-2" name="milestones[2][name]"
-                        value="Revised Contracts &amp; Final Advisory Report" oninput="syncMs(2)">
-                    </div>
-                    <div class="form-group" style="margin:0;">
-                      <label class="form-label">Duration</label>
-                      <div class="input-affix-wrap">
-                        <input type="number" class="form-control has-suffix" id="ms-dur-2"
-                          name="milestones[2][duration]" value="14" min="1" max="180" oninput="syncMs(2);syncSummary()">
-                        <span class="input-suffix">days</span>
-                      </div>
-                    </div>
-                    <div class="form-group" style="margin:0;">
-                      <label class="form-label">Amount</label>
-                      <div class="input-affix-wrap">
-                        <span class="input-prefix">$</span>
-                        <input type="number" class="form-control has-prefix" id="ms-amt-2" name="milestones[2][amount]"
-                          value="4500" min="100" step="50" oninput="syncMs(2);recalcTotal();syncSummary()">
-                      </div>
-                    </div>
-                  </div>
-                  <div class="form-group mt-12" style="margin-bottom:0;">
-                    <label class="form-label">Deliverables for This Phase</label>
-                    <textarea class="form-control" rows="2" id="ms-del-2" name="milestones[2][deliverables]"
-                      placeholder="List what you will deliver at the end of this milestone…">Redrafted contract suite (AR+EN), GDPR SCC addenda, final advisory report, 1 stakeholder Q&amp;A session</textarea>
-                  </div>
-                  <div id="ms-delta-row-2" class="mt-8" style="display:none;"></div>
-                </div>
-              </div>
-
+            </div>
+            <?php endforeach; ?>
             </div><!-- end ms-list -->
 
-            <!-- ADD MILESTONE (custom mode only) -->
             <button type="button" class="add-row-btn w-full mt-8" id="btn-add-ms"
-              style="display:none;padding:11px 14px;border:1.5px dashed var(--border-dark);border-radius:var(--radius-sm);background:none;cursor:pointer;font-size:.875rem;color:var(--ink-muted);font-family:var(--font-body);transition:all .15s;"
-              onclick="addMilestone()">
-              + Add Milestone
-            </button>
+              style="display:none;padding:11px 14px;border:1.5px dashed var(--border-dark);border-radius:var(--radius-sm);background:none;cursor:pointer;font-size:.875rem;color:var(--ink-muted);"
+              onclick="addMilestone()">+ Add Milestone</button>
 
             <!-- MILESTONE TOTAL -->
-            <div
-              style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:var(--ivory-deep);border:1px solid var(--border);border-radius:var(--radius-sm);margin-top:12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:var(--ivory-deep);border:1px solid var(--border);border-radius:var(--radius-sm);margin-top:12px;">
               <span style="font-weight:700;">Milestone Total</span>
               <div class="flex items-center gap-10">
-                <span style="font-family:var(--font-display);font-size:1.3rem;font-weight:300;"
-                  id="ms-total-display">$12,000</span>
+                <span style="font-family:var(--font-display);font-size:1.3rem;font-weight:300;" id="ms-total-display">$<?= number_format(array_sum(array_column($renderMs, 'amount'))) ?></span>
                 <span id="ms-total-delta" style="display:none;"></span>
               </div>
             </div>
-            <div id="ms-total-mismatch" class="field-error mt-6" style="display:none;">⚠ Milestone total does not match
-              your bid amount. They must be equal before submitting.</div>
-
+            <div id="ms-total-mismatch" class="field-error mt-6" style="display:none;">⚠ Milestone total does not match your bid amount. They must be equal before submitting.</div>
           </div>
 
           <!-- ════ SECTION D: TIMELINE & AVAILABILITY ════ -->
           <div class="form-section">
             <div class="form-section-label">D — Timeline &amp; Start Availability</div>
-            <p class="form-section-desc">Tell the client when you can start and how you'll manage their deadline. This
-              feeds directly into the contract.</p>
+            <p class="form-section-desc">Tell the client when you can start and how you'll manage their deadline. This feeds directly into the contract.</p>
 
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label">Estimated Start Date</label>
                 <div class="input-affix-wrap">
                   <input type="date" class="form-control" id="start-date" name="start_date"
-                    min="<?php /* echo date('Y-m-d', strtotime('+2 days')) */ ?>" value="">
+                    min="<?= date('Y-m-d', strtotime('+2 days')) ?>"
+                    value="<?= $preFillStart ?>">
                 </div>
-                <p class="form-hint mt-4">Must be within 14 days of contract signing per client requirement.</p>
+                <?php if (!empty($job['start_deadline'])): ?>
+                <p class="form-hint mt-4">Must be within <?= (int) $job['start_deadline'] ?> days of contract signing per client requirement.</p>
+                <?php endif; ?>
               </div>
               <div class="form-group">
                 <label class="form-label">Estimated Total Duration</label>
                 <div class="input-affix-wrap">
-                  <input type="number" class="form-control has-suffix" id="total-duration" value="49" min="1" readonly
-                    style="background:var(--ivory-deep);color:var(--ink-mid);">
+                  <input type="number" class="form-control has-suffix" id="total-duration" min="1" readonly
+                    style="background:var(--ivory-deep);color:var(--ink-mid);"
+                    value="<?= array_sum(array_column($renderMs, 'duration_days')) ?: array_sum(array_column($renderMs, 'duration')) ?>">
                   <span class="input-suffix">days</span>
                 </div>
                 <p class="form-hint mt-4">Auto-calculated from your milestone durations.</p>
@@ -509,52 +487,71 @@ My proposed approach for Phase 1 would be..." oninput="countChars(this,1500,'clc
 
             <div class="form-group">
               <label class="form-label">Your Preferred Interview/Check-in Slots</label>
-              <p class="form-hint mb-8">The client requires up to 3 video calls. Select slots you're reliably available
-                — GMT+2.</p>
+              <p class="form-hint mb-8">Select slots you're reliably available — helps the client plan meetings.</p>
               <button type="button" class="btn btn-outline btn-sm mb-12" onclick="openAddSlotModal()">+ Add Availability Slot</button>
               <div id="avail-slots-list" style="margin-bottom:12px;"></div>
-              <!-- PHP: hidden input populated by JS for form submission -->
-              <input type="hidden" name="availability_slots" id="availability-slots-input">
+              <input type="hidden" name="availability_slots" id="availability-slots-input" value="<?= htmlspecialchars($preFillSlots) ?>">
             </div>
           </div>
 
           <!-- ════ SECTION E: ATTACHMENTS ════ -->
           <div class="form-section">
             <div class="form-section-label">E — Supporting Attachments</div>
-            <p class="form-section-desc">Upload portfolio samples, anonymised case studies, relevant credentials, or a
-              credentials summary. Max 5 files, 10MB each. NDA applies to everything you share.</p>
+            <p class="form-section-desc">Upload portfolio samples, anonymised case studies, or credentials. Max 5 files, 10MB each. NDA applies to everything you share.</p>
 
-            <div class="file-drop" id="file-drop-zone" onclick="document.getElementById('bid-files').click()"
+            <div class="file-drop" id="file-drop-zone"
+              onclick="document.getElementById('bid-files').click()"
               ondragover="event.preventDefault();this.classList.add('drag-over')"
-              ondragleave="this.classList.remove('drag-over')" ondrop="handleDrop(event)">
+              ondragleave="this.classList.remove('drag-over')"
+              ondrop="handleDrop(event)">
               <div style="font-size:1.8rem;opacity:.45;">📎</div>
               <div class="file-drop-label"><strong>Click to upload</strong> or drag &amp; drop</div>
               <div class="file-drop-hint">PDF · DOCX · ZIP · Max 10MB each · Up to 5 files</div>
             </div>
-            <input type="file" id="bid-files" name="attachments[]" multiple accept=".pdf,.docx,.zip"
-              style="display:none;" onchange="handleFiles(this)">
-            <div id="file-list"></div>
+            <input type="file" id="bid-files" name="attachments[]" multiple
+              accept=".pdf,.docx,.zip" style="display:none;" onchange="handleFiles(this)">
+            <div id="file-list">
+              <?php if (!empty($bid['attachments'])): ?>
+              <?php foreach ($bid['attachments'] as $att): ?>
+              <?php
+                $ext  = strtolower(pathinfo($att['file_name'] ?? '', PATHINFO_EXTENSION));
+                $icon = match($ext) { 'pdf' => '📄', 'docx', 'doc' => '📝', 'zip' => '📦', default => '📁' };
+                $sz   = (int) ($att['file_size'] ?? 0);
+                $szLbl = $sz > 1048576 ? round($sz / 1048576, 1) . ' MB' : round($sz / 1024) . ' KB';
+              ?>
+              <div class="file-row">
+                <div class="file-row-icon"><?= $icon ?></div>
+                <span style="flex:1;font-weight:600;font-size:.875rem;"><?= htmlspecialchars($att['file_name'] ?? 'File') ?></span>
+                <span style="font-family:var(--font-mono);font-size:.75rem;color:var(--ink-muted);"><?= $szLbl ?></span>
+                <span class="badge badge-verified" style="font-size:.625rem;">Saved</span>
+              </div>
+              <?php endforeach; ?>
+              <?php endif; ?>
+            </div>
           </div>
 
           <!-- ════ SECTION G: REVIEW PRICING ════ -->
           <div class="form-section">
             <div class="form-section-label">G — Review Pricing</div>
-            <p class="form-section-desc">Set your rate for additional reviews after the client has used their included free reviews. This is optional and can be set per review.</p>
+            <p class="form-section-desc">Set your rate for additional reviews after the client has used their included free reviews.</p>
 
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label">Price Per Additional Review</label>
                 <div class="input-affix-wrap">
                   <span class="input-prefix">$</span>
-                  <input type="number" class="form-control has-prefix" name="review_price" id="review-price" 
-                    placeholder="e.g. 450" min="0" step="50" oninput="syncReviewPrice()">
+                  <input type="number" class="form-control has-prefix" name="review_price" id="review-price"
+                    placeholder="e.g. 450" min="0" step="50"
+                    value="<?= $preFillRevP ?>"
+                    oninput="syncSummary()">
                 </div>
-                <p class="form-hint">Charged per review request beyond included reviews in the contract.</p>
+                <p class="form-hint">Charged per review request beyond included reviews.</p>
               </div>
               <div class="form-group">
                 <label class="form-label">Number of Free Reviews Included</label>
-                <input type="number" class="form-control" name="free_reviews" id="free-reviews" value="2" 
-                  min="1" max="10" oninput="syncReviewPrice()">
+                <input type="number" class="form-control" name="free_reviews" id="free-reviews"
+                  value="<?= $preFillFreeR ?>" min="0" max="10"
+                  oninput="syncSummary()">
                 <p class="form-hint">How many free reviews are included per milestone.</p>
               </div>
             </div>
@@ -564,25 +561,17 @@ My proposed approach for Phase 1 would be..." oninput="countChars(this,1500,'clc
           <div class="form-section" style="margin-bottom:0;">
             <div class="form-section-label">H — Terms &amp; Submission</div>
 
-            <!-- NDA NOTICE -->
-            <div
-              style="background:var(--ivory-deep);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px 18px;margin-bottom:20px;display:flex;gap:12px;align-items:flex-start;font-size:.8125rem;">
+            <div style="background:var(--ivory-deep);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px 18px;margin-bottom:20px;display:flex;gap:12px;align-items:flex-start;font-size:.8125rem;">
               <span style="font-size:1.1rem;">🔏</span>
               <div>
-                <strong>NDA auto-generated on shortlisting.</strong> If FinCorp shortlists your proposal, a standard
-                Nexus NDA (2 years, $10,000 liquidated damages, Egyptian Civil Law) will be sent to you for digital
-                signature before the full brief is shared. Submitting this proposal does not trigger the NDA.
+                <strong>NDA auto-generated on shortlisting.</strong> If <?= $clientName ?> shortlists your proposal, a standard Nexus NDA (2 years, $10,000 liquidated damages) will be sent for digital signature before the full brief is shared. Submitting this proposal does not trigger the NDA.
               </div>
             </div>
 
-            <!-- WITHDRAWAL POLICY -->
-            <div
-              style="background:var(--gold-pale);border:1px solid var(--gold-light);border-radius:var(--radius-md);padding:14px 18px;margin-bottom:20px;display:flex;gap:10px;align-items:flex-start;font-size:.8125rem;">
+            <div style="background:var(--gold-pale);border:1px solid var(--gold-light);border-radius:var(--radius-md);padding:14px 18px;margin-bottom:20px;display:flex;gap:10px;align-items:flex-start;font-size:.8125rem;">
               <span>↩</span>
               <div>
-                <strong>48-hour withdrawal window.</strong> After submitting, you may withdraw this proposal within 48
-                hours — no questions asked. After that window closes, withdrawal requires a formal request and may
-                affect your response-rate score.
+                <strong>48-hour withdrawal window.</strong> After submitting, you may withdraw this proposal within 48 hours — no questions asked. After that window closes, withdrawal requires a formal request and may affect your response-rate score.
               </div>
             </div>
 
@@ -600,8 +589,7 @@ My proposed approach for Phase 1 would be..." oninput="countChars(this,1500,'clc
               <label style="display:flex;gap:10px;cursor:pointer;font-size:.875rem;align-items:flex-start;">
                 <input type="checkbox" id="agree-terms" name="agree_terms"
                   style="accent-color:var(--gold);margin-top:3px;" onchange="syncAgree()">
-                <span>I agree to the Nexus Platform <a href="#" style="color:var(--gold);">Terms of Service</a> and
-                  understand that submitting this proposal creates a binding bid record on the platform.</span>
+                <span>I agree to the Nexus Platform <a href="/terms" style="color:var(--gold);">Terms of Service</a> and understand that submitting this proposal creates a binding bid record on the platform.</span>
               </label>
             </div>
             <span class="field-error" id="err-agree">Please confirm all three checkboxes before submitting.</span>
@@ -609,14 +597,11 @@ My proposed approach for Phase 1 would be..." oninput="countChars(this,1500,'clc
             <div class="flex gap-12 items-center">
               <button type="submit" class="btn btn-primary btn-lg" id="submit-btn"
                 style="opacity:.5;cursor:not-allowed;" disabled>
-                ✦ Submit Proposal
+                <?= $isEdit ? '✦ Update Proposal' : '✦ Submit Proposal' ?>
               </button>
-              <button type="button" class="btn btn-outline" onclick="saveDraft()">
-                💾 Save Draft
-              </button>
-              <a href="/job-view" class="btn btn-ghost">Cancel</a>
+              <button type="button" class="btn btn-outline" onclick="saveDraft()">💾 Save Draft</button>
+              <a href="/jobs/<?= $jobId ?>" class="btn btn-ghost">Cancel</a>
             </div>
-
           </div>
 
         </div><!-- end left form -->
@@ -626,121 +611,133 @@ My proposed approach for Phase 1 would be..." oninput="countChars(this,1500,'clc
 
           <!-- LIVE BID SUMMARY -->
           <div class="summary-card">
-            <div
-              style="font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--ink-muted);margin-bottom:14px;font-family:var(--font-body);">
-              Your Proposal — Live Summary</div>
-
-            <!-- MILESTONES -->
+            <div style="font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--ink-muted);margin-bottom:14px;">Your Proposal — Live Summary</div>
             <div id="summary-milestones" style="margin-bottom:8px;">
-              <div
-                style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:.8125rem;">
-                <span class="text-muted">Phase 1</span>
-                <span class="font-mono font-bold" id="sum-ms-0">14d · $3,000</span>
+              <?php foreach ($renderMs as $i => $ms): ?>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:.8125rem;">
+                <span class="text-muted">Phase <?= $i + 1 ?></span>
+                <span class="font-mono font-bold" id="sum-ms-<?= $i ?>">
+                  <?= (int) ($ms['duration_days'] ?? $ms['duration'] ?? 0) ?>d · $<?= number_format((float) ($ms['amount'] ?? 0)) ?>
+                </span>
               </div>
-              <div
-                style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:.8125rem;">
-                <span class="text-muted">Phase 2</span>
-                <span class="font-mono font-bold" id="sum-ms-1">21d · $4,500</span>
-              </div>
-              <div
-                style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:.8125rem;">
-                <span class="text-muted">Phase 3</span>
-                <span class="font-mono font-bold" id="sum-ms-2">14d · $4,500</span>
-              </div>
+              <?php endforeach; ?>
             </div>
-
             <div class="summary-total">
               <span style="font-size:.875rem;color:var(--ink-muted);">Total Bid</span>
-              <span class="summary-total-val" id="sum-total">$12,000 <span id="sum-edited-marker" class="edited-marker"
-                  style="display:none;">edited</span></span>
+              <span class="summary-total-val" id="sum-total">
+                $<?= number_format((float) $preFillTotal) ?>
+                <?php if ((float) $preFillTotal !== $jobBudget): ?>
+                <span class="edited-marker">edited</span>
+                <?php endif; ?>
+              </span>
             </div>
             <div class="summary-row mt-4" style="border:none;padding-top:8px;">
               <span class="summary-label">Est. Duration</span>
-              <span class="summary-val" id="sum-duration">49 days</span>
+              <span class="summary-val" id="sum-duration">
+                <?= array_sum(array_column($renderMs, 'duration_days')) ?: array_sum(array_column($renderMs, 'duration')) ?> days
+              </span>
             </div>
             <div class="summary-row">
               <span class="summary-label">Start Date</span>
-              <span class="summary-val" id="sum-start">Not set</span>
+              <span class="summary-val" id="sum-start"><?= $preFillStart ? date('j M Y', strtotime($preFillStart)) : 'Not set' ?></span>
             </div>
             <div class="summary-row">
               <span class="summary-label">Attachments</span>
-              <span class="summary-val" id="sum-files">None</span>
+              <span class="summary-val" id="sum-files">
+                <?php $existingFiles = count($bid['attachments'] ?? []); ?>
+                <?= $existingFiles > 0 ? $existingFiles . ' saved' : 'None' ?>
+              </span>
             </div>
             <div class="summary-row">
               <span class="summary-label">Cover Letter</span>
-              <span class="summary-val" id="sum-cover">0 chars</span>
+              <span class="summary-val" id="sum-cover"><?= strlen($preFillCover) ?> chars</span>
             </div>
           </div>
 
-          <!-- PLATFORM FEES -->
+          <!-- EARNINGS BREAKDOWN -->
           <div class="summary-card">
-            <div
-              style="font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--ink-muted);margin-bottom:12px;font-family:var(--font-body);">
-              Your Earnings Breakdown</div>
+            <div style="font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--ink-muted);margin-bottom:12px;">Your Earnings Breakdown</div>
             <div class="summary-row" style="border:none;padding:5px 0;">
               <span class="summary-label">Your Bid</span>
-              <span class="summary-val" id="earn-bid">$12,000</span>
+              <span class="summary-val" id="earn-bid">$<?= number_format((float) $preFillTotal) ?></span>
             </div>
             <div class="summary-row" style="border:none;padding:5px 0;">
-              <!-- PHP: $specialist['fee_tier']['rate'].'%' -->
-              <span class="summary-label">Platform Fee (6.5%)</span>
-              <span class="summary-val" id="earn-fee" style="color:var(--rust);">− $780</span>
+              <span class="summary-label">Platform Fee (<?= $feePct ?>%)</span>
+              <span class="summary-val" id="earn-fee" style="color:var(--rust);">
+                − $<?= number_format((float) $preFillTotal * $feeRate) ?>
+              </span>
             </div>
             <div style="height:1px;background:var(--border);margin:8px 0;"></div>
             <div style="display:flex;justify-content:space-between;font-weight:700;font-size:.9375rem;">
               <span>You Receive</span>
-              <span class="font-mono" id="earn-net" style="color:var(--sage);">$11,220</span>
+              <span class="font-mono" id="earn-net" style="color:var(--sage);">
+                $<?= number_format((float) $preFillTotal * (1 - $feeRate)) ?>
+              </span>
             </div>
           </div>
 
-          <!-- WITHDRAWAL WINDOW (shown only after submission) -->
-          <!-- PHP: if($bid && $canWithdraw): -->
-          <div class="withdrawal-clock" id="withdrawal-widget" style="display:none;">
+          <!-- WITHDRAWAL WINDOW (editing an existing bid within window) -->
+          <?php if ($isEdit && $canWithdraw): ?>
+          <?php
+            $minutesRemaining = 0;
+            if ($hoursRemaining < 1 && $withdrawDeadline instanceof DateTime) {
+              $minutesRemaining = max(0, (int) (($withdrawDeadline->getTimestamp() - time()) / 60) % 60);
+            }
+          ?>
+          <div class="withdrawal-clock" id="withdrawal-widget">
             <div class="flex justify-between items-center mb-4">
               <div style="font-weight:700;font-size:.875rem;">↩ Withdrawal Window</div>
               <span class="badge badge-pending badge-dot" style="font-size:.625rem;">Active</span>
             </div>
-            <!-- PHP: $hoursRemaining.'h '.$minutesRemaining.'m remaining' -->
-            <div style="font-family:var(--font-mono);font-size:1.1rem;font-weight:600;" id="withdraw-timer">47:58
-              remaining</div>
+            <div style="font-family:var(--font-mono);font-size:1.1rem;font-weight:600;" id="withdraw-timer">
+              <?= $hoursRemaining ?>h <?= $minutesRemaining ?>m remaining
+            </div>
             <div class="clock-bar mt-8">
-              <div class="clock-fill" id="clock-fill" style="width:99.9%;"></div>
+              <div class="clock-fill" id="clock-fill" style="width:<?= round(($hoursRemaining / 48) * 100) ?>%;"></div>
             </div>
-            <div class="text-xs text-muted mt-6">
-              <!-- PHP: 'Closes: '.$withdrawDeadline->format('M j, g:i A T') -->
-              Closes: Apr 14, 2025 · 14:22 GMT+2
-            </div>
+            <?php if ($withdrawDeadline instanceof DateTime): ?>
+            <div class="text-xs text-muted mt-6">Closes: <?= $withdrawDeadline->format('M j, Y · g:i A T') ?></div>
+            <?php endif; ?>
             <button type="button" class="btn btn-danger btn-sm w-full mt-12" style="justify-content:center;"
               onclick="document.getElementById('withdraw-modal').classList.remove('hidden')">
               Withdraw Proposal
             </button>
           </div>
+          <?php endif; ?>
 
-          <!-- CLIENT TRUST QUICK-LOOK -->
+          <!-- CLIENT TRUST SIGNALS -->
           <div class="summary-card">
-            <div
-              style="font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--ink-muted);margin-bottom:12px;font-family:var(--font-body);">
-              Client Trust Signals</div>
-            <div class="summary-row" style="padding:6px 0;border:none;"><span class="summary-label">Payment
-                Reliability</span><span class="summary-val" style="color:var(--sage);">100%</span></div>
-            <div class="summary-row" style="padding:6px 0;border:none;"><span class="summary-label">Dispute
-                Rate</span><span class="summary-val">2.1%</span></div>
-            <div class="summary-row" style="padding:6px 0;border:none;"><span class="summary-label">Completed
-                Projects</span><span class="summary-val">12</span></div>
-            <div class="summary-row" style="padding:6px 0;border:none;border-bottom:none;"><span
-                class="summary-label">Withdrawal Window</span><span class="summary-val">48h after submission</span>
+            <div style="font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--ink-muted);margin-bottom:12px;">Client Trust Signals</div>
+            <div class="summary-row" style="padding:6px 0;border:none;">
+              <span class="summary-label">Payment Reliability</span>
+              <span class="summary-val" style="color:var(--sage);"><?= htmlspecialchars($client['payment_reliability'] ?? '100%') ?></span>
             </div>
-            <a href="/profile"
+            <div class="summary-row" style="padding:6px 0;border:none;">
+              <span class="summary-label">Dispute Rate</span>
+              <span class="summary-val"><?= htmlspecialchars($client['dispute_rate'] ?? '0%') ?></span>
+            </div>
+            <div class="summary-row" style="padding:6px 0;border:none;">
+              <span class="summary-label">Completed Projects</span>
+              <span class="summary-val"><?= (int) ($client['completed_projects'] ?? 0) ?></span>
+            </div>
+            <div class="summary-row" style="padding:6px 0;border:none;border-bottom:none;">
+              <span class="summary-label">Withdrawal Window</span>
+              <span class="summary-val">48h after submission</span>
+            </div>
+            <?php if (!empty($client['id'])): ?>
+            <a href="/clients/<?= (int) $client['id'] ?>"
               style="font-size:.8125rem;color:var(--gold);display:block;margin-top:10px;">View full client profile →</a>
+            <?php endif; ?>
           </div>
 
-        </div>
+        </div><!-- end summary panel -->
 
       </div>
     </form>
   </div>
 
-  <!-- ══════ WITHDRAW MODAL ══════ -->
+  <!-- WITHDRAW MODAL -->
+  <?php if ($isEdit && $canWithdraw): ?>
   <div id="withdraw-modal" class="modal-backdrop hidden">
     <div class="modal modal-sm">
       <div class="modal-header">
@@ -748,21 +745,19 @@ My proposed approach for Phase 1 would be..." oninput="countChars(this,1500,'clc
           <h3 style="color:var(--rust);">Withdraw Proposal</h3>
           <p class="text-sm text-muted mt-4">You are within your 48-hour withdrawal window. No penalty applies.</p>
         </div>
-        <button class="modal-close"
-          onclick="document.getElementById('withdraw-modal').classList.add('hidden')">✕</button>
+        <button class="modal-close" onclick="document.getElementById('withdraw-modal').classList.add('hidden')">✕</button>
       </div>
       <div class="modal-body">
-        <!-- PHP: $bidCount.' specialists have also bid' — context -->
-        <div
-          style="background:var(--ivory-deep);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:16px;font-size:.875rem;">
-          <strong>MENA Expansion — Cross-Border Contract Review</strong><br>
-          <span class="text-muted">Your proposal of <span class="font-mono">$12,000</span> · Submitted Apr 12,
-            2025</span>
+        <div style="background:var(--ivory-deep);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:16px;font-size:.875rem;">
+          <strong><?= $jobTitle ?></strong><br>
+          <span class="text-muted">Your proposal of <span class="font-mono">$<?= number_format((float) ($bid['total_bid_amount'] ?? 0)) ?></span>
+          <?php if (!empty($bid['submitted_at'])): ?>
+          · Submitted <?= date('M j, Y', strtotime($bid['submitted_at'])) ?>
+          <?php endif; ?>
+          </span>
         </div>
         <div class="form-group">
-          <label class="form-label">Reason for Withdrawal <span class="text-muted font-mono"
-              style="font-size:.7rem;font-weight:400;text-transform:none;letter-spacing:0;">Optional — helps us
-              improve</span></label>
+          <label class="form-label">Reason for Withdrawal <span class="text-muted font-mono" style="font-size:.7rem;font-weight:400;text-transform:none;letter-spacing:0;">Optional</span></label>
           <select class="form-control" name="withdraw_reason">
             <option value="">— Select a reason —</option>
             <option>I accepted another project</option>
@@ -774,13 +769,16 @@ My proposed approach for Phase 1 would be..." oninput="countChars(this,1500,'clc
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-outline" onclick="document.getElementById('withdraw-modal').classList.add('hidden')">Keep
-          My Proposal</button>
-        <!-- PHP: action="/jobs/{id}/bid/{bid_id}/withdraw" method="DELETE" -->
-        <button class="btn btn-danger" onclick="confirmWithdraw()">Confirm Withdrawal</button>
+        <button class="btn btn-outline" onclick="document.getElementById('withdraw-modal').classList.add('hidden')">Keep My Proposal</button>
+        <form method="POST" action="/jobs/<?= $jobId ?>/bid/<?= $bidId ?>/withdraw" style="margin:0;">
+          <?php if (function_exists('csrf_field')): echo csrf_field(); endif; ?>
+          <input type="hidden" name="_method" value="DELETE">
+          <button class="btn btn-danger" type="submit">Confirm Withdrawal</button>
+        </form>
       </div>
     </div>
   </div>
+  <?php endif; ?>
 
   <!-- SUCCESS MODAL -->
   <div id="success-modal" class="modal-backdrop hidden">
@@ -788,23 +786,14 @@ My proposed approach for Phase 1 would be..." oninput="countChars(this,1500,'clc
       <div class="modal-body" style="padding:48px 32px;">
         <div style="font-size:3rem;margin-bottom:20px;">✦</div>
         <h3 style="margin-bottom:10px;">Proposal Submitted</h3>
-        <p class="text-sm text-muted mb-6">Your proposal for <strong>MENA Expansion — Cross-Border Contract
-            Review</strong> has been sent to FinCorp Egypt.</p>
-        <p class="text-sm text-muted mb-24">You have <strong>48 hours</strong> to withdraw. You'll be notified when
-          reviewed or shortlisted.</p>
-        <div class="font-mono text-xs text-muted mb-24">Ref: BID-NX-4821-DR · Submitted Apr 12, 14:22 GMT+2</div>
+        <p class="text-sm text-muted mb-6">Your proposal for <strong><?= $jobTitle ?></strong> has been sent to <?= $clientName ?>.</p>
+        <p class="text-sm text-muted mb-24">You have <strong>48 hours</strong> to withdraw. You'll be notified when reviewed or shortlisted.</p>
         <div style="display:flex;flex-direction:column;gap:10px;">
-          <a href="/dashboard" class="btn btn-primary" style="justify-content:center;">Back to
-            Dashboard</a>
-          <button class="btn btn-outline" style="justify-content:center;" onclick="showWithdrawalWidget()">View
-            Withdrawal Window</button>
+          <a href="/dashboard" class="btn btn-primary" style="justify-content:center;">Back to Dashboard</a>
         </div>
       </div>
     </div>
   </div>
-
-  <!-- TOAST -->
-  <div class="toast-stack" id="toast-stack"></div>
 
   <!-- ADD AVAILABILITY SLOT MODAL -->
   <div id="add-slot-modal" class="modal-backdrop hidden">
@@ -817,44 +806,25 @@ My proposed approach for Phase 1 would be..." oninput="countChars(this,1500,'clc
         <div class="form-group">
           <label class="form-label">Day of Week</label>
           <select id="slot-day" class="form-control">
-            <option>Monday</option>
-            <option>Tuesday</option>
-            <option>Wednesday</option>
-            <option>Thursday</option>
-            <option>Friday</option>
-            <option>Saturday</option>
-            <option>Sunday</option>
+            <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
+            <option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option>
           </select>
         </div>
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">From</label>
             <select id="slot-start-time" class="form-control">
-              <option>09:00</option>
-              <option>10:00</option>
-              <option>11:00</option>
-              <option>12:00</option>
-              <option>13:00</option>
-              <option>14:00</option>
-              <option>15:00</option>
-              <option>16:00</option>
-              <option>17:00</option>
-              <option>18:00</option>
+              <?php for ($h = 8; $h <= 18; $h++): ?>
+              <option><?= sprintf('%02d:00', $h) ?></option>
+              <?php endfor; ?>
             </select>
           </div>
           <div class="form-group">
             <label class="form-label">To</label>
             <select id="slot-end-time" class="form-control">
-              <option>10:00</option>
-              <option>11:00</option>
-              <option>12:00</option>
-              <option>13:00</option>
-              <option>14:00</option>
-              <option>15:00</option>
-              <option>16:00</option>
-              <option>17:00</option>
-              <option>18:00</option>
-              <option>19:00</option>
+              <?php for ($h = 9; $h <= 19; $h++): ?>
+              <option><?= sprintf('%02d:00', $h) ?></option>
+              <?php endfor; ?>
             </select>
           </div>
         </div>
@@ -866,57 +836,48 @@ My proposed approach for Phase 1 would be..." oninput="countChars(this,1500,'clc
     </div>
   </div>
 
+  <!-- TOAST -->
+  <div class="toast-stack" id="toast-stack"></div>
+
   <script>
-    /* ── DROPDOWN TOGGLE ── */
-    function toggleDD() {
-      document.getElementById('user-dd').classList.toggle('hidden');
-    }
+    // PHP constants passed to JS
+    const CLIENT_BUDGET = <?= json_encode($jobBudget) ?>;
+    const FEE_RATE      = <?= json_encode($feeRate) ?>;
+    const MS_COUNT      = <?= json_encode(count($renderMs)) ?>;
+    // Competition context
+    const CTX_LOW  = <?= json_encode((float) ($job['bid_low'] ?? 0)) ?>;
+    const CTX_HIGH = <?= json_encode((float) ($job['bid_high'] ?? 0)) ?>;
+
+    /* ── Dropdown ── */
+    function toggleDD() { document.getElementById('user-dd').classList.toggle('hidden'); }
     document.addEventListener('click', e => {
       if (!e.target.closest('.dropdown')) document.getElementById('user-dd')?.classList.add('hidden');
     });
 
-    const CLIENT_BUDGET = 12000;
-    const FEE_RATE = 0.065;
-    let msMode = 'accept';
-    let fileCount = 0;
-
-    /* ── TABS / SYNC ── */
+    /* ── Sync summary ── */
     function syncSummary() {
-      // Cover letter length
-      const cl = document.getElementById('cover-letter')?.value?.length || 0;
+      const cl  = document.getElementById('cover-letter')?.value?.length || 0;
       document.getElementById('sum-cover').textContent = cl + ' chars';
-      document.getElementById('sum-cover').className = 'summary-val' + (cl < 100 ? ' ' : '');
-
-      // Total
       const total = getCurrentTotal();
-      document.getElementById('sum-total').querySelector('.edited-marker') ||
-        (document.getElementById('sum-total').innerHTML = '$' + total.toLocaleString() +
-          (total !== CLIENT_BUDGET ? ' <span id="sum-edited-marker" class="edited-marker">edited</span>' : ''));
+      const sumTot = document.getElementById('sum-total');
+      if (sumTot) sumTot.innerHTML = '$' + total.toLocaleString() + (total !== CLIENT_BUDGET ? ' <span class="edited-marker">edited</span>' : '');
       document.getElementById('earn-bid').textContent = '$' + total.toLocaleString();
       const fee = Math.round(total * FEE_RATE);
       document.getElementById('earn-fee').textContent = '− $' + fee.toLocaleString();
       document.getElementById('earn-net').textContent = '$' + (total - fee).toLocaleString();
-
-      // Duration
-      const dur = [0, 1, 2].reduce((s, i) => s + (parseInt(document.getElementById('ms-dur-' + i)?.value) || 0), 0);
+      const dur = getTotalDuration();
       document.getElementById('sum-duration').textContent = dur + ' days';
       document.getElementById('total-duration').value = dur;
-
-      // Start date
       const sd = document.getElementById('start-date')?.value;
-      document.getElementById('sum-start').textContent = sd ? new Date(sd).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Not set';
-
-      // Files
-      document.getElementById('sum-files').textContent = fileCount > 0 ? fileCount + ' attached' : 'None';
-
-      // Per-milestone
-      [0, 1, 2].forEach(i => {
+      document.getElementById('sum-start').textContent = sd
+        ? new Date(sd).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+        : 'Not set';
+      for (let i = 0; i < MS_COUNT + addedMsCount - MS_COUNT; i++) {
         const d = document.getElementById('ms-dur-' + i)?.value || 0;
         const a = document.getElementById('ms-amt-' + i)?.value || 0;
         const el = document.getElementById('sum-ms-' + i);
         if (el) el.textContent = d + 'd · $' + Number(a).toLocaleString();
-      });
-
+      }
       checkMsMatch();
       updateEffectiveRate();
       updateBidPosition();
@@ -925,21 +886,26 @@ My proposed approach for Phase 1 would be..." oninput="countChars(this,1500,'clc
     function getCurrentTotal() {
       return parseInt(document.getElementById('bid-total')?.value) || 0;
     }
+    function getTotalDuration() {
+      let total = 0;
+      document.querySelectorAll('[id^="ms-dur-"]').forEach(el => total += parseInt(el.value) || 0);
+      return total;
+    }
 
     function recalcTotal() {
-      const msTotal = [0, 1, 2].reduce((s, i) => s + (parseInt(document.getElementById('ms-amt-' + i)?.value) || 0), 0);
+      let msTotal = 0;
+      document.querySelectorAll('[id^="ms-amt-"]').forEach(el => msTotal += parseInt(el.value) || 0);
       const el = document.getElementById('ms-total-display');
       if (el) el.textContent = '$' + msTotal.toLocaleString();
-      const delta = msTotal - CLIENT_BUDGET;
+      const diff = msTotal - CLIENT_BUDGET;
       const badge = document.getElementById('ms-total-delta');
       if (badge) {
-        if (delta !== 0) {
+        if (diff !== 0) {
           badge.style.display = '';
-          badge.className = 'ms-delta-badge ' + (delta > 0 ? 'up' : 'down');
-          badge.textContent = (delta > 0 ? '+' : '') + '$' + Math.abs(delta).toLocaleString();
+          badge.className = 'ms-delta-badge ' + (diff > 0 ? 'up' : 'down');
+          badge.textContent = (diff > 0 ? '+' : '') + '$' + Math.abs(diff).toLocaleString();
         } else { badge.style.display = 'none'; }
       }
-      // Sync bid total to milestone sum
       const bidInput = document.getElementById('bid-total');
       if (bidInput) { bidInput.value = msTotal; updateDelta(); }
     }
@@ -947,39 +913,55 @@ My proposed approach for Phase 1 would be..." oninput="countChars(this,1500,'clc
     function updateDelta() {
       const val = getCurrentTotal();
       const diff = val - CLIENT_BUDGET;
-      const pct = ((diff / CLIENT_BUDGET) * 100).toFixed(1);
+      const pct = CLIENT_BUDGET > 0 ? ((diff / CLIENT_BUDGET) * 100).toFixed(1) : 0;
       const badge = document.getElementById('delta-badge');
       const pctEl = document.getElementById('delta-pct');
-      const deltaWrap = document.getElementById('budget-delta');
+      const wrap  = document.getElementById('budget-delta');
       if (!badge) return;
-      deltaWrap.style.display = '';
+      wrap.style.display = '';
       badge.textContent = (diff > 0 ? '+' : '') + '$' + Math.abs(diff).toLocaleString() + ' vs client budget';
       badge.className = 'ms-delta-badge ' + (diff > 0 ? 'up' : diff < 0 ? 'down' : 'neutral');
       if (pctEl) pctEl.textContent = '(' + (diff >= 0 ? '+' : '') + pct + '%)';
-      // Show rationale if > 15%
       const rationaleGroup = document.getElementById('rationale-group');
       if (rationaleGroup) rationaleGroup.style.display = Math.abs(parseFloat(pct)) > 15 ? 'block' : 'none';
     }
 
     function updateEffectiveRate() {
       const total = getCurrentTotal();
-      const days = [0, 1, 2].reduce((s, i) => s + (parseInt(document.getElementById('ms-dur-' + i)?.value) || 0), 0);
-      const rate = days > 0 ? Math.round(total / days) : 0;
+      const days  = getTotalDuration();
+      const rate  = days > 0 ? Math.round(total / days) : 0;
       const el = document.getElementById('effective-rate');
       if (el) el.value = '$' + rate.toLocaleString() + ' / day';
     }
 
+    function updateBidPosition() {
+      if (!CTX_LOW || !CTX_HIGH) return;
+      const val = getCurrentTotal();
+      const pct = Math.min(Math.max(((val - CTX_LOW) / (CTX_HIGH - CTX_LOW)) * 100, 0), 100);
+      const m = document.getElementById('your-marker');
+      if (m) m.style.left = pct + '%';
+      const lbl = document.getElementById('bid-pos-label');
+      if (lbl) {
+        if (val < CTX_LOW) lbl.textContent = 'Below lowest bid';
+        else if (val < CLIENT_BUDGET * 0.92) lbl.textContent = 'Competitive — below budget';
+        else if (val <= CLIENT_BUDGET * 1.05) lbl.textContent = 'At or near client budget';
+        else if (val < CLIENT_BUDGET * 1.2) lbl.textContent = 'Above client budget';
+        else lbl.textContent = 'Significantly above budget';
+      }
+    }
+
     function checkMsMatch() {
-      const msTotal = [0, 1, 2].reduce((s, i) => s + (parseInt(document.getElementById('ms-amt-' + i)?.value) || 0), 0);
+      let msTotal = 0;
+      document.querySelectorAll('[id^="ms-amt-"]').forEach(el => msTotal += parseInt(el.value) || 0);
       const bidTotal = getCurrentTotal();
       const el = document.getElementById('ms-total-mismatch');
       if (el) el.style.display = msTotal !== bidTotal && bidTotal > 0 ? 'block' : 'none';
     }
 
-    /* ── MILESTONE TOGGLE ── */
+    /* ── Milestone toggle ── */
     function toggleMs(i) {
       const body = document.getElementById('ms-body-' + i);
-      const btn = document.querySelector(`#ms-item-${i} .btn-ghost`);
+      const btn  = document.querySelector(`#ms-item-${i} .btn-ghost`);
       const open = body.style.display === 'block';
       body.style.display = open ? 'none' : 'block';
       if (btn) btn.textContent = open ? 'Edit' : 'Done';
@@ -987,16 +969,19 @@ My proposed approach for Phase 1 would be..." oninput="countChars(this,1500,'clc
 
     function syncMs(i) {
       const item = document.getElementById('ms-item-' + i);
+      if (!item) return;
       const orig = item.dataset;
       const name = document.getElementById('ms-name-' + i)?.value || '';
-      const dur = document.getElementById('ms-dur-' + i)?.value || 0;
-      const amt = document.getElementById('ms-amt-' + i)?.value || 0;
-      const changed = name !== orig.originalName || parseInt(dur) !== parseInt(orig.originalDuration) || parseInt(amt) !== parseInt(orig.originalAmount);
+      const dur  = document.getElementById('ms-dur-' + i)?.value || 0;
+      const amt  = document.getElementById('ms-amt-' + i)?.value || 0;
+      const changed = name !== orig.originalName ||
+                      parseInt(dur) !== parseInt(orig.originalDuration) ||
+                      parseInt(amt) !== parseInt(orig.originalAmount);
       item.classList.toggle('edited', changed);
-      document.getElementById('ms-badge-' + i).textContent = changed ? '✎ Edited' : 'Unchanged';
-      document.getElementById('ms-display-' + i).textContent = name;
-
-      // Delta row
+      const badge = document.getElementById('ms-badge-' + i);
+      if (badge) badge.textContent = changed ? '✎ Edited' : 'Unchanged';
+      const display = document.getElementById('ms-display-' + i);
+      if (display) display.textContent = name;
       const deltaRow = document.getElementById('ms-delta-row-' + i);
       if (deltaRow) {
         if (changed) {
@@ -1010,78 +995,102 @@ My proposed approach for Phase 1 would be..." oninput="countChars(this,1500,'clc
           deltaRow.innerHTML = '<span class="text-xs text-muted">Changes from original:</span>' + parts.join('');
         } else { deltaRow.style.display = 'none'; }
       }
-
-      // Edit count badge
-      const editedCount = [0, 1, 2].filter(j => document.getElementById('ms-item-' + j)?.classList.contains('edited')).length;
+      const editedCount = document.querySelectorAll('.ms-edit-item.edited').length;
       const cntEl = document.getElementById('ms-edit-count');
-      if (cntEl) { cntEl.textContent = editedCount > 0 ? editedCount + ' milestone(s) edited' : ''; cntEl.style.display = editedCount > 0 ? '' : 'none'; }
+      if (cntEl) {
+        cntEl.textContent = editedCount > 0 ? editedCount + ' milestone(s) edited' : '';
+        cntEl.style.display = editedCount > 0 ? '' : 'none';
+      }
     }
 
-    /* ── MILESTONE MODE ── */
+    /* ── Milestone mode ── */
     function setMsMode(mode) {
-      msMode = mode;
       const isCustom = mode === 'custom';
       document.getElementById('btn-accept').style.background = !isCustom ? 'var(--gold-pale)' : 'transparent';
-      document.getElementById('btn-accept').style.color = !isCustom ? 'var(--ink)' : 'var(--ink-muted)';
-      document.getElementById('btn-custom').style.background = isCustom ? 'var(--gold-pale)' : 'transparent';
-      document.getElementById('btn-custom').style.color = isCustom ? 'var(--ink)' : 'var(--ink-muted)';
-      document.getElementById('btn-add-ms').style.display = isCustom ? 'flex' : 'none';
-      document.querySelectorAll('.ms-edit-item .btn-ghost').forEach(b => { b.style.display = isCustom ? '' : 'none'; });
+      document.getElementById('btn-accept').style.color     = !isCustom ? 'var(--ink)'     : 'var(--ink-muted)';
+      document.getElementById('btn-custom').style.background = isCustom  ? 'var(--gold-pale)' : 'transparent';
+      document.getElementById('btn-custom').style.color      = isCustom  ? 'var(--ink)'     : 'var(--ink-muted)';
+      const addBtn = document.getElementById('btn-add-ms');
+      if (addBtn) addBtn.style.display = isCustom ? 'flex' : 'none';
+      document.querySelectorAll('.ms-edit-item .btn-ghost').forEach(b => b.style.display = isCustom ? '' : 'none');
       if (!isCustom) {
-        // Reset all to originals
-        [0, 1, 2].forEach(i => {
+        for (let i = 0; i < MS_COUNT; i++) {
           const item = document.getElementById('ms-item-' + i);
-          if (!item) return;
-          document.getElementById('ms-name-' + i).value = item.dataset.originalName;
-          document.getElementById('ms-dur-' + i).value = item.dataset.originalDuration;
-          document.getElementById('ms-amt-' + i).value = item.dataset.originalAmount;
+          if (!item) continue;
+          const nameEl = document.getElementById('ms-name-' + i);
+          const durEl  = document.getElementById('ms-dur-' + i);
+          const amtEl  = document.getElementById('ms-amt-' + i);
+          if (nameEl) nameEl.value = item.dataset.originalName;
+          if (durEl)  durEl.value  = item.dataset.originalDuration;
+          if (amtEl)  amtEl.value  = item.dataset.originalAmount;
           document.getElementById('ms-body-' + i).style.display = 'none';
           syncMs(i);
-        });
+        }
         recalcTotal(); syncSummary();
       }
     }
 
-    let addedMsCount = 3;
+    let addedMsCount = MS_COUNT;
     function addMilestone() {
       const list = document.getElementById('ms-list');
+      const idx  = addedMsCount;
       const d = document.createElement('div');
-      const idx = addedMsCount;
       d.className = 'ms-edit-item open';
       d.id = 'ms-item-' + idx;
       d.dataset.originalName = '';
       d.dataset.originalDuration = '0';
       d.dataset.originalAmount = '0';
-      d.innerHTML = `<div class="ms-edit-header"><div class="ms-num">${idx + 1}</div><div style="flex:1;"><div style="font-weight:700;font-size:.875rem;" id="ms-display-${idx}">New Milestone</div></div><span class="ms-original-badge" id="ms-badge-${idx}" style="background:var(--gold-pale);border-color:var(--gold-light);color:#7A5C10;">+ New</span><button type="button" class="btn btn-ghost btn-sm" onclick="this.closest('.ms-edit-item').remove();recalcTotal();syncSummary()">🗑 Remove</button></div><div class="ms-edit-body" id="ms-body-${idx}" style="display:block;"><div class="ms-field-grid"><div class="form-group" style="margin:0;"><label class="form-label">Milestone Name</label><input type="text" class="form-control" id="ms-name-${idx}" name="milestones[${idx}][name]" placeholder="Phase name…" oninput="syncMs(${idx})"></div><div class="form-group" style="margin:0;"><label class="form-label">Duration</label><div class="input-affix-wrap"><input type="number" class="form-control has-suffix" id="ms-dur-${idx}" name="milestones[${idx}][duration]" value="14" min="1" max="180" oninput="syncMs(${idx});syncSummary()"><span class="input-suffix">days</span></div></div><div class="form-group" style="margin:0;"><label class="form-label">Amount</label><div class="input-affix-wrap"><span class="input-prefix">$</span><input type="number" class="form-control has-prefix" id="ms-amt-${idx}" name="milestones[${idx}][amount]" value="0" min="100" step="50" oninput="syncMs(${idx});recalcTotal();syncSummary()"></div></div></div><div class="form-group mt-12" style="margin-bottom:0;"><label class="form-label">Deliverables</label><textarea class="form-control" rows="2" name="milestones[${idx}][deliverables]" placeholder="List deliverables for this phase…"></textarea></div></div>`;
+      d.innerHTML = `
+        <div class="ms-edit-header">
+          <div class="ms-num">${idx + 1}</div>
+          <div style="flex:1;"><div style="font-weight:700;font-size:.875rem;" id="ms-display-${idx}">New Milestone</div></div>
+          <span class="ms-original-badge" id="ms-badge-${idx}" style="background:var(--gold-pale);border-color:var(--gold-light);color:#7A5C10;">+ New</span>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="this.closest('.ms-edit-item').remove();recalcTotal();syncSummary()">🗑 Remove</button>
+        </div>
+        <div class="ms-edit-body" id="ms-body-${idx}" style="display:block;">
+          <div class="ms-field-grid">
+            <div class="form-group" style="margin:0;"><label class="form-label">Milestone Name</label>
+              <input type="text" class="form-control" id="ms-name-${idx}" name="milestones[${idx}][name]" placeholder="Phase name…" oninput="syncMs(${idx})">
+            </div>
+            <div class="form-group" style="margin:0;"><label class="form-label">Duration</label>
+              <div class="input-affix-wrap">
+                <input type="number" class="form-control has-suffix" id="ms-dur-${idx}" name="milestones[${idx}][duration]" value="14" min="1" max="180" oninput="syncMs(${idx});syncSummary()">
+                <span class="input-suffix">days</span>
+              </div>
+            </div>
+            <div class="form-group" style="margin:0;"><label class="form-label">Amount</label>
+              <div class="input-affix-wrap">
+                <span class="input-prefix">$</span>
+                <input type="number" class="form-control has-prefix" id="ms-amt-${idx}" name="milestones[${idx}][amount]" value="0" min="100" step="50" oninput="syncMs(${idx});recalcTotal();syncSummary()">
+              </div>
+            </div>
+          </div>
+          <div class="form-group mt-12" style="margin-bottom:0;"><label class="form-label">Deliverables</label>
+            <textarea class="form-control" rows="2" name="milestones[${idx}][deliverables]" placeholder="List deliverables for this phase…"></textarea>
+          </div>
+          <div id="ms-delta-row-${idx}" class="mt-8" style="display:none;"></div>
+        </div>`;
       list.appendChild(d);
       addedMsCount++;
     }
 
-    /* ── AVAILABILITY SLOTS ── */
+    /* ── Availability slots ── */
     let availabilitySlots = [];
 
-    function openAddSlotModal() {
-      document.getElementById('add-slot-modal').classList.remove('hidden');
-    }
+    // Pre-populate from PHP
+    const savedSlots = <?= json_encode(array_filter(explode(',', $preFillSlots))) ?>;
+    savedSlots.forEach(s => s.trim() && availabilitySlots.push(s.trim()));
 
-    function closeAddSlotModal() {
-      document.getElementById('add-slot-modal').classList.add('hidden');
-    }
+    function openAddSlotModal()  { document.getElementById('add-slot-modal').classList.remove('hidden'); }
+    function closeAddSlotModal() { document.getElementById('add-slot-modal').classList.add('hidden'); }
 
     function addAvailabilitySlot() {
-      const day = document.getElementById('slot-day').value;
-      const startTime = document.getElementById('slot-start-time').value;
-      const endTime = document.getElementById('slot-end-time').value;
-
-      if (!day || !startTime || !endTime) {
-        showToast('Please select day and times.', 'warn');
-        return;
-      }
-
+      const day   = document.getElementById('slot-day').value;
+      const start = document.getElementById('slot-start-time').value;
+      const end   = document.getElementById('slot-end-time').value;
+      if (!day || !start || !end) { showToast('Please select day and times.', 'warn'); return; }
       const shortDay = day.substring(0, 3);
-      const slot = `${shortDay} ${startTime}–${endTime}`;
-      availabilitySlots.push(slot);
-
+      availabilitySlots.push(`${shortDay} ${start}–${end}`);
       renderSlots();
       closeAddSlotModal();
       showToast('Availability slot added.', 'success');
@@ -1093,62 +1102,62 @@ My proposed approach for Phase 1 would be..." oninput="countChars(this,1500,'clc
     }
 
     function renderSlots() {
-      const list = document.getElementById('avail-slots-list');
+      const list  = document.getElementById('avail-slots-list');
       const input = document.getElementById('availability-slots-input');
-
       list.innerHTML = '';
-      availabilitySlots.forEach((slot, index) => {
+      availabilitySlots.forEach((slot, i) => {
         const item = document.createElement('div');
         item.className = 'avail-slot-item';
-        item.innerHTML = `
-          <span class="avail-slot-item-text">${slot}</span>
-          <button type="button" class="avail-slot-item-remove" onclick="removeAvailabilitySlot(${index})">✕</button>
-        `;
+        item.innerHTML = `<span class="avail-slot-item-text">${slot}</span><button type="button" class="avail-slot-item-remove" onclick="removeAvailabilitySlot(${i})">✕</button>`;
         list.appendChild(item);
       });
-
       if (input) input.value = availabilitySlots.join(',');
     }
 
-    /* ── FILE UPLOAD ── */
+    /* ── File upload ── */
+    let fileCount = <?= json_encode(count($bid['attachments'] ?? [])) ?>;
     function handleFiles(input) { processFiles(Array.from(input.files)); }
-    function handleDrop(e) { e.preventDefault(); document.getElementById('file-drop-zone').classList.remove('drag-over'); processFiles(Array.from(e.dataTransfer.files)); }
+    function handleDrop(e) {
+      e.preventDefault();
+      document.getElementById('file-drop-zone').classList.remove('drag-over');
+      processFiles(Array.from(e.dataTransfer.files));
+    }
     function processFiles(files) {
       const list = document.getElementById('file-list');
       files.slice(0, 5 - fileCount).forEach(f => {
         if (f.size > 10485760) { showToast('File "' + f.name + '" exceeds 10MB limit.', 'warn'); return; }
         fileCount++;
         const size = f.size > 1048576 ? (f.size / 1048576).toFixed(1) + ' MB' : (f.size / 1024).toFixed(0) + ' KB';
-        const ext = f.name.split('.').pop().toLowerCase();
+        const ext  = f.name.split('.').pop().toLowerCase();
         const icons = { pdf: '📄', docx: '📝', zip: '📦' };
-        const row = document.createElement('div');
+        const row  = document.createElement('div');
         row.className = 'file-row';
         row.innerHTML = `<div class="file-row-icon">${icons[ext] || '📁'}</div><span style="flex:1;font-weight:600;font-size:.875rem;">${f.name}</span><span style="font-family:var(--font-mono);font-size:.75rem;color:var(--ink-muted);">${size}</span><span class="badge badge-pending" style="font-size:.625rem;">Staged</span><button type="button" style="background:none;border:none;cursor:pointer;color:var(--rust);font-size:.875rem;padding:0 4px;" onclick="this.parentNode.remove();fileCount--;syncSummary()">✕</button>`;
         list.appendChild(row);
         syncSummary();
       });
+      document.getElementById('sum-files').textContent = fileCount > 0 ? fileCount + ' attached' : 'None';
     }
 
-    /* ── VALIDATION & SUBMIT ── */
+    /* ── Agree / Submit ── */
     function syncAgree() {
-      const a = document.getElementById('agree-accurate')?.checked;
-      const q = document.getElementById('agree-qualified')?.checked;
-      const t = document.getElementById('agree-terms')?.checked;
+      const a   = document.getElementById('agree-accurate')?.checked;
+      const q   = document.getElementById('agree-qualified')?.checked;
+      const t   = document.getElementById('agree-terms')?.checked;
       const btn = document.getElementById('submit-btn');
       const all = a && q && t;
       btn.disabled = !all;
       btn.style.opacity = all ? '1' : '.5';
-      btn.style.cursor = all ? 'pointer' : 'not-allowed';
+      btn.style.cursor  = all ? 'pointer' : 'not-allowed';
     }
 
     function handleSubmit(e) {
       let valid = true;
-
       const cl = document.getElementById('cover-letter');
       if (!cl?.value || cl.value.trim().length < 100) {
         cl?.classList.add('invalid');
         document.getElementById('err-cover').classList.add('show');
-        cl?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (valid) cl?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         valid = false;
       } else { cl.classList.remove('invalid'); document.getElementById('err-cover').classList.remove('show'); }
 
@@ -1160,7 +1169,8 @@ My proposed approach for Phase 1 would be..." oninput="countChars(this,1500,'clc
         valid = false;
       } else { bt.classList.remove('invalid'); document.getElementById('err-total').classList.remove('show'); }
 
-      const msTotal = [0, 1, 2].reduce((s, i) => s + (parseInt(document.getElementById('ms-amt-' + i)?.value) || 0), 0);
+      let msTotal = 0;
+      document.querySelectorAll('[id^="ms-amt-"]').forEach(el => msTotal += parseInt(el.value) || 0);
       if (msTotal !== parseInt(bt?.value || 0)) {
         document.getElementById('ms-total-mismatch').style.display = 'block';
         if (valid) document.getElementById('ms-total-mismatch').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1178,92 +1188,77 @@ My proposed approach for Phase 1 would be..." oninput="countChars(this,1500,'clc
         } else { rat.classList.remove('invalid'); document.getElementById('err-rationale').classList.remove('show'); }
       }
 
-      if (!valid) {
-        // prevent submission when invalid and keep user on page
-        e.preventDefault();
-        return false;
-      }
-      // allow normal submission to backend
+      if (!valid) { e.preventDefault(); return false; }
       return true;
     }
 
     function saveDraft() {
-      showToast('Draft saved. You can return to this proposal from your dashboard.', 'info');
+      showToast('Draft saved. Return to this proposal from your dashboard.', 'info');
     }
 
-    function updateBidPosition() {
-      const val = getCurrentTotal();
-      const low = 9800, high = 18000;
-      const pct = Math.min(Math.max(((val - low) / (high - low)) * 100, 0), 100);
-      const m = document.getElementById('your-marker');
-      if (m) m.style.left = pct + '%';
-      const lbl = document.getElementById('bid-pos-label');
-      if (lbl) {
-        if (val < 9800) lbl.textContent = 'Below lowest bid';
-        else if (val < 11000) lbl.textContent = 'Competitive — below median';
-        else if (val < 12500) lbl.textContent = 'At or near client budget';
-        else if (val < 14000) lbl.textContent = 'Above client budget';
-        else lbl.textContent = 'Significantly above budget';
-      }
-    }
-
-    /* ── WITHDRAWAL ── */
-    function confirmWithdraw() {
-      document.getElementById('withdraw-modal').classList.add('hidden');
-      showToast('Proposal withdrawn successfully. Your response-rate score is unaffected.', 'info');
-      setTimeout(() => { window.location.href = '/dashboard'; }, 2500);
-    }
-
-    function showWithdrawalWidget() {
-      document.getElementById('success-modal').classList.add('hidden');
-      document.getElementById('withdrawal-widget').style.display = '';
-      startWithdrawTimer(48 * 3600);
-    }
-
-    function startWithdrawTimer(seconds) {
-      let s = seconds;
-      const fill = document.getElementById('clock-fill');
-      const timer = document.getElementById('withdraw-timer');
-      const total = 48 * 3600;
-      const tick = () => {
-        if (s <= 0) { timer.textContent = 'Window closed'; fill.style.width = '0%'; return; }
+    /* ── Withdrawal timer (for edit view with active window) ── */
+    <?php if ($isEdit && $canWithdraw): ?>
+    (function() {
+      const secondsRemaining = <?= json_encode(max(0, (int) ($withdrawDeadline instanceof DateTime ? $withdrawDeadline->getTimestamp() - time() : 0))) ?>;
+      const totalSeconds = 48 * 3600;
+      let s = secondsRemaining;
+      function tick() {
+        if (s <= 0) {
+          document.getElementById('withdraw-timer').textContent = 'Window closed';
+          document.getElementById('clock-fill').style.width = '0%';
+          return;
+        }
         const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
-        timer.textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')} remaining`;
-        const pct = (s / total) * 100;
-        fill.style.width = pct + '%';
-        if (pct < 25) { fill.classList.add('low'); document.getElementById('withdrawal-widget').classList.add('warning'); }
+        const timerEl = document.getElementById('withdraw-timer');
+        if (timerEl) timerEl.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')} remaining`;
+        const pct = (s / totalSeconds) * 100;
+        const fill = document.getElementById('clock-fill');
+        if (fill) {
+          fill.style.width = pct + '%';
+          if (pct < 25) { fill.classList.add('low'); document.getElementById('withdrawal-widget')?.classList.add('warning'); }
+        }
         s--;
-      };
+      }
       tick();
       setInterval(tick, 1000);
-    }
+    })();
+    <?php endif; ?>
 
-    /* ── TOAST ── */
+    /* ── Toast ── */
     function showToast(msg, type = 'success') {
       const s = document.getElementById('toast-stack');
       const icons = { success: '✓', warn: '⚠', info: 'ℹ' };
-      const cls = { success: 'success', warn: 'warning', info: '' };
-      s.innerHTML = `<div class="toast ${cls[type]}"><span class="toast-icon">${icons[type]}</span><div><div class="toast-title">${type === 'warn' ? 'Required' : type === 'info' ? 'Notice' : 'Done'}</div><div class="toast-body">${msg}</div></div></div>`;
+      const cls   = { success: 'success', warn: 'warning', info: '' };
+      s.innerHTML = `<div class="toast ${cls[type]}"><span class="toast-icon">${icons[type]}</span><div><div class="toast-title">${type==='warn'?'Required':type==='info'?'Notice':'Done'}</div><div class="toast-body">${msg}</div></div></div>`;
       setTimeout(() => s.innerHTML = '', 4500);
     }
 
-    /* ── CHAR COUNTER ── */
+    /* ── Char counter ── */
     function countChars(el, max, id) {
       const n = el.value.length;
       const c = document.getElementById(id);
       if (!c) return;
       c.textContent = `${n} / ${max}`;
-      c.className = 'char-counter' + (n > max ? ' over' : n > max * .9 ? ' warn' : '');
+      c.className = 'char-counter' + (n > max ? ' over' : n > max * 0.9 ? ' warn' : '');
       syncSummary();
     }
 
     /* ── INIT ── */
-    syncSummary();
-    updateDelta();
-    setMsMode('accept');
-    document.getElementById('start-date')?.addEventListener('change', syncSummary);
-    document.getElementById('bid-total')?.addEventListener('input', syncSummary);
+    document.addEventListener('DOMContentLoaded', () => {
+      syncSummary();
+      updateDelta();
+      <?php if (!empty($jobMilestones)): ?>
+      setMsMode('accept');
+      <?php endif; ?>
+      renderSlots();
+      // Init char counters
+      ['cover-letter', 'differentiators', 'past-work'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.dispatchEvent(new Event('input'));
+      });
+      document.getElementById('start-date')?.addEventListener('change', syncSummary);
+      document.getElementById('bid-total')?.addEventListener('input', syncSummary);
+    });
   </script>
 </body>
-
 </html>
