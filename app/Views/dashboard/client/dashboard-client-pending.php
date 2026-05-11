@@ -17,10 +17,13 @@
         </svg><span style="position:absolute;top:0;right:0;width:8px;height:8px;background:var(--rust);border-radius:50%;"></span>
       </a>
       <div class="dropdown">
-        <div class="flex items-center gap-8" style="cursor:pointer;" onclick="toggleDD()">
-          <div class="avatar-badge"><div class="avatar avatar-sm">AT</div></div>
-          <span style="font-size:.875rem;font-weight:700;">Amira T.</span>
+          <div class="flex items-center gap-8" style="cursor:pointer;" onclick="toggleDD()">
+          <div class="avatar-badge">
+            <div class="avatar avatar-sm"><?php echo strtoupper(substr(htmlspecialchars($_SESSION['user_name'] ?? ''), 0, 2)) ?: 'ME'; ?></div>
+          </div>
+          <span style="font-size:.875rem;font-weight:700;"><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Me'); ?></span>
           <span style="color:var(--ink-faint);">▾</span>
+        </div>
         </div>
         <div class="dropdown-menu hidden" id="user-dd">
           <div class="dropdown-item" style="color:var(--ink-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;pointer-events:none;">Client Account</div>

@@ -37,7 +37,7 @@ class ChatController extends Controller
             $this->markRead($user_id, $with_user_id);
         }
 
-        $this->view('chat', [
+        $this->view('chat/chat', [
             'threads'       => $threads,
             'messages'      => $messages,
             'partner'       => $partner,
