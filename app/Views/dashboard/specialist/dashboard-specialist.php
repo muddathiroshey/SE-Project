@@ -199,7 +199,7 @@ $matchScore = fn($j) => $j['niche'] === ($specialist_profile['primary_niche'] ??
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">Marketplace</div>
-      <a class="sidebar-link" href="/browse-jobs">
+      <a class="sidebar-link" href="/jobs-view">
         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M11 11l3 3-1 1-3-3v-1.4A5.5 5.5 0 1 1 11 11zM6.5 11A4.5 4.5 0 1 0 6.5 2a4.5 4.5 0 0 0 0 9z"/></svg>
         Browse Jobs
         <?php if ($matched_jobs_count > 0): ?>
