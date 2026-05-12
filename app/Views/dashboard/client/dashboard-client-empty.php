@@ -65,11 +65,11 @@ $user_name = htmlspecialchars($_SESSION['user_name'] ?? 'there');
         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2z"/></svg>
         Post New Project
       </a>
-      <a class="sidebar-link" href="/projects">
+      <a class="sidebar-link" href="/project-detail">
         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h12v12H2V2zm1 1v10h10V3H3z"/></svg>
         Active Projects
       </a>
-      <a class="sidebar-link" href="/projects/completed">
+      <a class="sidebar-link" href="/project-detail(in-dispute)">
         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 1h8a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zm1 2v1h6V3H5zm0 3v1h6V6H5zm0 3v1h4V9H5z"/></svg>
         Completed
       </a>
