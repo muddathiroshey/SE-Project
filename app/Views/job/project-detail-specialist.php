@@ -1,26 +1,5 @@
 <!DOCTYPE html>
-<!--
-    ============================================================
-    NEXUS PLATFORM — Views/specialist/project-detail.php
-    Template: Project Detail — Specialist Working View
-    Role:     specialist (authenticated)
-    Route:    /my-projects/{contract_id}
-    ============================================================
-    PHP Data contract (from SpecialistProjectController::show()):
-      $project        — full ActiveProject record
-      $contract       — ContractRecord
-      $client         — ClientRecord + org
-      $milestones     — MilestoneRecord[] (ordered)
-      $activeMilestone— MilestoneRecord (current)
-      $deliverables   — DeliverableRecord[] for active milestone
-      $wip_snapshots  — WipSnapshot[] (auto + manual)
-      $messages_unread— int
-      $amendments     — ScopeAmendment[]
-      $funds          — [ cleared, pending, escrowed, on_hold, total ]
-      $revisions      — RevisionRecord[] for active milestone
-      $specialist     — authenticated specialist
-    ============================================================
--->
+
 <html lang="en">
 
 <head>
@@ -36,7 +15,7 @@
 
   <?php require __DIR__ . '/../partials/topnav.php'; ?>
 
-  <!-- ══════════ PROJECT HEADER BAND ══════════ -->
+
   <div class="proj-header-band">
     <div style="max-width:1280px;margin:0 auto;padding:0 40px;">
       <div class="flex justify-between items-start">

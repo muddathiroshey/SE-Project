@@ -1,4 +1,3 @@
-
 CREATE DATABASE IF NOT EXISTS freelance_marketplace
     CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE freelance_marketplace;
@@ -16,7 +15,7 @@ CREATE TABLE IF NOT EXISTS userData (
     created_at    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     user_SSN      VARCHAR(20)     DEFAULT NULL
-) ;
+);
 
 CREATE TABLE IF NOT EXISTS specialistProfiles (
     id              INT UNSIGNED  PRIMARY KEY AUTO_INCREMENT,
@@ -27,22 +26,18 @@ CREATE TABLE IF NOT EXISTS specialistProfiles (
     primary_niche   VARCHAR(100)  NOT NULL,
     education_level ENUM('high-school','bachelor','master','phd') NOT NULL,
     summary         TEXT          DEFAULT NULL,
-
     avatar_path     VARCHAR(500)  DEFAULT NULL,
-
     country         VARCHAR(100)  DEFAULT NULL,
     timezone        VARCHAR(80)   DEFAULT NULL,
     profile_status  ENUM('pending','under_review','approved','rejected') NOT NULL DEFAULT 'pending',
     project_number  INT UNSIGNED  DEFAULT 0,
-
     hourly_rate     DECIMAL(10,2) DEFAULT NULL,
-
     rating_avg      DECIMAL(3,2)  NOT NULL DEFAULT 0.00,
     rating_count    INT UNSIGNED  NOT NULL DEFAULT 0,
     created_at      TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES userData(id) ON DELETE CASCADE
-) ;
+);
 
 CREATE TABLE IF NOT EXISTS specialistSkills (
     id         INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
@@ -104,6 +99,7 @@ CREATE TABLE IF NOT EXISTS clientProfile (
     updated_at          TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES userData(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS clientKycDocuments (
     id              INT UNSIGNED    PRIMARY KEY AUTO_INCREMENT,
     client_id       INT UNSIGNED    NOT NULL,
@@ -115,7 +111,7 @@ CREATE TABLE IF NOT EXISTS clientKycDocuments (
     reviewed_at     TIMESTAMP       DEFAULT NULL,
     uploaded_at     TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (client_id) REFERENCES clientProfile(id) ON DELETE CASCADE
-) ;
+);
 
 CREATE TABLE IF NOT EXISTS clientNichePrefs (
     id          INT UNSIGNED    PRIMARY KEY AUTO_INCREMENT,
@@ -123,8 +119,7 @@ CREATE TABLE IF NOT EXISTS clientNichePrefs (
     niche_name  VARCHAR(100)    NOT NULL,
     FOREIGN KEY (client_id) REFERENCES clientProfile(id) ON DELETE CASCADE,
     UNIQUE KEY uq_client_niche (client_id, niche_name)
-) ;
-
+);
 
 CREATE TABLE IF NOT EXISTS clientKeywords (
     id          INT UNSIGNED    PRIMARY KEY AUTO_INCREMENT,
@@ -170,11 +165,10 @@ CREATE TABLE IF NOT EXISTS project_postings (
     updated_at                 TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (client_id) REFERENCES clientProfile(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id)   REFERENCES userData(id) ON DELETE CASCADE
-) ;
+);
 
 CREATE TABLE IF NOT EXISTS jobs (
     id                   INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-    -- FIX: link to the full project posting
     project_posting_id   INT UNSIGNED DEFAULT NULL,
     client_id            INT UNSIGNED NOT NULL,
     category_id          INT UNSIGNED DEFAULT NULL,
@@ -194,10 +188,10 @@ CREATE TABLE IF NOT EXISTS jobs (
     start_date           DATE DEFAULT NULL,
     created_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (client_id)          REFERENCES clientProfile(id) ON DELETE CASCADE,
-    FOREIGN KEY (category_id)        REFERENCES categories(id)    ON DELETE SET NULL,
-    FOREIGN KEY (project_posting_id) REFERENCES project_postings(id) ON DELETE SET NULL,
-    UNIQUE KEY uq_jobs_slug   (slug)
+    FOREIGN KEY (client_id)          REFERENCES clientProfile(id)     ON DELETE CASCADE,
+    FOREIGN KEY (category_id)        REFERENCES categories(id)        ON DELETE SET NULL,
+    FOREIGN KEY (project_posting_id) REFERENCES project_postings(id)  ON DELETE SET NULL,
+    UNIQUE KEY uq_jobs_slug (slug)
 );
 
 CREATE TABLE IF NOT EXISTS job_milestones (
@@ -210,10 +204,12 @@ CREATE TABLE IF NOT EXISTS job_milestones (
     sort_order     INT UNSIGNED NOT NULL DEFAULT 0,
     created_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE
-) ;
+);
 
 CREATE TABLE IF NOT EXISTS bids (
     id                   INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    -- NOTE: job_id references project_postings, not the jobs table.
+    -- Consider renaming to posting_id for clarity.
     job_id               INT UNSIGNED NOT NULL,
     user_id              INT UNSIGNED NOT NULL,
     proposal_message     TEXT NOT NULL,
@@ -229,10 +225,10 @@ CREATE TABLE IF NOT EXISTS bids (
     client_feedback      TEXT DEFAULT NULL,
     submitted_at         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES userData(id) ON DELETE CASCADE,
-    FOREIGN KEY (job_id) REFERENCES project_postings(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES userData(id)          ON DELETE CASCADE,
+    FOREIGN KEY (job_id)  REFERENCES project_postings(id)  ON DELETE CASCADE,
     UNIQUE KEY uq_bid_job_user (job_id, user_id)
-) ;
+);
 
 CREATE TABLE IF NOT EXISTS bid_milestones (
     id             INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
@@ -244,8 +240,7 @@ CREATE TABLE IF NOT EXISTS bid_milestones (
     sort_order     INT UNSIGNED NOT NULL DEFAULT 0,
     created_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (bid_id) REFERENCES bids(id) ON DELETE CASCADE
-   
-) ;
+);
 
 CREATE TABLE IF NOT EXISTS bid_attachments (
     id          INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
@@ -256,16 +251,14 @@ CREATE TABLE IF NOT EXISTS bid_attachments (
     file_size   INT UNSIGNED DEFAULT NULL,
     uploaded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (bid_id) REFERENCES bids(id) ON DELETE CASCADE
-) ;
+);
 
 CREATE TABLE IF NOT EXISTS projects (
     project_id          INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-    
     bid_id              INT UNSIGNED DEFAULT NULL,
     posting_id          INT UNSIGNED DEFAULT NULL,
     specialist_id       INT UNSIGNED NOT NULL,
     client_id           INT UNSIGNED NOT NULL,
-    
     title               VARCHAR(255) DEFAULT NULL,
     niche               VARCHAR(100) DEFAULT NULL,
     total_amount        DECIMAL(12,2) NOT NULL DEFAULT 0.00,
@@ -283,25 +276,24 @@ CREATE TABLE IF NOT EXISTS projects (
 );
 
 CREATE TABLE IF NOT EXISTS project_milestones (
-    id             INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-    project_id     INT UNSIGNED NOT NULL,
-    bid_milestone_id INT UNSIGNED DEFAULT NULL,  
-    milestone_name VARCHAR(255) NOT NULL,
-    deliverables   TEXT DEFAULT NULL,
-    amount         DECIMAL(12,2) NOT NULL DEFAULT 0.00,
-    duration_days  INT UNSIGNED NOT NULL DEFAULT 0,
-    sort_order     INT UNSIGNED NOT NULL DEFAULT 0,
-    status         ENUM('pending','in_progress','submitted','approved','revision_requested','paid')
-                   NOT NULL DEFAULT 'pending',
-    submitted_at   TIMESTAMP DEFAULT NULL,
-    approved_at    TIMESTAMP DEFAULT NULL,
-    due_date       DATE DEFAULT NULL,
-    created_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id)       REFERENCES projects(project_id)   ON DELETE CASCADE,
-    FOREIGN KEY (bid_milestone_id) REFERENCES bid_milestones(id)     ON DELETE SET NULL
-) ;
-
+    id               INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    project_id       INT UNSIGNED NOT NULL,
+    bid_milestone_id INT UNSIGNED DEFAULT NULL,
+    milestone_name   VARCHAR(255) NOT NULL,
+    deliverables     TEXT DEFAULT NULL,
+    amount           DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    duration_days    INT UNSIGNED NOT NULL DEFAULT 0,
+    sort_order       INT UNSIGNED NOT NULL DEFAULT 0,
+    status           ENUM('pending','in_progress','submitted','approved','revision_requested','paid')
+                     NOT NULL DEFAULT 'pending',
+    submitted_at     TIMESTAMP DEFAULT NULL,
+    approved_at      TIMESTAMP DEFAULT NULL,
+    due_date         DATE DEFAULT NULL,
+    created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (project_id)       REFERENCES projects(project_id) ON DELETE CASCADE,
+    FOREIGN KEY (bid_milestone_id) REFERENCES bid_milestones(id)   ON DELETE SET NULL
+);
 
 CREATE TABLE IF NOT EXISTS escrow (
     id              INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
@@ -315,23 +307,22 @@ CREATE TABLE IF NOT EXISTS escrow (
     released_at     TIMESTAMP DEFAULT NULL,
     created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id)    REFERENCES projects(project_id) ON DELETE CASCADE,
-    FOREIGN KEY (milestone_id)  REFERENCES project_milestones(id) ON DELETE SET NULL,
-    FOREIGN KEY (client_id)     REFERENCES clientProfile(id)    ON DELETE CASCADE,
-    FOREIGN KEY (specialist_id) REFERENCES specialistProfiles(id) ON DELETE CASCADE
-
+    FOREIGN KEY (project_id)    REFERENCES projects(project_id)    ON DELETE CASCADE,
+    FOREIGN KEY (milestone_id)  REFERENCES project_milestones(id)  ON DELETE SET NULL,
+    FOREIGN KEY (client_id)     REFERENCES clientProfile(id)       ON DELETE CASCADE,
+    FOREIGN KEY (specialist_id) REFERENCES specialistProfiles(id)  ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS wallets (
     id           INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
     user_id      INT UNSIGNED NOT NULL UNIQUE,
     balance      DECIMAL(12,2) NOT NULL DEFAULT 0.00,
-    pending      DECIMAL(12,2) NOT NULL DEFAULT 0.00,  
+    pending      DECIMAL(12,2) NOT NULL DEFAULT 0.00,
     currency     VARCHAR(10)   NOT NULL DEFAULT 'USD',
     created_at   TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at   TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES userData(id) ON DELETE CASCADE
-) ;
+);
 
 CREATE TABLE IF NOT EXISTS wallet_transactions (
     id              INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
@@ -343,28 +334,30 @@ CREATE TABLE IF NOT EXISTS wallet_transactions (
     balance_after   DECIMAL(12,2) NOT NULL,
     description     VARCHAR(255)  DEFAULT NULL,
     created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id)    REFERENCES userData(id)          ON DELETE CASCADE,
-    FOREIGN KEY (project_id) REFERENCES projects(project_id)  ON DELETE SET NULL,
-    FOREIGN KEY (escrow_id)  REFERENCES escrow(id)            ON DELETE SET NULL
+    FOREIGN KEY (user_id)    REFERENCES userData(id)         ON DELETE CASCADE,
+    FOREIGN KEY (project_id) REFERENCES projects(project_id) ON DELETE SET NULL,
+    FOREIGN KEY (escrow_id)  REFERENCES escrow(id)           ON DELETE SET NULL
+);
 
-) ;
-
+-- FIX: added attachment_path and attachment_name columns
 CREATE TABLE IF NOT EXISTS messages (
-    id           INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-    sender_id    INT UNSIGNED NOT NULL,
-    receiver_id  INT UNSIGNED NOT NULL,
-    project_id   INT UNSIGNED DEFAULT NULL,
-    bid_id       INT UNSIGNED DEFAULT NULL,
-    subject      VARCHAR(255) DEFAULT NULL,
-    body         TEXT NOT NULL,
-    is_read      TINYINT(1) NOT NULL DEFAULT 0,
-    read_at      TIMESTAMP DEFAULT NULL,
-    created_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    id               INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    sender_id        INT UNSIGNED NOT NULL,
+    receiver_id      INT UNSIGNED NOT NULL,
+    project_id       INT UNSIGNED DEFAULT NULL,
+    bid_id           INT UNSIGNED DEFAULT NULL,
+    subject          VARCHAR(255) DEFAULT NULL,
+    body             TEXT NOT NULL,
+    attachment_path  VARCHAR(500) DEFAULT NULL,
+    attachment_name  VARCHAR(255) DEFAULT NULL,
+    is_read          TINYINT(1) NOT NULL DEFAULT 0,
+    read_at          TIMESTAMP DEFAULT NULL,
+    created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (sender_id)   REFERENCES userData(id)         ON DELETE CASCADE,
     FOREIGN KEY (receiver_id) REFERENCES userData(id)         ON DELETE CASCADE,
     FOREIGN KEY (project_id)  REFERENCES projects(project_id) ON DELETE SET NULL,
     FOREIGN KEY (bid_id)      REFERENCES bids(id)             ON DELETE SET NULL
-) ;
+);
 
 CREATE TABLE IF NOT EXISTS reviews (
     id            INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
@@ -381,13 +374,13 @@ CREATE TABLE IF NOT EXISTS reviews (
     FOREIGN KEY (reviewee_id) REFERENCES userData(id)         ON DELETE CASCADE,
     UNIQUE KEY uq_review_project_reviewer (project_id, reviewer_id),
     CONSTRAINT chk_reviews_rating CHECK (rating BETWEEN 1 AND 5)
-) ;
+);
 
 CREATE TABLE IF NOT EXISTS disputes (
     id              INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
     project_id      INT UNSIGNED NOT NULL,
-    raised_by       INT UNSIGNED NOT NULL,   
-    against         INT UNSIGNED NOT NULL,   
+    raised_by       INT UNSIGNED NOT NULL,
+    against         INT UNSIGNED NOT NULL,
     milestone_id    INT UNSIGNED DEFAULT NULL,
     reason          TEXT NOT NULL,
     status          ENUM('open','under_review','resolved','closed') NOT NULL DEFAULT 'open',
@@ -396,11 +389,11 @@ CREATE TABLE IF NOT EXISTS disputes (
     resolved_at     TIMESTAMP DEFAULT NULL,
     created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id)   REFERENCES projects(project_id)    ON DELETE CASCADE,
-    FOREIGN KEY (raised_by)    REFERENCES userData(id)            ON DELETE CASCADE,
-    FOREIGN KEY (against)      REFERENCES userData(id)            ON DELETE CASCADE,
-    FOREIGN KEY (milestone_id) REFERENCES project_milestones(id)  ON DELETE SET NULL,
-    FOREIGN KEY (arbitrator_id)REFERENCES userData(id)            ON DELETE SET NULL
+    FOREIGN KEY (project_id)    REFERENCES projects(project_id)   ON DELETE CASCADE,
+    FOREIGN KEY (raised_by)     REFERENCES userData(id)           ON DELETE CASCADE,
+    FOREIGN KEY (against)       REFERENCES userData(id)           ON DELETE CASCADE,
+    FOREIGN KEY (milestone_id)  REFERENCES project_milestones(id) ON DELETE SET NULL,
+    FOREIGN KEY (arbitrator_id) REFERENCES userData(id)           ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS dispute_messages (
@@ -409,50 +402,51 @@ CREATE TABLE IF NOT EXISTS dispute_messages (
     user_id     INT UNSIGNED NOT NULL,
     body        TEXT NOT NULL,
     created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (dispute_id) REFERENCES disputes(id)    ON DELETE CASCADE,
-    FOREIGN KEY (user_id)    REFERENCES userData(id)    ON DELETE CASCADE
-) ;
+    FOREIGN KEY (dispute_id) REFERENCES disputes(id)  ON DELETE CASCADE,
+    FOREIGN KEY (user_id)    REFERENCES userData(id)  ON DELETE CASCADE
+);
 
 CREATE TABLE IF NOT EXISTS notifications (
     id          INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
     user_id     INT UNSIGNED NOT NULL,
-    type        VARCHAR(80)  NOT NULL, 
+    type        VARCHAR(80)  NOT NULL,
     title       VARCHAR(255) NOT NULL,
     body        TEXT         DEFAULT NULL,
     link        VARCHAR(500) DEFAULT NULL,
     is_read     TINYINT(1)   NOT NULL DEFAULT 0,
     created_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES userData(id) ON DELETE CASCADE
-
-) ;
+);
 
 CREATE TABLE IF NOT EXISTS kyc_reviews (
     id              INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
     user_id         INT UNSIGNED NOT NULL,
     user_role       ENUM('Freelancer','Client') NOT NULL,
-    
     doc_table       ENUM('verificationDocuments','clientKycDocuments') NOT NULL,
     doc_id          INT UNSIGNED NOT NULL,
     status          ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending',
-    reviewer_id     INT UNSIGNED DEFAULT NULL,  
+    reviewer_id     INT UNSIGNED DEFAULT NULL,
     reviewer_notes  TEXT DEFAULT NULL,
     reviewed_at     TIMESTAMP DEFAULT NULL,
     created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id)    REFERENCES userData(id) ON DELETE CASCADE,
-    FOREIGN KEY (reviewer_id)REFERENCES userData(id) ON DELETE SET NULL
-) ;
+    FOREIGN KEY (user_id)     REFERENCES userData(id) ON DELETE CASCADE,
+    FOREIGN KEY (reviewer_id) REFERENCES userData(id) ON DELETE SET NULL
+);
+
 CREATE TABLE IF NOT EXISTS sanctions (
     id          INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
     user_id     INT UNSIGNED NOT NULL,
     admin_id    INT UNSIGNED NOT NULL,
     type        ENUM('warning','suspension','ban') NOT NULL,
     reason      TEXT NOT NULL,
-    expires_at  TIMESTAMP DEFAULT NULL,   
+    expires_at  TIMESTAMP DEFAULT NULL,
     lifted_at   TIMESTAMP DEFAULT NULL,
     created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id)  REFERENCES userData(id) ON DELETE CASCADE,
     FOREIGN KEY (admin_id) REFERENCES userData(id) ON DELETE CASCADE
-) ;
+);
+
+-- FIX: added missing semicolons on support_tickets and support_ticket_messages
 CREATE TABLE IF NOT EXISTS support_tickets (
     id          INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
     user_id     INT UNSIGNED NOT NULL,
@@ -460,12 +454,13 @@ CREATE TABLE IF NOT EXISTS support_tickets (
     body        TEXT NOT NULL,
     status      ENUM('open','in_progress','resolved','closed') NOT NULL DEFAULT 'open',
     priority    ENUM('low','medium','high','urgent') NOT NULL DEFAULT 'medium',
-    assigned_to INT UNSIGNED DEFAULT NULL,   -- Admin user_id
+    assigned_to INT UNSIGNED DEFAULT NULL,
     created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id)     REFERENCES userData(id) ON DELETE CASCADE,
     FOREIGN KEY (assigned_to) REFERENCES userData(id) ON DELETE SET NULL
-) 
+);
+
 CREATE TABLE IF NOT EXISTS support_ticket_messages (
     id          INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
     ticket_id   INT UNSIGNED NOT NULL,
@@ -474,7 +469,8 @@ CREATE TABLE IF NOT EXISTS support_ticket_messages (
     created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (ticket_id) REFERENCES support_tickets(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id)   REFERENCES userData(id)        ON DELETE CASCADE
-) 
+);
+
 CREATE TABLE IF NOT EXISTS sessions (
     id            VARCHAR(128) PRIMARY KEY,
     user_id       INT UNSIGNED DEFAULT NULL,
@@ -484,7 +480,8 @@ CREATE TABLE IF NOT EXISTS sessions (
     last_activity TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES userData(id) ON DELETE CASCADE
-) ;
+);
+
 INSERT IGNORE INTO categories (name, slug, description) VALUES
 ('Software Development',  'software-development',  'Custom software, web apps, mobile apps'),
 ('Design & Creative',     'design-creative',        'UI/UX, graphic design, branding'),
@@ -494,5 +491,5 @@ INSERT IGNORE INTO categories (name, slug, description) VALUES
 ('Finance & Accounting',  'finance-accounting',     'Bookkeeping, tax, financial modelling'),
 ('Legal',                 'legal',                  'Contract review, compliance, IP'),
 ('Engineering',           'engineering',            'Mechanical, civil, electrical engineering');
+
 SET FOREIGN_KEY_CHECKS = 1;
-ALTER TABLE projects ADD COLUMN title VARCHAR(255) DEFAULT NULL;

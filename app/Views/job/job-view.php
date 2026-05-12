@@ -1,155 +1,208 @@
 <!DOCTYPE html>
-<!--
-    ============================================================
-    NEXUS PLATFORM — Views/specialist/job-view.php
-    Template: Posted Job — Specialist View & Bid Placement
-    Role:     specialist (authenticated)
-    Route:    /jobs/{job_slug}   |   /jobs/{job_id}
-    ============================================================
-    PHP Data contract (passed from JobController::show()):
-      $job          — full job record (all wizard fields)
-      $client       — posting client + org
-      $milestones   — ordered array of milestone rows
-      $ndaRequired  — bool
-      $bidCount     — int, total proposals received so far
-      $myBid        — null | existing proposal for this specialist
-      $canBid       — bool (verified, not already hired, etc.)
-      $blockReason  — null | string explaining why canBid=false
-      $similarJobs  — array(3) of related postings
-      $specialist   — authenticated user record
-    ============================================================
--->
+
+<?php
+
+$jobId       = (int) ($job['id'] ?? 0);
+$jobTitle    = htmlspecialchars($job['title'] ?? $job['project_title'] ?? 'Untitled Project');
+$jobRef      = htmlspecialchars($job['ref'] ?? ('NX-' . date('Y') . '-' . str_pad($jobId, 4, '0', STR_PAD_LEFT)));
+$jobBrief    = $job['brief'] ?? $job['project_brief'] ?? '';
+$jobReqs     = $job['full_requirements'] ?? $job['project_full_requirements'] ?? '';
+$jobIdeal    = $job['ideal_candidate'] ?? '';
+$jobBudget   = (float) ($job['total_budget'] ?? 0);
+$jobDuration = (int) ($job['total_duration_days'] ?? array_sum(array_column($milestones, 'duration_days')));
+$jobNiche    = htmlspecialchars($job['niche'] ?? 'Consulting');
+$jobEngType  = htmlspecialchars($job['engagement_type'] ?? '');
+$jobPostedAt = $job['posted_at'] ?? $job['created_at'] ?? null;
+$firstEscrow = (float) ($job['first_escrow'] ?? ($milestones[0]['amount'] ?? 0));
+$isPublic    = ($job['visibility'] ?? 'public') === 'public';
+$ndaRequired = $ndaRequired ?? !empty($job['nda_required']);
+$bidCount    = (int) ($bidCount ?? $job['bid_count'] ?? 0);
+$canBid      = $canBid ?? true;
+$blockReason = $blockReason ?? null;
+$myBid       = $myBid ?? null;
+
+
+$clientOrg       = htmlspecialchars($client['org_name'] ?? $client['user_name'] ?? 'Client');
+$clientInitials  = strtoupper(substr(str_replace(' ', '', $clientOrg), 0, 2));
+$clientIndustry  = htmlspecialchars($client['industry'] ?? 'Corporate');
+$clientCity      = htmlspecialchars($client['city'] ?? $client['location'] ?? '');
+$clientVerified  = !empty($client['verified']);
+$clientSlug      = $client['slug'] ?? 'profile/' . ($client['id'] ?? '');
+
+
+$nicheIcons = [
+    'Legal Consulting'      => '⚖️',
+    'Data Science'          => '🧠',
+    'Data Science & ML'     => '🧠',
+    'Technical Translation' => '🌐',
+    'Financial Modelling'   => '📈',
+    'Biomedical Research'   => '🔬',
+    'Cybersecurity Audit'   => '🔐',
+    'Default'               => '📋',
+];
+$nicheIcon = $nicheIcons[$job['niche'] ?? ''] ?? $nicheIcons['Default'];
+
+$nicheFields = [];
+if (!empty($job['niche_answers_json'])) {
+    $nicheFields = json_decode($job['niche_answers_json'], true) ?: [];
+}
+
+foreach (['jurisdictions', 'governing_law', 'bar_admissions', 'document_languages',
+          'industry_context', 'engagement_type'] as $col) {
+    if (!empty($job[$col]) && !isset($nicheFields[$col])) {
+        $nicheFields[$col] = $job[$col];
+    }
+}
+
+$ndaType     = htmlspecialchars($job['nda_type'] ?? 'standard');
+$ndaDuration = htmlspecialchars($job['nda_duration'] ?? '2 years');
+$ndaDamages  = $job['nda_damages'] ?? '10000';
+$ndaDmgLabel = $ndaDamages === 'none' ? 'None' : '$' . number_format((float) $ndaDamages) . ' per breach';
+$ndaGovLaw   = htmlspecialchars($job['nda_governing_law'] ?? 'Egyptian Civil Law');
+
+
+$freeRevisions = (int) ($job['free_revisions_per_milestone'] ?? $job['free_revisions'] ?? 2);
+
+
+$clientStats = [
+    'completed_projects' => (int) ($client['completed_projects'] ?? 0),
+    'dispute_rate'       => htmlspecialchars($client['dispute_rate'] ?? '—'),
+    'payment_reliability'=> htmlspecialchars($client['payment_reliability'] ?? '—'),
+    'repeat_hire_rate'   => htmlspecialchars($client['repeat_hire_rate'] ?? '—'),
+    'avg_approval_h'     => htmlspecialchars($client['avg_approval_hours'] ?? '72'),
+];
+?>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- PHP: <title><?= htmlspecialchars($job['title']) ?> — Nexus</title> -->
-<title>MENA Expansion — Cross-Border Contract Review · Nexus</title>
+<title><?= $jobTitle ?> — Nexus</title>
 <link rel="stylesheet" href="/assets/css/style.css">
 <link rel="stylesheet" href="/assets/css/job-view.css">
 </head>
 <body>
 
-<!-- ══════════════════ TOPNAV
-     PHP: include 'partials/topnav.php';
-     Pass: ['role'=>'specialist','user'=>$specialist]
--->
 <?php require __DIR__ . '/../partials/topnav.php'; ?>
 
-<!-- ══════════════════ JOB HERO ══════════════════ -->
 <div class="job-hero">
   <div class="container">
     <div class="job-hero-inner">
 
-      <!-- NICHE ICON -->
-      <!-- PHP: $nicheIcons = ['Legal Consulting'=>'⚖️','Data Science'=>'🧠','Translation'=>'🌐',...] -->
-      <div class="job-niche-icon">⚖️</div>
+
+      <div class="job-niche-icon"><?= $nicheIcon ?></div>
 
       <div style="flex:1;">
 
-        <!-- BREADCRUMB -->
+
         <div style="font-size:.75rem;font-family:var(--font-mono);color:var(--ink-muted);margin-bottom:8px;">
-          <!-- PHP: htmlspecialchars($job['niche']) ?> · <?= htmlspecialchars($job['engagement_type']) ?>
-          Legal Consulting &nbsp;·&nbsp; Contract Review &amp; Advisory
+          <?= $jobNiche ?><?= $jobEngType ? ' &nbsp;·&nbsp; ' . $jobEngType : '' ?>
         </div>
 
-        <!-- TITLE -->
-        <!-- PHP: <h1 ...><?= htmlspecialchars($job['title']) ?></h1> -->
+
         <h1 style="font-family:var(--font-display);font-size:1.8rem;font-weight:500;margin-bottom:10px;line-height:1.2;">
-          MENA Expansion — Cross-Border Contract Review
+          <?= $jobTitle ?>
         </h1>
 
-        <!-- META ROW -->
+
         <div class="job-meta-row">
-          <!-- PHP: foreach niche-specific fields as key=>val -->
+          <?php if (!empty($nicheFields['jurisdictions'])): ?>
           <div class="job-meta-item">
             <span>📍</span>
-            <!-- PHP: implode(' · ', $job['jurisdictions']) -->
-            Egypt
+            <?= htmlspecialchars(is_array($nicheFields['jurisdictions'])
+                ? implode(' · ', $nicheFields['jurisdictions'])
+                : $nicheFields['jurisdictions']) ?>
           </div>
+          <?php endif; ?>
+          <?php if (!empty($nicheFields['governing_law'])): ?>
           <div class="job-meta-item">
             <span>⚖️</span>
-            <!-- PHP: $job['governing_law'] -->
-            Cross-border MENA
+            <?= htmlspecialchars(is_array($nicheFields['governing_law'])
+                ? implode(', ', $nicheFields['governing_law'])
+                : $nicheFields['governing_law']) ?>
           </div>
+          <?php endif; ?>
+          <?php if ($clientCity): ?>
+          <div class="job-meta-item"><span>🌍</span><?= $clientCity ?></div>
+          <?php endif; ?>
         </div>
 
-        <!-- BADGES -->
         <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
-          <!-- PHP: if($job['visibility']==='public'): -->
+          <?php if ($isPublic): ?>
           <span class="badge badge-default">🌐 Public Listing</span>
-          <!-- PHP: if($job['nda_required']): -->
+          <?php else: ?>
+          <span class="badge badge-pending">🔒 Invitation-Only</span>
+          <?php endif; ?>
+          <?php if ($ndaRequired): ?>
           <span class="badge badge-pending">🔏 NDA Required on Shortlist</span>
-          <!-- PHP: if($job['interview_required']): -->
+          <?php endif; ?>
+          <?php if (!empty($job['interview_required'])): ?>
           <span class="badge badge-default">🎙 Technical Interview</span>
-          <!-- PHP: <span class="badge badge-default font-mono" style="font-size:.625rem;">Ref: <?= $job['ref'] ?></span> -->
-          <span class="badge badge-default font-mono" style="font-size:.625rem;">Ref: NX-2025-4821</span>
+          <?php endif; ?>
+          <span class="badge badge-default font-mono" style="font-size:.625rem;">Ref: <?= $jobRef ?></span>
+          <?php if ($myBid): ?>
+          <span class="badge badge-verified badge-dot" style="font-size:.7rem;">✓ Proposal Submitted</span>
+          <?php endif; ?>
         </div>
 
       </div>
 
-      <!-- CLIENT MINI (top right) -->
       <div style="flex-shrink:0;text-align:right;min-width:160px;">
         <div style="font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-muted);font-weight:700;margin-bottom:8px;font-family:var(--font-body);">Posted by</div>
-        <!-- PHP: link to /client/{$client['slug']} -->
-        <a href="/profile" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);">
-          <div style="width:36px;height:36px;border-radius:var(--radius-sm);background:var(--ink);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:.875rem;font-weight:600;color:var(--gold);">FC</div>
+        <a href="/<?= htmlspecialchars($clientSlug) ?>" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);">
+          <div style="width:36px;height:36px;border-radius:var(--radius-sm);background:var(--ink);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:.875rem;font-weight:600;color:var(--gold);">
+            <?= $clientInitials ?>
+          </div>
           <div style="text-align:left;">
-            <!-- PHP: htmlspecialchars($client['org']['name']) -->
-            <div style="font-weight:700;font-size:.875rem;">FinCorp Egypt</div>
-            <div class="text-xs text-muted">Financial Services · Cairo</div>
+            <div style="font-weight:700;font-size:.875rem;"><?= $clientOrg ?></div>
+            <div class="text-xs text-muted"><?= $clientIndustry ?><?= $clientCity ? ' · ' . $clientCity : '' ?></div>
           </div>
         </a>
+        <?php if ($clientVerified): ?>
         <div style="margin-top:10px;">
           <span class="badge badge-verified badge-dot" style="font-size:.625rem;">Verified</span>
         </div>
-        <!-- PHP: date('M j, Y', $job['posted_at']) -->
-        <div class="text-xs text-muted font-mono mt-8">Posted Apr 10, 2025</div>
+        <?php endif; ?>
+        <?php if ($jobPostedAt): ?>
+        <div class="text-xs text-muted font-mono mt-8">Posted <?= date('M j, Y', strtotime($jobPostedAt)) ?></div>
+        <?php endif; ?>
       </div>
 
-    </div><!-- end hero-inner -->
+    </div>
 
-    <!-- STATS BAR -->
+
     <div class="job-stats-bar">
-      <!-- PHP: each driven by $job fields -->
       <div class="job-stat">
-        <!-- PHP: '$'.number_format($job['total_budget']) -->
-        <div class="val">$12,000</div>
+        <div class="val">$<?= number_format($jobBudget) ?></div>
         <div class="lbl">Total Budget</div>
       </div>
       <div class="job-stat">
-        <!-- PHP: count($job['milestones']).' phases' -->
-        <div class="val">3</div>
-        <div class="lbl">Milestones</div>
+        <div class="val"><?= count($milestones) ?></div>
+        <div class="lbl">Milestone<?= count($milestones) !== 1 ? 's' : '' ?></div>
       </div>
       <div class="job-stat">
-        <!-- PHP: $job['total_duration_days'].' days est.' -->
-        <div class="val">49d</div>
+        <div class="val"><?= $jobDuration ?>d</div>
         <div class="lbl">Duration</div>
       </div>
       <div class="job-stat">
-        <!-- PHP: '$'.number_format($job['first_escrow']).' locked at signing' -->
-        <div class="val">$3,000</div>
+        <div class="val">$<?= number_format($firstEscrow) ?></div>
         <div class="lbl">First Escrow</div>
       </div>
       <div class="job-stat">
-        <!-- PHP: $bidCount -->
-        <div class="val">7</div>
-        <div class="lbl">Proposals So Far</div>
+        <div class="val"><?= $bidCount ?></div>
+        <div class="lbl">Proposal<?= $bidCount !== 1 ? 's' : '' ?> So Far</div>
       </div>
     </div>
 
   </div>
-</div><!-- end job-hero -->
+</div>
 
-<!-- ══════════════════ BODY ══════════════════ -->
 <div class="container">
   <div class="job-body">
 
-    <!-- ─── LEFT: JOB DETAIL ─── -->
+
     <div>
 
-      <!-- TABS -->
+
       <div class="tabs mt-24 mb-28">
         <button class="tab-item active" onclick="switchTab(0)">Project Brief</button>
         <button class="tab-item" onclick="switchTab(1)">Milestones</button>
@@ -157,418 +210,406 @@
         <button class="tab-item" onclick="switchTab(3)">Client Profile</button>
       </div>
 
-      <!-- ══ TAB 0: PROJECT BRIEF ══ -->
+
       <div id="tab-0">
 
+        <?php if ($jobBrief): ?>
         <div class="job-section">
           <div class="job-section-title">Project Brief</div>
-          <!-- PHP: nl2br(htmlspecialchars($job['brief'])) -->
-          <p style="margin-bottom:12px;">We are a mid-size Egyptian technology company preparing to expand into UAE and KSA markets. We require a comprehensive review of our standard SaaS agreements, distributor contracts, and employment terms across all three jurisdictions, with specific attention to data residency requirements and GDPR cross-border transfer provisions.</p>
-          <p style="margin-bottom:12px;">The engagement must deliver actionable legal recommendations, a revised contract suite, and a jurisdiction-specific risk register. All deliverables must be production-ready — not advisory memos.</p>
-          <p>We have previously engaged legal consultants for similar work and expect a structured, milestone-driven approach with clear sign-off gates at each phase.</p>
+          <div style="font-size:.9375rem;line-height:1.75;color:var(--ink-mid);">
+            <?= nl2br(htmlspecialchars($jobBrief)) ?>
+          </div>
         </div>
+        <?php endif; ?>
 
+        <?php if (!empty($nicheFields)): ?>
         <div class="job-section">
           <div class="job-section-title">Niche-Specific Details</div>
-          <!-- PHP: foreach($job['niche_fields'] as $field): -->
-          <div class="niche-field-row">
-            <div class="niche-field-label">Engagement Type</div>
-            <div class="niche-field-value">Contract Review</div>
-          </div>
-          <div class="niche-field-row">
-            <div class="niche-field-label">Jurisdictions</div>
-            <div class="niche-field-value">Cross-border MENA</div>
-          </div>
-          <div class="niche-field-row">
-            <div class="niche-field-label">Governing Law</div>
-            <div class="niche-field-value">Multiple / To be determined per jurisdiction</div>
-          </div>
-          <div class="niche-field-row">
-            <div class="niche-field-label">Required Bar Admissions</div>
-            <div class="niche-field-value">Cairo Bar and/or DIFC Courts experience required</div>
-          </div>
-          <div class="niche-field-row">
-            <div class="niche-field-label">Document Languages</div>
-            <div class="niche-field-value">Arabic · English · French</div>
-          </div>
-          <div class="niche-field-row">
-            <div class="niche-field-label">Industry Context</div>
-            <div class="niche-field-value">SaaS / Technology · Financial Services-adjacent</div>
-          </div>
-        </div>
+          <?php
 
+          $fieldLabels = [
+              'engagement_type'   => 'Engagement Type',
+              'jurisdictions'     => 'Jurisdictions',
+              'governing_law'     => 'Governing Law',
+              'bar_admissions'    => 'Required Bar Admissions',
+              'document_languages'=> 'Document Languages',
+              'industry_context'  => 'Industry Context',
+              'dataset_size'      => 'Dataset Size',
+              'ml_framework'      => 'ML Framework',
+              'source_language'   => 'Source Language',
+              'target_language'   => 'Target Language',
+              'subject_domain'    => 'Subject Domain',
+              'model_type'        => 'Model Type',
+              'audit_scope'       => 'Audit Scope',
+              'compliance_standard'=>'Compliance Standard',
+          ];
+          foreach ($nicheFields as $key => $val):
+              if (!$val || $key === 'niche') continue;
+              $label = $fieldLabels[$key] ?? ucwords(str_replace('_', ' ', $key));
+              $display = is_array($val) ? implode(' · ', $val) : $val;
+          ?>
+          <div class="niche-field-row">
+            <div class="niche-field-label"><?= htmlspecialchars($label) ?></div>
+            <div class="niche-field-value"><?= htmlspecialchars($display) ?></div>
+          </div>
+          <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
+
+        <?php if ($jobReqs): ?>
         <div class="job-section">
           <div class="job-section-title">Full Project Requirements</div>
-          <!-- PHP: nl2br(htmlspecialchars($job['full_requirements'])) -->
-          <p style="margin-bottom:10px;">The successful specialist will be required to:</p>
-          <ul style="padding-left:20px;color:var(--ink-mid);font-size:.9375rem;line-height:2;">
-            <li>Conduct a gap analysis of our current SaaS agreements against Egyptian, UAE, and KSA commercial law requirements</li>
-            <li>Review and redraft distribution and reseller agreements for cross-border use</li>
-            <li>Audit employment contract templates for compliance in each jurisdiction</li>
-            <li>Produce a GDPR cross-border transfer risk register with recommended Standard Contractual Clauses where applicable</li>
-            <li>Deliver all revised contracts in both Arabic and English</li>
-            <li>Attend up to 3 video calls for stakeholder review</li>
-          </ul>
+          <div style="font-size:.9375rem;line-height:1.75;color:var(--ink-mid);">
+            <?= nl2br(htmlspecialchars($jobReqs)) ?>
+          </div>
         </div>
+        <?php endif; ?>
 
+        <?php if ($jobIdeal): ?>
         <div class="job-section">
           <div class="job-section-title">Ideal Specialist Profile</div>
-          <!-- PHP: nl2br(htmlspecialchars($job['ideal_candidate'])) -->
-          <p>We are looking for a qualified commercial lawyer with a minimum of 7 years of cross-border practice experience in the MENA region. Prior experience advising technology or SaaS companies on cross-border market entry is strongly preferred. Fluency in Arabic and English is mandatory; French is advantageous.</p>
+          <div style="font-size:.9375rem;line-height:1.75;color:var(--ink-mid);">
+            <?= nl2br(htmlspecialchars($jobIdeal)) ?>
+          </div>
         </div>
+        <?php endif; ?>
 
         <div class="job-section">
           <div class="job-section-title">Timeline &amp; Delivery</div>
           <div style="display:flex;gap:24px;flex-wrap:wrap;">
             <div>
               <div class="text-xs text-muted mb-4">Estimated Duration</div>
-              <!-- PHP: $job['timeline_label'] -->
-              <div style="font-weight:700;">49 days (3 phases)</div>
+              <div style="font-weight:700;"><?= $jobDuration ?> days (<?= count($milestones) ?> phase<?= count($milestones) !== 1 ? 's' : '' ?>)</div>
             </div>
+            <?php if (!empty($job['expected_start'])): ?>
             <div>
               <div class="text-xs text-muted mb-4">Expected Start</div>
-              <div style="font-weight:700;">Within 2 weeks of contract signing</div>
+              <div style="font-weight:700;"><?= htmlspecialchars($job['expected_start']) ?></div>
             </div>
+            <?php endif; ?>
             <div>
               <div class="text-xs text-muted mb-4">Free Revisions / Phase</div>
-              <!-- PHP: $job['free_revisions'] -->
-              <div style="font-weight:700;">2 revisions included</div>
+              <div style="font-weight:700;"><?= $freeRevisions ?> revision<?= $freeRevisions !== 1 ? 's' : '' ?> included</div>
             </div>
             <div>
               <div class="text-xs text-muted mb-4">Proposal Visibility</div>
-              <!-- PHP: $job['visibility']==='public' ? 'Public' : 'Invitation-Only' -->
-              <div style="font-weight:700;">Public</div>
+              <div style="font-weight:700;"><?= $isPublic ? 'Public' : 'Invitation-Only' ?></div>
             </div>
           </div>
         </div>
 
-      </div><!-- end tab-0 -->
-
-      <!-- ══ TAB 1: MILESTONES ══ -->
+      </div>
       <div id="tab-1" class="hidden">
 
         <p class="text-sm text-muted mb-20">Funds are locked in escrow per milestone. You begin each phase only after the client confirms the previous phase escrow and you both sign off. Payments release on bilateral milestone approval.</p>
 
-        <!-- PHP: foreach($milestones as $i=>$m): -->
+        <?php
+        $msTotal     = 0;
+        $msTotalDays = 0;
+        foreach ($milestones as $i => $m):
+          $msAmt  = (float) ($m['amount'] ?? 0);
+          $msDays = (int) ($m['duration_days'] ?? $m['duration'] ?? 0);
+          $msName = $m['name'] ?? $m['milestone_name'] ?? 'Milestone ' . ($i + 1);
+          $msDels = $m['deliverables'] ?? '';
+          $msTotal     += $msAmt;
+          $msTotalDays += $msDays;
+        ?>
         <div class="milestone-display-item">
-          <div class="milestone-display-num">1</div>
+          <div class="milestone-display-num"><?= $i + 1 ?></div>
           <div class="milestone-display-body">
-            <!-- PHP: htmlspecialchars($m['name']) -->
-            <div class="milestone-display-name">Initial Document Review &amp; Gap Analysis</div>
+            <div class="milestone-display-name"><?= htmlspecialchars($msName) ?></div>
             <div class="milestone-display-meta">
-              <!-- PHP: $m['duration'].' days' -->
-              <span>⏱ 14 days</span>
+              <span>⏱ <?= $msDays ?> day<?= $msDays !== 1 ? 's' : '' ?></span>
+              <?php if ($msDels): ?>
+              <span style="color:var(--ink-muted);font-size:.8rem;">· <?= htmlspecialchars($msDels) ?></span>
+              <?php endif; ?>
             </div>
           </div>
           <div class="milestone-display-amount">
-            <!-- PHP: '$'.number_format($m['amount']) -->
-            <div style="font-family:var(--font-mono);font-weight:600;font-size:1rem;">$3,000</div>
+            <div style="font-family:var(--font-mono);font-weight:600;font-size:1rem;">$<?= number_format($msAmt) ?></div>
             <div class="text-xs text-muted">on approval</div>
           </div>
         </div>
+        <?php endforeach; ?>
 
-        <div class="milestone-display-item">
-          <div class="milestone-display-num">2</div>
-          <div class="milestone-display-body">
-            <div class="milestone-display-name">Jurisdiction-Specific Legal Analysis</div>
-            <div class="milestone-display-meta">
-              <span>⏱ 21 days</span>
-            </div>
-          </div>
-          <div class="milestone-display-amount">
-            <div style="font-family:var(--font-mono);font-weight:600;font-size:1rem;">$4,500</div>
-            <div class="text-xs text-muted">on approval</div>
-          </div>
-        </div>
 
-        <div class="milestone-display-item">
-          <div class="milestone-display-num">3</div>
-          <div class="milestone-display-body">
-            <div class="milestone-display-name">Revised Contracts &amp; Final Advisory Report</div>
-            <div class="milestone-display-meta">
-              <span>⏱ 14 days</span>
-            </div>
-          </div>
-          <div class="milestone-display-amount">
-            <div style="font-family:var(--font-mono);font-weight:600;font-size:1rem;">$4,500</div>
-            <div class="text-xs text-muted">on approval</div>
-          </div>
-        </div>
-
-        <!-- TOTALS -->
         <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;background:var(--ivory-deep);border:1px solid var(--border);border-radius:var(--radius-sm);margin-top:16px;">
           <span style="font-weight:700;">Total Project Value</span>
-          <span style="font-family:var(--font-mono);font-size:1.2rem;font-weight:600;">$12,000</span>
+          <span style="font-family:var(--font-mono);font-size:1.2rem;font-weight:600;">$<?= number_format($msTotal) ?></span>
         </div>
 
         <div class="verify-band mt-16">
           <span>🔒</span>
           <div style="font-size:.8125rem;">
-            <strong>First escrow ($3,000) is locked at contract signing.</strong> You will not begin Phase 1 work until this is confirmed. Each subsequent milestone's escrow is locked before you start that phase. Auto-approval triggers after 72h if the client does not review.
+            <strong>First escrow ($<?= number_format($firstEscrow) ?>) is locked at contract signing.</strong>
+            You will not begin Phase 1 work until this is confirmed.
+            Each subsequent milestone's escrow is locked before you start that phase.
+            Auto-approval triggers after 72h if the client does not review.
           </div>
         </div>
 
         <hr class="divider">
         <h4 class="mb-8" style="font-size:.9rem;">Revision Policy</h4>
-        <p class="text-sm text-muted">2 free revisions are included per milestone. Additional revisions are billed at a separately agreed rate, logged and tracked by the platform. Revision requests must be submitted within the client's inspection window.</p>
+        <p class="text-sm text-muted">
+          <?= $freeRevisions ?> free revision<?= $freeRevisions !== 1 ? 's are' : ' is' ?> included per milestone.
+          Additional revisions are billed at a separately agreed rate, logged and tracked by the platform.
+          Revision requests must be submitted within the client's inspection window.
+        </p>
 
-      </div><!-- end tab-1 -->
-
-      
-      <!-- ══ TAB 2: NDA & PRIVACY ══ -->
+      </div>
       <div id="tab-2" class="hidden">
 
         <div class="job-section">
           <div class="job-section-title">NDA Terms</div>
+          <?php if ($ndaRequired): ?>
           <div class="verify-band mb-16">
             <span>🔏</span>
             <div style="font-size:.8125rem;">
-              <strong>NDA is required for this engagement.</strong> It will be auto-generated and sent to you via the platform if the client shortlists your proposal. You must sign before accessing the full project brief and any attached materials.
+              <strong>NDA is required for this engagement.</strong>
+              It will be auto-generated and sent to you via the platform if the client shortlists your proposal.
+              You must sign before accessing the full project brief and any attached materials.
             </div>
           </div>
-
-          <!-- PHP: $job['nda_type']==='standard' ? show below : show 'Custom NDA on shortlist' -->
+          <?php if ($ndaType === 'custom'): ?>
+          <div class="niche-field-row"><div class="niche-field-label">NDA Type</div><div class="niche-field-value">Custom NDA (provided by client)</div></div>
+          <?php else: ?>
           <div class="niche-field-row"><div class="niche-field-label">NDA Type</div><div class="niche-field-value">Standard Nexus NDA</div></div>
-          <div class="niche-field-row"><div class="niche-field-label">Duration</div><div class="niche-field-value">2 years from engagement end</div></div>
-          <div class="niche-field-row"><div class="niche-field-label">Liquidated Damages</div><div class="niche-field-value">$10,000 per breach</div></div>
-          <div class="niche-field-row"><div class="niche-field-label">Governing Law (NDA)</div><div class="niche-field-value">Egyptian Civil Law</div></div>
+          <div class="niche-field-row"><div class="niche-field-label">Duration</div><div class="niche-field-value"><?= $ndaDuration ?> from engagement end</div></div>
+          <div class="niche-field-row"><div class="niche-field-label">Liquidated Damages</div><div class="niche-field-value"><?= $ndaDmgLabel ?></div></div>
+          <div class="niche-field-row"><div class="niche-field-label">Governing Law (NDA)</div><div class="niche-field-value"><?= $ndaGovLaw ?></div></div>
           <div class="niche-field-row"><div class="niche-field-label">Applies To</div><div class="niche-field-value">All project materials, communications, client identity, and deliverables</div></div>
+          <?php endif; ?>
+          <?php else: ?>
+          <p class="text-sm text-muted">No NDA is required for this engagement.</p>
+          <?php endif; ?>
         </div>
 
         <div class="job-section">
           <div class="job-section-title">Your Obligations</div>
-          <p class="text-sm text-muted">By submitting a proposal you acknowledge that you have read and agree to the project scope and the NDA terms outlined above. Accepting a contract on this project constitutes a binding signature of the auto-generated NDA.</p>
+          <p class="text-sm text-muted">
+            By submitting a proposal you acknowledge that you have read and agree to the project scope
+            <?= $ndaRequired ? 'and the NDA terms outlined above. Accepting a contract on this project constitutes a binding signature of the auto-generated NDA.' : 'and Nexus platform terms.' ?>
+          </p>
         </div>
 
-      </div><!-- end tab-2 -->
+      </div>
 
-      <!-- ══ TAB 3: CLIENT PROFILE ══ -->
       <div id="tab-3" class="hidden">
 
-        <!-- CLIENT SUMMARY — mirrors client-profile-public content -->
         <div style="display:flex;gap:20px;align-items:flex-start;margin-bottom:24px;">
-          <div style="width:72px;height:72px;border-radius:var(--radius-md);background:var(--ink);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:1.5rem;font-weight:600;color:var(--gold);flex-shrink:0;">FC</div>
+          <div style="width:72px;height:72px;border-radius:var(--radius-md);background:var(--ink);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:1.5rem;font-weight:600;color:var(--gold);flex-shrink:0;">
+            <?= $clientInitials ?>
+          </div>
           <div>
-            <h3 style="font-size:1.2rem;margin-bottom:4px;">FinCorp Egypt</h3>
-            <div class="text-sm text-muted mb-8">Corporate · Financial Services · Cairo, Egypt</div>
+            <h3 style="font-size:1.2rem;margin-bottom:4px;"><?= $clientOrg ?></h3>
+            <div class="text-sm text-muted mb-8"><?= $clientIndustry ?><?= $clientCity ? ' · ' . $clientCity : '' ?></div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <?php if ($clientVerified): ?>
               <span class="badge badge-verified badge-dot" style="font-size:.625rem;">Verified</span>
+              <?php endif; ?>
             </div>
           </div>
         </div>
 
-        <!-- PHP: $client['org']['bio'] -->
-        <p class="mb-16" style="font-size:.9rem;">FinCorp Egypt is a mid-market financial services company providing corporate banking, investment advisory, and digital payment infrastructure across North Africa and the GCC. They engage specialized consultants for high-stakes projects requiring structured milestone delivery and verified credentials.</p>
+        <?php if (!empty($client['bio'])): ?>
+        <p class="mb-16" style="font-size:.9rem;"><?= nl2br(htmlspecialchars($client['bio'])) ?></p>
+        <?php endif; ?>
 
         <div class="client-mini mb-20">
-          <!-- PHP: $client['stats'] -->
-          <div class="client-mini-stat"><span class="text-muted">Projects Completed</span><span class="font-mono font-bold">12</span></div>
-          <div class="client-mini-stat"><span class="text-muted">Dispute Rate</span><span class="font-mono font-bold" style="color:var(--sage);">2.1%</span></div>
-          <div class="client-mini-stat"><span class="text-muted">Payment Reliability</span><span class="font-mono font-bold" style="color:var(--sage);">100%</span></div>
-          <div class="client-mini-stat"><span class="text-muted">Repeat Hire Rate</span><span class="font-mono font-bold">71%</span></div>
-          <div class="client-mini-stat"><span class="text-muted">Auto-Approval Window</span><span class="font-mono">72h</span></div>
+          <div class="client-mini-stat">
+            <span class="text-muted">Projects Completed</span>
+            <span class="font-mono font-bold"><?= $clientStats['completed_projects'] ?></span>
+          </div>
+          <div class="client-mini-stat">
+            <span class="text-muted">Dispute Rate</span>
+            <span class="font-mono font-bold" style="color:var(--sage);"><?= $clientStats['dispute_rate'] ?></span>
+          </div>
+          <div class="client-mini-stat">
+            <span class="text-muted">Payment Reliability</span>
+            <span class="font-mono font-bold" style="color:var(--sage);"><?= $clientStats['payment_reliability'] ?></span>
+          </div>
+          <div class="client-mini-stat">
+            <span class="text-muted">Repeat Hire Rate</span>
+            <span class="font-mono font-bold"><?= $clientStats['repeat_hire_rate'] ?></span>
+          </div>
+          <div class="client-mini-stat">
+            <span class="text-muted">Auto-Approval Window</span>
+            <span class="font-mono"><?= $clientStats['avg_approval_h'] ?>h</span>
+          </div>
         </div>
 
-        <a href="/profile" class="btn btn-outline btn-sm">View Full Client Profile →</a>
+        <a href="/<?= htmlspecialchars($clientSlug) ?>" class="btn btn-outline btn-sm">View Full Client Profile →</a>
 
-      </div><!-- end tab-4 -->
-
-    </div><!-- end left column -->
-
-        <!-- FOOTER — always visible -->
-
-      <!-- CLIENT TRUST -->
-      <div class="client-mini mt-16">
-        <div style="font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--ink-muted);margin-bottom:12px;font-family:var(--font-body);">Client Quick Stats</div>
-        <div class="client-mini-stat"><span class="text-muted">Completed Projects</span><span class="font-mono font-bold">12</span></div>
-        <div class="client-mini-stat"><span class="text-muted">Payment Reliability</span><span class="font-mono font-bold" style="color:var(--sage);">100%</span></div>
-        <div class="client-mini-stat"><span class="text-muted">Avg. Approval Time</span><span class="font-mono font-bold" style="color:var(--sage);">38h</span></div>
-        <div class="client-mini-stat"><span class="text-muted">Dispute Rate</span><span class="font-mono">2.1%</span></div>
-        <a href="/profile" style="display:block;text-align:center;margin-top:12px;font-size:.8125rem;color:var(--gold);">View full client profile →</a>
       </div>
 
-    </div><!-- end right column -->
+    </div>
 
-  </div><!-- end job-body -->
-</div><!-- end container -->
 
-<!-- ══════════════════ MODALS ══════════════════ -->
+    <div>
 
-<!-- SUCCESS MODAL — PHP: shown on $bidSubmitted===true or via JS after AJAX -->
+      <?php if ($myBid): ?>
+      <!-- EXISTING BID PANEL -->
+      <div style="background:var(--ivory-card);border:1.5px solid var(--gold);border-radius:var(--radius-md);padding:24px;margin-bottom:20px;">
+        <div style="font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--gold);margin-bottom:12px;">Your Active Proposal</div>
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:.875rem;margin-bottom:16px;">
+          <div style="display:flex;justify-content:space-between;">
+            <span class="text-muted">Bid Amount</span>
+            <span class="font-mono font-bold">$<?= number_format((float) $myBid['total_bid_amount']) ?></span>
+          </div>
+          <div style="display:flex;justify-content:space-between;">
+            <span class="text-muted">Status</span>
+            <span class="font-bold"><?= ucfirst($myBid['status'] ?? 'pending') ?></span>
+          </div>
+          <?php if (!empty($myBid['submitted_at'])): ?>
+          <div style="display:flex;justify-content:space-between;">
+            <span class="text-muted">Submitted</span>
+            <span class="font-mono"><?= date('M j, Y', strtotime($myBid['submitted_at'])) ?></span>
+          </div>
+          <?php endif; ?>
+        </div>
+        <a href="/jobs/<?= $jobId ?>/bid/<?= (int) $myBid['id'] ?>" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;">Edit / View Proposal →</a>
+      </div>
+      <?php elseif ($canBid): ?>
+      <!-- PLACE BID PANEL -->
+      <div style="background:var(--ivory-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:24px;margin-bottom:20px;">
+        <div style="font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--ink-muted);margin-bottom:16px;">Submit Your Proposal</div>
+        <p style="font-size:.8125rem;color:var(--ink-muted);margin-bottom:16px;">
+          <?= $bidCount ?> proposal<?= $bidCount !== 1 ? 's' : '' ?> submitted so far.
+          <?php if ($ndaRequired): ?>
+          NDA auto-generated on shortlisting.
+          <?php endif; ?>
+        </p>
+        <a href="/jobs/<?= $jobId ?>/bid" class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:10px;">
+          ✦ Submit a Proposal
+        </a>
+        <button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;" onclick="copyLink()">
+          🔗 <span id="copied-msg">Share This Job</span>
+        </button>
+      </div>
+      <?php else: ?>
+      <!-- BLOCKED PANEL -->
+      <div style="background:var(--ivory-deep);border:1px solid var(--border);border-radius:var(--radius-md);padding:24px;margin-bottom:20px;text-align:center;">
+        <div style="font-size:1.5rem;margin-bottom:10px;">🔒</div>
+        <div style="font-weight:700;margin-bottom:6px;font-size:.9375rem;">Cannot Submit Proposal</div>
+        <?php if ($blockReason): ?>
+        <p class="text-sm text-muted"><?= htmlspecialchars($blockReason) ?></p>
+        <?php endif; ?>
+      </div>
+      <?php endif; ?>
+
+
+      <div class="client-mini mt-16">
+        <div style="font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--ink-muted);margin-bottom:12px;font-family:var(--font-body);">Client Quick Stats</div>
+        <div class="client-mini-stat">
+          <span class="text-muted">Completed Projects</span>
+          <span class="font-mono font-bold"><?= $clientStats['completed_projects'] ?></span>
+        </div>
+        <div class="client-mini-stat">
+          <span class="text-muted">Payment Reliability</span>
+          <span class="font-mono font-bold" style="color:var(--sage);"><?= $clientStats['payment_reliability'] ?></span>
+        </div>
+        <div class="client-mini-stat">
+          <span class="text-muted">Avg. Approval Time</span>
+          <span class="font-mono font-bold" style="color:var(--sage);"><?= $clientStats['avg_approval_h'] ?>h</span>
+        </div>
+        <div class="client-mini-stat">
+          <span class="text-muted">Dispute Rate</span>
+          <span class="font-mono"><?= $clientStats['dispute_rate'] ?></span>
+        </div>
+        <a href="/<?= htmlspecialchars($clientSlug) ?>" style="display:block;text-align:center;margin-top:12px;font-size:.8125rem;color:var(--gold);">View full client profile →</a>
+      </div>
+
+      <?php if (!empty($similarJobs)): ?>
+      <!-- SIMILAR JOBS -->
+      <div style="margin-top:24px;">
+        <div style="font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--ink-muted);margin-bottom:12px;">Similar Projects</div>
+        <?php foreach ($similarJobs as $sj): ?>
+        <a href="/jobs/<?= (int) $sj['id'] ?>" style="display:block;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--ivory-card);margin-bottom:8px;text-decoration:none;color:var(--ink);">
+          <div style="font-weight:600;font-size:.875rem;margin-bottom:4px;"><?= htmlspecialchars($sj['title'] ?? '') ?></div>
+          <div style="display:flex;gap:10px;font-size:.75rem;color:var(--ink-muted);">
+            <span class="font-mono">$<?= number_format((float) ($sj['total_budget'] ?? 0)) ?></span>
+            <span>·</span>
+            <span><?= htmlspecialchars($sj['niche'] ?? '') ?></span>
+          </div>
+        </a>
+        <?php endforeach; ?>
+      </div>
+      <?php endif; ?>
+
+    </div>
+
+  </div>
+</div>
+
+
+<?php if (!empty($bidJustSubmitted)): ?>
+<div id="success-modal" class="modal-backdrop">
+<?php else: ?>
 <div id="success-modal" class="modal-backdrop hidden">
+<?php endif; ?>
   <div class="modal modal-sm" style="text-align:center;">
     <div class="modal-body" style="padding:48px 32px;">
       <div style="font-size:3rem;margin-bottom:20px;">✦</div>
       <h3 style="margin-bottom:10px;">Proposal Submitted</h3>
-      <p class="text-sm text-muted mb-8">Your proposal for <strong>MENA Expansion — Cross-Border Contract Review</strong> has been sent to FinCorp Egypt.</p>
-      <p class="text-sm text-muted mb-24">You'll be notified when they review it. If shortlisted, an NDA will be sent for your signature before the full brief is shared.</p>
-      <!-- PHP: <span class="font-mono text-xs text-muted">Proposal Ref: BID-<?= $newBid['id'] ?></span> -->
-      <span class="font-mono text-xs text-muted" id="bid-ref">Proposal Ref: BID-NX-4821-DR</span>
+      <p class="text-sm text-muted mb-8">Your proposal for <strong><?= $jobTitle ?></strong> has been sent to <?= $clientOrg ?>.</p>
+      <p class="text-sm text-muted mb-24">You'll be notified when they review it.
+        <?php if ($ndaRequired): ?>
+        If shortlisted, an NDA will be sent for your signature before the full brief is shared.
+        <?php endif; ?>
+      </p>
+      <?php if ($myBid && !empty($myBid['id'])): ?>
+      <span class="font-mono text-xs text-muted" id="bid-ref">
+        Proposal Ref: BID-NX-<?= str_pad((int) $myBid['id'], 4, '0', STR_PAD_LEFT) ?>
+      </span>
+      <?php endif; ?>
       <div style="display:flex;flex-direction:column;gap:10px;margin-top:24px;">
         <a href="/dashboard" class="btn btn-primary" style="justify-content:center;">Back to Dashboard</a>
-        <button class="btn btn-outline" style="justify-content:center;" onclick="document.getElementById('success-modal').classList.add('hidden')">View Proposal Details</button>
+        <button class="btn btn-outline" style="justify-content:center;"
+          onclick="document.getElementById('success-modal').classList.add('hidden')">View Proposal Details</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- DRAFT SAVED TOAST -->
 <div class="toast-stack" id="toast-stack"></div>
 
 <script>
-/* ─── DROPDOWN TOGGLE ─── */
-function toggleDD() {
-  document.getElementById('user-dd').classList.toggle('hidden');
-}
+
+const JOB_ID    = <?= json_encode($jobId) ?>;
+const JOB_TITLE = <?= json_encode($jobTitle) ?>;
+
+
+function toggleDD() { document.getElementById('user-dd').classList.toggle('hidden'); }
 document.addEventListener('click', e => {
   if (!e.target.closest('.dropdown')) document.getElementById('user-dd')?.classList.add('hidden');
 });
 
-/* ─── TAB SWITCHING ─── */
+
 function switchTab(i) {
-  document.querySelectorAll('.tabs .tab-item').forEach((t,j) => t.classList.toggle('active', i===j));
-  ['tab-0','tab-1','tab-2','tab-3',].forEach((id,j) => {
+  document.querySelectorAll('.tabs .tab-item').forEach((t, j) => t.classList.toggle('active', i === j));
+  ['tab-0', 'tab-1', 'tab-2', 'tab-3'].forEach((id, j) => {
     const el = document.getElementById(id);
-    if(el) el.classList.toggle('hidden', i!==j);
+    if (el) el.classList.toggle('hidden', i !== j);
   });
 }
 
-/* ─── BID PANEL STEPS ─── */
-function setBidStep(i) {
-  ['bpanel-0','bpanel-1','bpanel-2','bpanel-3'].forEach((id,j) => {
-    const el = document.getElementById(id);
-    if(el) el.classList.toggle('active', i===j);
-  });
-  ['bstep-0','bstep-1','bstep-2','bstep-3'].forEach((id,j) => {
-    const el = document.getElementById(id);
-    if(!el) return;
-    el.classList.remove('active','done');
-    if(j < i) el.classList.add('done');
-    else if(j === i) el.classList.add('active');
-  });
-  // Update summary panel
-  document.getElementById('summary-budget').textContent = document.getElementById('bid-total')?.value ? '$'+Number(document.getElementById('bid-total').value).toLocaleString() : '—';
-  document.getElementById('summary-delivery').textContent = document.getElementById('bid-delivery')?.value || '—';
-  const files = document.querySelectorAll('#prop-files .uploaded-file-row');
-  document.getElementById('summary-attach').textContent = files.length ? files.length+' file(s)' : 'None';
-}
 
-/* ─── CHAR COUNTER ─── */
-function countChars(el, max, id) {
-  const n = el.value.length;
-  const c = document.getElementById(id);
-  if(!c) return;
-  c.textContent = `${n} / ${max}`;
-  c.className = 'char-counter' + (n > max ? ' over' : n > max * .9 ? ' warn' : '');
-}
-
-/* ─── BID STEP VALIDATION ─── */
-function validateBidStep0() {
-  const txt = document.getElementById('proposal-text');
-  if(!txt || txt.value.trim().length < 80) {
-    txt?.classList.add('input-invalid');
-    showToast('Please write a proposal message of at least 80 characters.', 'warn');
-    txt?.focus();
-    return;
-  }
-  txt.classList.remove('input-invalid');
-  setBidStep(1);
-}
-function validateBidStep1() {
-  const amt = document.getElementById('bid-total');
-  if(!amt || !amt.value || Number(amt.value) < 500) {
-    amt?.classList.add('input-invalid');
-    showToast('Please enter a valid bid amount.', 'warn');
-    amt?.focus();
-    return;
-  }
-  amt.classList.remove('input-invalid');
-  setBidStep(2);
-}
-
-/* ─── BID AMOUNT LIVE DISPLAY ─── */
-function updateBidCalc() {
-  const val = document.getElementById('bid-total')?.value;
-  document.getElementById('bid-display').textContent = val ? '$'+Number(val).toLocaleString() : '—';
-}
-
-/* ─── MILESTONE MODE ─── */
-function toggleMsMode(mode) {
-  document.getElementById('ms-accept-view').style.display = mode === 'accept' ? '' : 'none';
-  document.getElementById('ms-propose-view').style.display = mode === 'propose' ? '' : 'none';
-  document.getElementById('ms-accept-btn').style.borderColor = mode==='accept'?'var(--gold)':'var(--border)';
-  document.getElementById('ms-accept-btn').style.background = mode==='accept'?'var(--gold-pale)':'';
-  document.getElementById('ms-propose-btn').style.borderColor = mode==='propose'?'var(--gold)':'var(--border)';
-  document.getElementById('ms-propose-btn').style.background = mode==='propose'?'var(--gold-pale)':'';
-}
-
-let propMsCount = 1;
-function addProposedMs() {
-  propMsCount++;
-  const list = document.getElementById('proposed-ms-list');
-  const d = document.createElement('div');
-  d.style.cssText = 'display:grid;grid-template-columns:1fr 80px 90px auto;gap:8px;margin-bottom:8px;align-items:center;';
-  d.innerHTML = `<input type="text" class="form-control" placeholder="Milestone name" style="font-size:.8125rem;"><input type="text" class="form-control" placeholder="e.g. 14d" style="font-size:.8125rem;"><div style="position:relative;"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-family:var(--font-mono);font-size:.8125rem;color:var(--ink-muted);">$</span><input type="number" class="form-control" style="padding-left:22px;font-size:.8125rem;" oninput="recalcProposed()"></div><button class="btn btn-ghost btn-icon" style="color:var(--rust);font-size:.875rem;" onclick="this.closest('div').remove();recalcProposed()">🗑</button>`;
-  list.appendChild(d);
-}
-function recalcProposed() {
-  const vals = Array.from(document.querySelectorAll('#proposed-ms-list input[type="number"]')).map(i => parseFloat(i.value)||0);
-  const t = vals.reduce((a,b)=>a+b,0);
-  document.getElementById('proposed-total').textContent = '$'+t.toLocaleString();
-}
-
-/* ─── FILE UPLOADS ─── */
-function handlePropFiles(input) {
-  const target = document.getElementById('prop-files');
-  Array.from(input.files).forEach(f => {
-    const size = f.size > 1048576 ? (f.size/1048576).toFixed(1)+' MB' : (f.size/1024).toFixed(0)+' KB';
-    const row = document.createElement('div');
-    row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--ivory-card);margin-top:6px;font-size:.8125rem;';
-    row.innerHTML = `<span>📄</span><span style="flex:1;font-weight:600;">${f.name}</span><span style="color:var(--ink-muted);font-family:var(--font-mono);font-size:.75rem;">${size}</span><button style="background:none;border:none;cursor:pointer;color:var(--rust);font-size:.875rem;" onclick="this.parentNode.remove()">✕</button>`;
-    target.appendChild(row);
-  });
-}
-
-/* ─── SUBMIT BID ─── */
-function submitBid() {
-  if(!document.getElementById('bid-agree')?.checked) {
-    showToast('Please confirm you agree before submitting.', 'warn');
-    return;
-  }
-  // PHP: this button submits the form to POST /jobs/{id}/bid
-  document.getElementById('success-modal').classList.remove('hidden');
-}
-
-/* ─── SAVE DRAFT ─── */
-function saveDraft() {
-  // PHP: AJAX POST /jobs/{id}/bid/draft
-  showToast('Draft saved. You can return to this proposal from your dashboard.');
-}
-
-/* ─── COPY LINK ─── */
 function copyLink() {
-  // PHP: window.location.href is the canonical job URL
-  navigator.clipboard?.writeText(window.location.href).then(()=>{
-    document.getElementById('copied-msg').textContent = 'Link copied!';
-    setTimeout(()=>document.getElementById('copied-msg').textContent='', 2500);
+  navigator.clipboard?.writeText(window.location.href).then(() => {
+    const el = document.getElementById('copied-msg');
+    if (el) {
+      el.textContent = 'Link copied!';
+      setTimeout(() => el.textContent = 'Share This Job', 2500);
+    }
   });
 }
 
-/* ─── TOAST ─── */
-function showToast(msg, type) {
+function showToast(msg, type = 'success') {
   const s = document.getElementById('toast-stack');
   const isWarn = type === 'warn';
-  s.innerHTML = `<div class="toast ${isWarn?'warning':'success'}"><span class="toast-icon">${isWarn?'⚠':'✓'}</span><div><div class="toast-title">${isWarn?'Required':'Saved'}</div><div class="toast-body">${msg}</div></div></div>`;
-  setTimeout(()=>s.innerHTML='', 4000);
+  s.innerHTML = `<div class="toast ${isWarn ? 'warning' : 'success'}"><span class="toast-icon">${isWarn ? '⚠' : '✓'}</span><div><div class="toast-title">${isWarn ? 'Required' : 'Done'}</div><div class="toast-body">${msg}</div></div></div>`;
+  setTimeout(() => s.innerHTML = '', 4000);
 }
-
-/* ─── PROPOSAL TEXT input-invalid class removal ─── */
-document.getElementById('proposal-text')?.addEventListener('input', function() {
-  if(this.value.length >= 80) this.classList.remove('input-invalid');
-});
-document.getElementById('bid-total')?.addEventListener('input', function() {
-  if(Number(this.value) >= 500) this.classList.remove('input-invalid');
-});
 </script>
 </body>
 </html>

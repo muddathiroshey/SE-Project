@@ -1,26 +1,5 @@
 <!DOCTYPE html>
-<!--
-    ============================================================
-    NEXUS PLATFORM — Views/Bids/bid-submit.php
-    Template: Bid Submission & Management
-    Role:     specialist (authenticated)
-    Route:    /jobs/{job_id}/bid          POST  → submit new bid
-              /jobs/{job_id}/bid/{bid_id} GET   → view/edit existing bid
-    ============================================================
-    PHP Data contract (from BidController::index / store):
-      $job            — full job record
-      $client         — client + org
-      $milestones     — client's proposed milestones
-      $bid            — null (new) | existing BidRecord
-      $canWithdraw    — bool
-      $withdrawDeadline — Carbon / DateTime (bid_submitted_at + 48h)
-      $hoursRemaining — int
-      $specialist     — authenticated specialist
-      $matchScore     — int 0-100
-      $errors         — validation errors array
-      $old            — old POST values on re-render
-    ============================================================
--->
+
 <?php
 // ── Derived helpers ────────────────────────────────────────────
 $isEdit         = !empty($bid);
@@ -94,9 +73,9 @@ $preFillSlots = is_array($bid['availability_slots'] ?? null)
           <div class="dropdown-menu hidden" id="user-dd">
             <div class="dropdown-item" style="color:var(--ink-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;pointer-events:none;">Specialist Account</div>
             <hr class="dropdown-divider">
-            <a class="dropdown-item" href="#">My Profile</a>
+            <a class="dropdown-item" href="/profile">My Profile</a>
             <a class="dropdown-item" href="/dashboard">Wallet &amp; Escrow</a>
-            <a class="dropdown-item" href="#">Account Settings</a>
+            <a class="dropdown-item" href="/profile/edit">Account Settings</a>
             <hr class="dropdown-divider">
             <form method="post" action="/logout" style="margin:0;"><button class="dropdown-item" type="submit" style="color:var(--rust);width:100%;text-align:left;background:none;border:0;">Sign Out</button></form>
           </div>

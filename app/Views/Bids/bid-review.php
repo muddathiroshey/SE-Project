@@ -75,11 +75,11 @@ function daysAgo(?string $dateStr): string {
         <div class="dropdown-menu hidden" id="user-dd">
           <div class="dropdown-item" style="color:var(--ink-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;pointer-events:none;">Client Account</div>
           <hr class="dropdown-divider">
-          <a class="dropdown-item" href="#">My Profile</a>
+          <a class="dropdown-item" href="/profile">My Profile</a>
           <a class="dropdown-item" href="/dashboard">Wallet &amp; Escrow</a>
-          <a class="dropdown-item" href="#">Account Settings</a>
+          <a class="dropdown-item" href="/profile/edit">Account Settings</a>
           <hr class="dropdown-divider">
-          <a class="dropdown-item" href="/login" style="color:var(--rust);">Sign Out</a>
+          <a class="dropdown-item" href="/logout" style="color:var(--rust);">Sign Out</a>
         </div>
       </div>
     </div>

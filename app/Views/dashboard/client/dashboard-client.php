@@ -79,7 +79,7 @@
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">Support</div>
-      <a class="sidebar-link" href="/messages">
+      <a class="sidebar-link" href="/chat">
         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 1h12a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-3l-4 3v-3H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z"/></svg>
         Messages
       </a>

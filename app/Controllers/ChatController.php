@@ -4,7 +4,6 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Models\Data;
 
-
 class ChatController extends Controller
 {
     private \mysqli $db;
@@ -25,16 +24,13 @@ class ChatController extends Controller
         $with_user_id = (int) ($_GET['with'] ?? 0);
         $project_id   = (int) ($_GET['project'] ?? 0) ?: null;
 
-        // Threads: list of unique conversation partners
-        $threads = $this->getThreads($user_id);
-
-        // Active thread messages
+        $threads  = $this->getThreads($user_id);
         $messages = [];
         $partner  = null;
+
         if ($with_user_id) {
             $messages = $this->getMessages($user_id, $with_user_id, $project_id);
             $partner  = $this->getUserById($with_user_id);
-            // Mark as read
             $this->markRead($user_id, $with_user_id);
         }
 
@@ -44,6 +40,7 @@ class ChatController extends Controller
             'partner'       => $partner,
             'with_user_id'  => $with_user_id,
             'project_id'    => $project_id,
+            'csrf_token'    => $this->generateCsrf(),
         ]);
     }
 
@@ -55,24 +52,54 @@ class ChatController extends Controller
         }
 
         $this->requireAuth();
+        $this->verifyCsrf($_POST['csrf_token'] ?? '');
 
-        $sender_id   = (int)   $_SESSION['user_id'];
-        $receiver_id = (int)   ($_POST['receiver_id'] ?? 0);
+        $sender_id   = (int) $_SESSION['user_id'];
+        $receiver_id = (int) ($_POST['receiver_id'] ?? 0);
         $body        = trim($_POST['body'] ?? '');
-        $project_id  = (int)   ($_POST['project_id']  ?? 0) ?: null;
+        $project_id  = (int) ($_POST['project_id'] ?? 0) ?: null;
 
         if (!$receiver_id || $body === '') {
-            $this->redirect('/chat');
+            http_response_code(400);
+            echo json_encode(['error' => 'Missing receiver or message body.']);
+            exit();
+        }
+
+        // Handle optional file attachment
+        $attachment_path = null;
+        $attachment_name = null;
+        if (!empty($_FILES['attachment']['tmp_name'])) {
+            $upload = $this->storeAttachment($_FILES['attachment']);
+            if ($upload) {
+                $attachment_path = $upload['path'];
+                $attachment_name = $upload['name'];
+            }
         }
 
         $stmt = $this->db->prepare(
-            'INSERT INTO messages (sender_id, receiver_id, project_id, body)
-             VALUES (?, ?, ?, ?)'
+            'INSERT INTO messages (sender_id, receiver_id, project_id, body, attachment_path, attachment_name)
+             VALUES (?, ?, ?, ?, ?, ?)'
         );
-        $stmt->bind_param('iiis', $sender_id, $receiver_id, $project_id, $body);
+        $stmt->bind_param('iiisss', $sender_id, $receiver_id, $project_id, $body, $attachment_path, $attachment_name);
         $stmt->execute();
+        $new_id = (int) $this->db->insert_id;
         $stmt->close();
 
+        // AJAX request: return JSON
+        if ($this->isAjax()) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'id'              => $new_id,
+                'sender_id'       => $sender_id,
+                'body'            => $body,
+                'attachment_path' => $attachment_path,
+                'attachment_name' => $attachment_name,
+                'created_at'      => date('Y-m-d H:i:s'),
+            ]);
+            exit();
+        }
+
+        // Full-page fallback
         $back = '/chat?with=' . $receiver_id;
         if ($project_id) {
             $back .= '&project=' . $project_id;
@@ -80,7 +107,7 @@ class ChatController extends Controller
         $this->redirect($back);
     }
 
-    // ── AJAX GET /chat/messages?with={id} ─────────────────────
+    // ── AJAX GET /chat/poll?with={id}&since={msg_id} ──────────
     public function poll(): void
     {
         $this->requireAuth();
@@ -95,8 +122,12 @@ class ChatController extends Controller
             exit();
         }
 
+        // Mark incoming messages read while we're here
+        $this->markRead($user_id, $with_user_id);
+
         $stmt = $this->db->prepare(
-            'SELECT m.*, u.user_name AS sender_name
+            'SELECT m.id, m.sender_id, m.body, m.attachment_path, m.attachment_name, m.created_at,
+                    u.user_name AS sender_name
              FROM messages m
              JOIN userData u ON u.id = m.sender_id
              WHERE ((m.sender_id = ? AND m.receiver_id = ?)
@@ -118,28 +149,37 @@ class ChatController extends Controller
 
     private function getThreads(int $user_id): array
     {
+        // Use a subquery to get the actual latest message body (not MAX of all bodies)
         $stmt = $this->db->prepare(
             "SELECT
-                partner_id,
-                MAX(id)          AS last_msg_id,
-                MAX(created_at)  AS last_at,
-                SUM(unread)      AS unread_count,
-                MAX(body_preview) AS preview,
-                MAX(partner_name) AS partner_name
+                t.partner_id,
+                t.last_msg_id,
+                t.last_at,
+                t.unread_count,
+                t.partner_name,
+                m.body AS preview
              FROM (
                 SELECT
-                    CASE WHEN sender_id = ? THEN receiver_id ELSE sender_id END AS partner_id,
-                    id,
-                    created_at,
-                    (is_read = 0 AND receiver_id = ?) AS unread,
-                    SUBSTRING(body, 1, 80)             AS body_preview,
-                    u.user_name                        AS partner_name
-                FROM messages m
-                JOIN userData u ON u.id = CASE WHEN m.sender_id = ? THEN m.receiver_id ELSE m.sender_id END
-                WHERE m.sender_id = ? OR m.receiver_id = ?
+                    partner_id,
+                    MAX(id)         AS last_msg_id,
+                    MAX(created_at) AS last_at,
+                    SUM(unread)     AS unread_count,
+                    MAX(partner_name) AS partner_name
+                FROM (
+                    SELECT
+                        CASE WHEN sender_id = ? THEN receiver_id ELSE sender_id END AS partner_id,
+                        id,
+                        created_at,
+                        (is_read = 0 AND receiver_id = ?) AS unread,
+                        u.user_name AS partner_name
+                    FROM messages msg
+                    JOIN userData u ON u.id = CASE WHEN msg.sender_id = ? THEN msg.receiver_id ELSE msg.sender_id END
+                    WHERE msg.sender_id = ? OR msg.receiver_id = ?
+                ) inner_t
+                GROUP BY partner_id
              ) t
-             GROUP BY partner_id
-             ORDER BY last_at DESC"
+             JOIN messages m ON m.id = t.last_msg_id
+             ORDER BY t.last_at DESC"
         );
         $stmt->bind_param('iiiii', $user_id, $user_id, $user_id, $user_id, $user_id);
         $stmt->execute();
@@ -152,7 +192,8 @@ class ChatController extends Controller
     {
         if ($project_id) {
             $stmt = $this->db->prepare(
-                'SELECT m.*, u.user_name AS sender_name
+                'SELECT m.id, m.sender_id, m.body, m.attachment_path, m.attachment_name, m.created_at,
+                        u.user_name AS sender_name
                  FROM messages m
                  JOIN userData u ON u.id = m.sender_id
                  WHERE m.project_id = ?
@@ -162,7 +203,8 @@ class ChatController extends Controller
             $stmt->bind_param('iiiii', $project_id, $user_id, $partner_id, $user_id, $partner_id);
         } else {
             $stmt = $this->db->prepare(
-                'SELECT m.*, u.user_name AS sender_name
+                'SELECT m.id, m.sender_id, m.body, m.attachment_path, m.attachment_name, m.created_at,
+                        u.user_name AS sender_name
                  FROM messages m
                  JOIN userData u ON u.id = m.sender_id
                  WHERE (m.sender_id = ? AND m.receiver_id = ?)
@@ -199,5 +241,74 @@ class ChatController extends Controller
         $row = $stmt->get_result()->fetch_assoc() ?: null;
         $stmt->close();
         return $row;
+    }
+
+    private function storeAttachment(array $file): ?array
+    {
+        $allowed_mime = [
+            'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'text/plain',
+            'application/zip',
+        ];
+
+        $max_bytes = 10 * 1024 * 1024; // 10 MB
+
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            return null;
+        }
+        if ($file['size'] > $max_bytes) {
+            return null;
+        }
+
+        $mime = mime_content_type($file['tmp_name']);
+        if (!in_array($mime, $allowed_mime, true)) {
+            return null;
+        }
+
+        $ext      = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $safe_ext = preg_replace('/[^a-zA-Z0-9]/', '', $ext);
+        $filename = bin2hex(random_bytes(16)) . ($safe_ext ? '.' . $safe_ext : '');
+        $dir      = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/uploads/chat/';
+
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        $dest = $dir . $filename;
+        if (!move_uploaded_file($file['tmp_name'], $dest)) {
+            return null;
+        }
+
+        return [
+            'path' => '/uploads/chat/' . $filename,
+            'name' => htmlspecialchars($file['name'], ENT_QUOTES, 'UTF-8'),
+        ];
+    }
+
+    private function isAjax(): bool
+    {
+        return (($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'XMLHttpRequest')
+            || (($_SERVER['HTTP_ACCEPT'] ?? '') === 'application/json');
+    }
+
+    private function generateCsrf(): string
+    {
+        if (empty($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
+        return $_SESSION['csrf_token'];
+    }
+
+    private function verifyCsrf(string $token): void
+    {
+        if (!hash_equals($_SESSION['csrf_token'] ?? '', $token)) {
+            http_response_code(403);
+            exit('Invalid CSRF token.');
+        }
     }
 }
