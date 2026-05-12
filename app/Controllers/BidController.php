@@ -552,7 +552,7 @@ class BidController extends Controller
         return $errors;
     }
 
-    private function availabilityPayload(array|string $slots): string
+    public function availabilityPayload(array|string $slots): string
     {
         if (is_array($slots)) {
             return json_encode(array_values(array_filter($slots)), JSON_UNESCAPED_UNICODE) ?: '[]';
