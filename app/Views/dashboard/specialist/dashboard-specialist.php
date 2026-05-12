@@ -1,20 +1,5 @@
 <?php
-/**
- * Views/dashboard/specialist/dashboard-specialist.php
- * Injected by DashboardController::buildSpecialistDashboard()
- *
- * $specialist            — userData row
- * $specialist_profile    — specialistProfiles row
- * $wallet_summary        — [cleared, pending, ytd, lifetime, this_month, last_month]
- * $wallet                — wallets row
- * $bid_stats             — [total, active, accepted, rejected, withdrawn, acceptance_rate]
- * $active_proposals      — bids[] with job_title, client_name, milestones_count
- * $nearest_milestone     — project_milestones row (or null)
- * $matched_jobs          — project_postings[] with client info + bid_count
- * $matched_jobs_count    — int
- * $active_projects_count — int
- * $unread_messages       — int
- */
+
 
 $user_name   = htmlspecialchars($specialist['user_name'] ?? 'there');
 $initials    = strtoupper(substr($specialist['user_name'] ?? 'SP', 0, 2));

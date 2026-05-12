@@ -24,7 +24,7 @@ class NotificationController extends Controller
         $notifications = $this->notif->getForUser($user_id);
         $unread_count  = $this->notif->countUnread($user_id);
 
-        $this->view('notifications', [
+        $this->view('notifications/notifications', [
             'notifications' => $notifications,
             'unread_count'  => $unread_count,
         ]);
