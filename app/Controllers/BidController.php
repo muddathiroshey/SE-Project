@@ -526,7 +526,7 @@ class BidController extends Controller
         }
     }
 
-    private function validateBid(array $post): array
+    public function validateBid(array $post): array
     {
         $errors = [];
 
