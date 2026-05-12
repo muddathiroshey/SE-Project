@@ -150,37 +150,41 @@ class ChatController extends Controller
     private function getThreads(int $user_id): array
     {
         // Use a subquery to get the actual latest message body (not MAX of all bodies)
-        $stmt = $this->db->prepare(
-            "SELECT
-                t.partner_id,
-                t.last_msg_id,
-                t.last_at,
-                t.unread_count,
-                t.partner_name,
-                m.body AS preview
-             FROM (
-                SELECT
-                    partner_id,
-                    MAX(id)         AS last_msg_id,
-                    MAX(created_at) AS last_at,
-                    SUM(unread)     AS unread_count,
-                    MAX(partner_name) AS partner_name
-                FROM (
-                    SELECT
-                        CASE WHEN sender_id = ? THEN receiver_id ELSE sender_id END AS partner_id,
-                        id,
-                        created_at,
-                        (is_read = 0 AND receiver_id = ?) AS unread,
-                        u.user_name AS partner_name
-                    FROM messages msg
-                    JOIN userData u ON u.id = CASE WHEN msg.sender_id = ? THEN msg.receiver_id ELSE msg.sender_id END
-                    WHERE msg.sender_id = ? OR msg.receiver_id = ?
-                ) inner_t
-                GROUP BY partner_id
-             ) t
-             JOIN messages m ON m.id = t.last_msg_id
-             ORDER BY t.last_at DESC"
-        );
+$stmt = $this->db->prepare(
+    "SELECT
+        t.partner_id,
+        t.last_msg_id,
+        t.last_at,
+        t.unread_count,
+        t.partner_name,
+        m.body AS preview
+     FROM (
+        SELECT
+            partner_id,
+            MAX(id)             AS last_msg_id,
+            MAX(created_at)     AS last_at,
+            SUM(unread)         AS unread_count,
+            MAX(partner_name)   AS partner_name
+        FROM (
+            SELECT
+                CASE WHEN msg.sender_id = ? THEN msg.receiver_id ELSE msg.sender_id END AS partner_id,
+                msg.id,
+                msg.created_at,
+                (msg.is_read = 0 AND msg.receiver_id = ?) AS unread,
+                u.user_name AS partner_name
+            FROM messages msg
+            JOIN userData u 
+                ON u.id = CASE 
+                            WHEN msg.sender_id = ? THEN msg.receiver_id 
+                            ELSE msg.sender_id 
+                          END
+            WHERE msg.sender_id = ? OR msg.receiver_id = ?
+        ) inner_t
+        GROUP BY partner_id
+     ) t
+     JOIN messages m ON m.id = t.last_msg_id
+     ORDER BY t.last_at DESC"
+);
         $stmt->bind_param('iiiii', $user_id, $user_id, $user_id, $user_id, $user_id);
         $stmt->execute();
         $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
